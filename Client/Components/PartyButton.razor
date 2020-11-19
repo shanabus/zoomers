@@ -1,0 +1,49 @@
+@using ZoomersClient.Shared.Models.Enums
+
+<div class="party-icon @Class" @onclick="OnClickCallback">
+    @switch(Icon)
+    {
+        case PartyIcon.Girl:
+            <span>👧</span>
+        break;
+        case PartyIcon.Boy:
+            <span>👱</span>
+        break;
+        case PartyIcon.Grandma:
+            <span>👵</span>
+        break;
+        case PartyIcon.Grandpa:
+            <span>👴</span>
+        break;
+        case PartyIcon.Scientist:
+            <span>👩‍🔬</span>
+        break;
+        case PartyIcon.Zombie:
+            <span>🧟</span>
+        break;
+        case PartyIcon.Cat:
+            <span>🐱</span>
+        break;
+        case PartyIcon.Dog:
+            <span>🐶</span>
+        break;
+        case PartyIcon.Family:
+            <span>👨‍👨‍👧</span>
+        break;
+        default:
+            <span>x</span>
+        break;
+    }
+</div>
+
+
+@code {
+    [Parameter]
+    public PartyIcon Icon { get; set;}
+    
+    [Parameter]
+    public string Class { get; set;}
+    
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClickCallback { get; set; }
+}

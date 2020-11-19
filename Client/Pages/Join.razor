@@ -1,0 +1,135 @@
+@page "/join"
+@using Microsoft.AspNetCore.SignalR.Client
+@using ZoomersClient.Client.Components
+@using ZoomersClient.Shared.Models.Enums
+@inject NavigationManager NavigationManager
+@implements IAsyncDisposable
+
+<div class="row">
+    <div class="col-4">
+        <PartyButton Icon="@Party[0]" Class="@IsSelected(0)" OnClickCallback="@(e => ClickRemovePartyIcon(e, 0))"></PartyButton>
+    </div>
+    <div class="col-4">
+        <PartyButton Icon="@Party[1]" Class="@IsSelected(1)" OnClickCallback="@(e => ClickRemovePartyIcon(e, 1))"></PartyButton>         
+    </div>
+    <div class="col-4">
+        <PartyButton Icon="@Party[2]" Class="@IsSelected(2)" OnClickCallback="@(e => ClickRemovePartyIcon(e, 2))"></PartyButton>
+    </div>
+</div>
+
+<hr class="my-4" />
+
+@if(ShowPartIcons) {
+    <div class="row">
+        <div class="col-4">                  
+            <PartyButton Icon="PartyIcon.Girl" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Girl))"></PartyButton>
+        </div>
+        <div class="col-4">
+            <PartyButton Icon="PartyIcon.Boy" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Boy))"></PartyButton>         
+        </div>
+        <div class="col-4">
+            <PartyButton Icon="PartyIcon.Grandma" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Grandma))"></PartyButton>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-4">
+            <PartyButton Icon="PartyIcon.Scientist" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Scientist))"></PartyButton>            
+        </div>
+        <div class="col-4">
+            <PartyButton Icon="PartyIcon.Cat" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Cat))"></PartyButton>          
+        </div>
+        <div class="col-4">
+            <PartyButton Icon="PartyIcon.Grandpa" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Grandpa))"></PartyButton>          
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-4">
+            <PartyButton Icon="PartyIcon.Dog" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Dog))"></PartyButton>         
+        </div>
+        <div class="col-4">
+            <PartyButton Icon="PartyIcon.Zombie" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Zombie))"></PartyButton>
+        </div>
+        <div class="col-4">
+            <PartyButton Icon="PartyIcon.Family" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Family))"></PartyButton>
+        </div>
+    </div>
+}
+
+<div class="row mt-4">
+    <div class="col">
+        <button class="btn btn-lg btn-success w-100" disabled="@(!IsConnected || !PartyIsValid)">JOIN PARTY</button>
+    </div>
+</div>
+
+@code {
+    
+    private HubConnection hubConnection;
+
+    public string Username { get; set;}
+    
+    public List<PartyIcon> Party { get; set;}
+
+    public int IconIndex { get; set;}
+
+    public bool ShowPartIcons { get; set;}
+    public bool PartyIsValid => Party.All(x => x != PartyIcon.None);
+    
+    protected override async Task OnInitializedAsync()
+    {
+        Party = new List<PartyIcon>();
+        Party.Add(PartyIcon.None);
+        Party.Add(PartyIcon.None);
+        Party.Add(PartyIcon.None);
+
+        ShowPartIcons = true;
+
+        // connect to hub
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/gamehub"))
+            .Build();
+
+        // subscribe to other things
+        hubConnection.On<List<string>>("PlayerJoined", (players) => {
+            // Players = players;
+        });
+
+        // start hub
+        await hubConnection.StartAsync();
+
+        // load previous user from Username / cookies
+        
+        // maybe check if they were supposed to already be in an active game?
+    }
+
+    private string IsSelected(int index)
+    {
+        if (IconIndex == index && Party.Any(x => x == PartyIcon.None))
+        {
+            return "selected";
+        }
+        return "";
+    }
+
+    private void ClickPartyIcon(MouseEventArgs e, PartyIcon icon) 
+    {        
+        Party[IconIndex] = icon;
+        IconIndex = (IconIndex + 1) % 3;
+        StateHasChanged();
+    }
+
+    private void ClickRemovePartyIcon(MouseEventArgs eventArgs, int index)
+    {
+        Party[index] = PartyIcon.None;
+        IconIndex = index;
+        StateHasChanged();
+    }  
+
+    public bool IsConnected =>
+        hubConnection.State == HubConnectionState.Connected;
+
+    public async ValueTask DisposeAsync()
+    {
+        await hubConnection.DisposeAsync();
+    }
+
+}

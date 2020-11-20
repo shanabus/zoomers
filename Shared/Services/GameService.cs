@@ -24,7 +24,7 @@ namespace ZoomersClient.Shared.Services
 
         public Game FindGame(List<PartyIcon> party)
         {
-            Console.WriteLine($"{party.Count()} items found. Checking {Games.Count()}");
+            // Console.WriteLine($"{party.Count()} items found. Checking {Games.Count()}");
 
             var game = Games.FirstOrDefault(x => x.Party[0] == party[0] && x.Party[1] == party[1] && x.Party[2] == party[2]);
 
@@ -43,6 +43,16 @@ namespace ZoomersClient.Shared.Services
             if (game != null)
             {
                 game.Players.Add(player);
+            }
+        }
+
+        public void UpdateConnectionId(Guid id, string connectionId)
+        {
+            var game = Games.FirstOrDefault(x => x.Id == id);
+
+            if (game != null)
+            {
+                game.ConnectionId = connectionId;
             }
         }
 

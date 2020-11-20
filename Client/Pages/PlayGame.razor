@@ -2,6 +2,8 @@
 @inject HttpClient Http
 @using ZoomersClient.Shared.Models
 @using ZoomersClient.Client.Components
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NavigationManager
 
 @if (Game != null) {
     <div class="row">
@@ -25,7 +27,7 @@
         }
     </div>
 } else {
-    <h1>Could not load game...</h1>
+    <h1>Load game...</h1>
 }
 
 @code {
@@ -36,6 +38,8 @@
 
     public List<Player> Players { get; set;}
 
+    private HubConnection hubConnection;
+
     protected override async Task OnInitializedAsync()
     {
         base.OnInitialized();
@@ -43,5 +47,30 @@
         Players = new List<Player>();
 
         Game = await Http.GetFromJsonAsync<Game>($"Games/{Id}");
+
+        // connect to hub
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/gamehub"))
+            .Build();
+
+             // subscribe to other things
+        hubConnection.On<Game>("PlayersUpdated", (game) => {
+            Console.WriteLine("A player has joined!");
+            Players = game.Players;
+            StateHasChanged();
+        });
+
+        // start hub
+        await hubConnection.StartAsync();
+
+        await hubConnection.SendAsync("Subscribe", Id);
+    }
+
+    public bool IsConnected =>
+        hubConnection.State == HubConnectionState.Connected;
+
+    public async ValueTask DisposeAsync()
+    {
+        await hubConnection.DisposeAsync();
     }
 }

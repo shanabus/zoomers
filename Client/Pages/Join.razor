@@ -8,11 +8,11 @@
 
 @implements IAsyncDisposable
 
-<div class="row">
+@* <div class="row">
     <div class="col">
         <input class="form-control w-100" @bind="Username" />
     </div>
-</div>
+</div> *@
 
 <div class="row">
     <div class="col-4">
@@ -87,7 +87,7 @@
     public int IconIndex { get; set;}
 
     public bool ShowPartIcons { get; set;}
-    public bool PartyIsValid => Party.All(x => x != PartyIcon.None) && !string.IsNullOrEmpty(Username);
+    public bool PartyIsValid => Party.All(x => x != PartyIcon.None); // && !string.IsNullOrEmpty(Username);
     
     public string GameStatus { get; set;}
 
@@ -154,9 +154,11 @@
     {
         GameStatus = "Checking game servers";
 
-        await hubConnection.SendAsync("JoinTheGame", Party, Username);
+        await hubConnection.SendAsync("JoinTheGame", Party, "Ted");
 
         GameStatus = "Waiting for response...";
+        
+        StateHasChanged();
     }
 
     public bool IsConnected =>

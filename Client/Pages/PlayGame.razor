@@ -17,12 +17,12 @@
             </div>
         }
     </div>
-
+    <h1>@Game.Players.Count</h1>
     <div class="row">
-        @foreach(var player in Players)
+        @foreach(var player in Game.Players)
         {
             <div class="col-4">
-                @player.Username
+                <span>@player.ConnId</span>
             </div>
         }
     </div>
@@ -36,17 +36,18 @@
 
     public Game Game { get; set; }
 
-    public List<Player> Players { get; set;}
-
     private HubConnection hubConnection;
 
     protected override async Task OnInitializedAsync()
     {
         base.OnInitialized();
 
-        Players = new List<Player>();
-
         Game = await Http.GetFromJsonAsync<Game>($"Games/{Id}");
+
+        foreach(var player in Game.Players)
+        {
+            Console.WriteLine($"{player.Username} is here");
+        }
 
         // connect to hub
         hubConnection = new HubConnectionBuilder()
@@ -56,7 +57,6 @@
              // subscribe to other things
         hubConnection.On<Game>("PlayersUpdated", (game) => {
             Console.WriteLine("A player has joined!");
-            Players = game.Players;
             StateHasChanged();
         });
 
@@ -66,7 +66,7 @@
         await hubConnection.SendAsync("Subscribe", Id);
     }
 
-    public bool IsConnected =>
+    public bool IsConnected => 
         hubConnection.State == HubConnectionState.Connected;
 
     public async ValueTask DisposeAsync()

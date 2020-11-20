@@ -43,7 +43,7 @@ namespace ZoomersClient.Server.Hubs
                 Console.WriteLine($"Joined game {username}");
                 await Clients.Caller.SendAsync("PlayerJoined", game);
                 
-                var player = new Player(Context.ConnectionId, username);
+                var player = new Player() { ConnId = Context.ConnectionId, Username = username };
                 _gameService.JoinGame(game.Id, player);   
                 Console.WriteLine($"Found game {game.ConnectionId} to update with {game.Players.Count} players");
 
@@ -53,7 +53,7 @@ namespace ZoomersClient.Server.Hubs
 
         public void Subscribe(Guid id)
         {
-            Console.WriteLine("Joined sub");
+            Console.WriteLine("Joined sub"); 
             _gameService.UpdateConnectionId(id, Context.ConnectionId);
         }
     }

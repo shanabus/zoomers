@@ -19,6 +19,11 @@ namespace ZoomersClient.Shared.Services
         {
             var game = Games.FirstOrDefault(x => x.Id == id);
 
+            foreach(var player in game.Players)
+            {
+                Console.WriteLine(player.Username + " still found!");
+            }
+
             return game; 
         }
 
@@ -43,6 +48,7 @@ namespace ZoomersClient.Shared.Services
             if (game != null)
             {
                 game.Players.Add(player);
+                Console.WriteLine(player.Username + " just Add()");
             }
         }
 

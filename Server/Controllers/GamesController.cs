@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using ZoomersClient.Shared;
 using ZoomersClient.Shared.Services;
 using ZoomersClient.Shared.Models;
+using System.Linq;
 
 namespace ZoomersClient.Server.Controllers
 {
@@ -32,10 +31,29 @@ namespace ZoomersClient.Server.Controllers
         }
 
         [HttpGet("{id}")]
-        public Game GetGame([FromRoute]Guid id)
+        public async Task<IActionResult> GetGame([FromRoute]Guid id)
         {
             var game = _gameService.FindGame(id);
-            return game;
+
+            foreach(var p in game.Players)
+            {
+                _logger.LogInformation("Games has player: " + p.Username);
+            }
+
+            return Ok(game);
+        }
+
+        [HttpGet("{id}/players")]
+        public IEnumerable<string> GetPlayers([FromRoute]Guid id)
+        {
+            var game = _gameService.FindGame(id);
+
+            foreach(var p in game.Players)
+            {
+                _logger.LogInformation("Still has player " + p.Username);
+            }
+
+            return game.Players.Select(x => x.Username);
         }
 
         [HttpPost]

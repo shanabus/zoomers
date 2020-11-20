@@ -41,15 +41,16 @@ namespace ZoomersClient.Shared.Services
             Games.Add(game);
         }
 
-        public void JoinGame(Guid id, Player player)
+        public Game JoinGame(Guid id, Player player)
         {
             var game = Games.FirstOrDefault(x => x.Id == id);
 
             if (game != null)
             {
-                game.Players.Add(player);
-                Console.WriteLine(player.Username + " just Add()");
+                game.Players.Add(player);                
             }
+
+            return game;
         }
 
         public void UpdateConnectionId(Guid id, string connectionId)

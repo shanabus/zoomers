@@ -44,10 +44,10 @@ namespace ZoomersClient.Server.Hubs
                 await Clients.Caller.SendAsync("PlayerJoined", game);
                 
                 var player = new Player() { ConnId = Context.ConnectionId, Username = username };
-                _gameService.JoinGame(game.Id, player);   
-                Console.WriteLine($"Found game {game.ConnectionId} to update with {game.Players.Count} players");
+                 var updatedGame = _gameService.JoinGame(game.Id, player);
 
-                await Clients.All.SendAsync("PlayersUpdated", game);
+                //await Clients.All.SendAsync("PlayersUpdated", updatedGame);
+                await Clients.All.SendAsync("PlayersUpdated", updatedGame.Id);
             }
         }
 

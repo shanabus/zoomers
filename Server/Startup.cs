@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using System.Linq;
 using ZoomersClient.Server.Hubs;
 using ZoomersClient.Server.Services;
+using ZoomersClient.Shared.Services;
 
 namespace ZoomersClient.Server
 {
@@ -33,6 +34,7 @@ namespace ZoomersClient.Server
             });
 
             services.AddSingleton<WordPlay>();
+            services.AddSingleton<GameService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

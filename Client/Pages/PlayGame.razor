@@ -1,0 +1,47 @@
+@page "/game/{id}"
+@inject HttpClient Http
+@using ZoomersClient.Shared.Models
+@using ZoomersClient.Client.Components
+
+@if (Game != null) {
+    <div class="row">
+        <div class="col-9">
+            <h1>@Game.Name</h1>
+        </div>
+        @foreach(var icon in Game.Party)
+        {
+            <div class="col-1">
+                <PartyButton Icon="icon" />
+            </div>
+        }
+    </div>
+
+    <div class="row">
+        @foreach(var player in Players)
+        {
+            <div class="col-4">
+                @player.Username
+            </div>
+        }
+    </div>
+} else {
+    <h1>Could not load game...</h1>
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    public Game Game { get; set; }
+
+    public List<Player> Players { get; set;}
+
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        Players = new List<Player>();
+
+        Game = await Http.GetFromJsonAsync<Game>($"Games/{Id}");
+    }
+}

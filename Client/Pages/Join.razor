@@ -1,9 +1,18 @@
 @page "/join"
 @using Microsoft.AspNetCore.SignalR.Client
 @using ZoomersClient.Client.Components
+@using ZoomersClient.Shared.Models
 @using ZoomersClient.Shared.Models.Enums
 @inject NavigationManager NavigationManager
+@inject ZoomersClient.Shared.Services.GameService GameService
+
 @implements IAsyncDisposable
+
+<div class="row">
+    <div class="col">
+        <input class="form-control w-100" @bind="Username" />
+    </div>
+</div>
 
 <div class="row">
     <div class="col-4">
@@ -57,7 +66,13 @@
 
 <div class="row mt-4">
     <div class="col">
-        <button class="btn btn-lg btn-success w-100" disabled="@(!IsConnected || !PartyIsValid)">JOIN PARTY</button>
+        <button class="btn btn-lg btn-success w-100" @onclick="JoinTheGame" disabled="@(!IsConnected || !PartyIsValid)">JOIN PARTY</button>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col">
+        <label>@GameStatus</label>
     </div>
 </div>
 
@@ -72,14 +87,18 @@
     public int IconIndex { get; set;}
 
     public bool ShowPartIcons { get; set;}
-    public bool PartyIsValid => Party.All(x => x != PartyIcon.None);
+    public bool PartyIsValid => Party.All(x => x != PartyIcon.None) && !string.IsNullOrEmpty(Username);
     
+    public string GameStatus { get; set;}
+
     protected override async Task OnInitializedAsync()
     {
         Party = new List<PartyIcon>();
         Party.Add(PartyIcon.None);
         Party.Add(PartyIcon.None);
         Party.Add(PartyIcon.None);
+
+        GameStatus = "Enter a valid code";
 
         ShowPartIcons = true;
 
@@ -89,8 +108,15 @@
             .Build();
 
         // subscribe to other things
-        hubConnection.On<List<string>>("PlayerJoined", (players) => {
-            // Players = players;
+        hubConnection.On<Game>("PlayerJoined", (game) => {
+            Console.WriteLine("Game found");
+            GameStatus = $"Welcome to {game.Name} - Waiting for others to start...";
+            StateHasChanged();
+        });
+        hubConnection.On<string>("PlayerJoinedError", (message) => {
+            Console.WriteLine("Game error");
+            GameStatus = $"Error joining - {message}";
+            StateHasChanged();
         });
 
         // start hub
@@ -123,6 +149,15 @@
         IconIndex = index;
         StateHasChanged();
     }  
+
+    private async Task JoinTheGame()
+    {
+        GameStatus = "Checking game servers";
+
+        await hubConnection.SendAsync("JoinTheGame", Party, Username);
+
+        GameStatus = "Waiting for response...";
+    }
 
     public bool IsConnected =>
         hubConnection.State == HubConnectionState.Connected;

@@ -138,10 +138,21 @@ a, .btn-link {
   padding: .4em;
 }
 
-.player-badge span {  
-  color: #fff;
+.player-badge span {    
   font-size: 2rem;
   width: 100%;
   padding: .2em .4em;
-  background: #1D1F20;
+}
+
+#player-lobby .player-icon {
+  width: 60px;
+  height: 60px;
+  font-size: 1.5em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#player-lobby .player-icon span {
+  font-size: 2rem;
+  padding: 0;
 }

@@ -14,11 +14,14 @@
             <h1>Game Name: <u>@Game.Name</u></h1>
 
             <h2>Players in Lobby @Game.Players.Count()</h2>
-            <div class="row">
+            <div class="row" id="player-lobby">
                 @foreach (var player in Game.Players)
                 {
                     <div class="col-4 player-badge mt-4">
-                        <span>@player.Username</span>
+                        <div style="background-color: @player.BackgroundColor">
+                            <PlayerIconButton Icon="@player.Icon"></PlayerIconButton>
+                        </div>
+                        <span>@player.Username</span>                        
                     </div>
                 }
             </div>

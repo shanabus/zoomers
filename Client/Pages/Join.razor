@@ -166,7 +166,7 @@
 
     <div class="row mt-3">
         <div class="col">
-            <button class="btn btn-success w-100" onclick="(e => JoinTheGame())" disabled="@(!IsConnected || !PartyIsValid)">JOIN PARTY</button>
+            <button class="btn btn-success w-100" @onclick="(e => JoinTheGame())" disabled="@(!IsConnected || !PartyIsValid)">JOIN PARTY</button>
         </div>
     </div>
 }
@@ -274,7 +274,7 @@
     {
         GameStatus = "Checking game servers";
 
-        await hubConnection.SendAsync("JoinTheGame", Party, Username);
+        await hubConnection.SendAsync("JoinTheGame", Party, Username, ChosenIcon, BackgroundColor);
 
         GameStatus = "Waiting for response...";
         

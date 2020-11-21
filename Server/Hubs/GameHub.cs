@@ -41,9 +41,7 @@ namespace ZoomersClient.Server.Hubs
                 await Clients.Caller.SendAsync("PlayerJoinedError", "Could not find game");
             }
             else
-            {                
-                await Clients.Caller.SendAsync("PlayerJoined", game);
-                
+            {                   
                 var player = new Player() { 
                     ConnId = Context.ConnectionId, 
                     Username = username,
@@ -51,8 +49,11 @@ namespace ZoomersClient.Server.Hubs
                     BackgroundColor = color    
                 };
                 _logger.LogInformation(player.Username + " connected");
-
+                
                 var updatedGame = _gameService.JoinGame(game.Id, player);
+
+                // let new player know
+                await Clients.Caller.SendAsync("PlayerJoined", game, player);                
 
                 //await Clients.All.SendAsync("PlayersUpdated", updatedGame);
                 await Clients.All.SendAsync("PlayersUpdated", updatedGame, player);

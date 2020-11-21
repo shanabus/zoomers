@@ -1,0 +1,48 @@
+@page "/play/{id}"
+@inject HttpClient Http
+@layout PlayerLayout
+@using Microsoft.AspNetCore.SignalR.Client
+@using ZoomersClient.Client.Components
+@using ZoomersClient.Shared.Models
+@inject NavigationManager NavigationManager
+@implements IAsyncDisposable
+
+@if(Game != null){
+    <h1>@Game.Name</h1>
+}
+else 
+{
+    <LoadingMessage Message="Loading Game..." />
+}
+
+
+
+@code {
+
+    private HubConnection hubConnection;
+    [Parameter]
+    public string Id { get; set; }
+    public Game Game { get; set;}
+
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        Game = await Http.GetFromJsonAsync<Game>($"Games/{Id}");
+            
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/gamehub"))
+            .Build();
+
+        // subscribe to other things
+        //hubConnection.On<Game>("PlayerJoined", (game) => {
+            //    GameStatus = $"Welcome to {game.Name} - Waiting for others to start...";
+          //  StateHasChanged();
+        //});
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await hubConnection.DisposeAsync();
+    }
+}

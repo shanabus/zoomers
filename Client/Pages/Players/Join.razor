@@ -164,11 +164,24 @@
         </div>
     }
 
-    <div class="row mt-3">
-        <div class="col">
-            <button class="btn btn-success w-100" @onclick="(e => JoinTheGame())" disabled="@(!IsConnected || !PartyIsValid)">JOIN PARTY</button>
+    @if(Game == null)
+    {
+        <div class="row mt-3">
+            <div class="col">
+                <button class="btn btn-success w-100" @onclick="(e => JoinTheGame())" disabled="@(!IsConnected || !PartyIsValid)">JOIN PARTY</button>
+            </div>
         </div>
-    </div>
+    } 
+
+    @if(ShowStartButton)
+    {
+        <div class="row mt-3">
+            <div class="col">
+                <button class="btn btn-primary w-100" @onclick="(e => StartGame())">START GAME</button>
+            </div>
+        </div>
+    }
+    
 }
 
 <div class="row mt-4">
@@ -193,6 +206,9 @@
     public bool PartyIsValid => Party.All(x => x != PartyIcon.None);
     
     public string GameStatus { get; set;}
+    public Game Game { get; set; }
+
+    public bool ShowStartButton { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -212,12 +228,26 @@
 
         // subscribe to other things
         hubConnection.On<Game>("PlayerJoined", (game) => {
+            Game = game;
             GameStatus = $"Welcome to {game.Name} - Waiting for others to start...";
+            
             StateHasChanged();
         });
         hubConnection.On<string>("PlayerJoinedError", (message) => {
             GameStatus = $"Error joining - {message}";
             StateHasChanged();
+        });
+        hubConnection.On<Game>("ReadyToStartGame", (game) => {
+            Game = game;
+            if (game.Players.Count() >= 3 && game.Players.First().Username == Username)
+            {
+                ShowStartButton = true;
+            }
+            StateHasChanged();
+        });
+
+        hubConnection.On<Guid>("GameStarted", (id) => {
+            NavigationManager.NavigateTo($"play/{id}");
         });
 
         // start hub
@@ -281,9 +311,12 @@
         StateHasChanged();
     }
 
+    private async Task StartGame() => await hubConnection.SendAsync("StartGame", Game.Id);
+
     public bool IsConnected =>
         hubConnection.State == HubConnectionState.Connected;
 
+    
     public async ValueTask DisposeAsync()
     {
         await hubConnection.DisposeAsync();

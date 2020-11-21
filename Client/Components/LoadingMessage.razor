@@ -1,0 +1,17 @@
+
+<div id="app-splash">
+    <div class="container">
+        <div class="row h-100 align-items-center">
+            <div class="col text-center">
+                <div class="lds-ellipsis mt-4"><div></div><div></div><div></div><div></div></div>
+                <br />
+                @Message
+            </div>
+        </div>                
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Message { get; set; }
+}

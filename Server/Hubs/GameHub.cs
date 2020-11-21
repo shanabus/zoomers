@@ -56,7 +56,23 @@ namespace ZoomersClient.Server.Hubs
 
                 //await Clients.All.SendAsync("PlayersUpdated", updatedGame);
                 await Clients.All.SendAsync("PlayersUpdated", updatedGame);
+
+                if (updatedGame.Players.Count >= 3)
+                {
+                    // send to first player really
+                    await Clients.All.SendAsync("ReadyToStartGame", updatedGame);
+                }
             }
+        }
+
+        public async Task StartGame(Guid id)
+        {
+            // get game, start it (set date?)
+
+            // inform players game has started
+            await Clients.All.SendAsync("GameStarted", id);
+
+            // inform host game has started
         }
 
         public void Subscribe(Guid id)

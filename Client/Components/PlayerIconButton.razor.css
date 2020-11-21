@@ -1,0 +1,8 @@
+.player-icon {
+    font-size: 1.7em;
+    text-align: center;    
+    align-self: center;
+    border: solid #7fbdff 1px;
+    border-radius: 2px;
+    cursor: pointer;
+}

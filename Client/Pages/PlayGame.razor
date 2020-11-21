@@ -10,38 +10,55 @@
 @if (Game != null)
 {
     <div class="row">
-        <div class="col-sm-5">
-            <h1>@Game.Name</h1>
+        <div class="col-sm-6">
+            <h1>Game Name: <u>@Game.Name</u></h1>
+
+            <h2>Players in Lobby @Game.Players.Count()</h2>
+            <div class="row">
+                @foreach (var player in Game.Players)
+                {
+                    <div class="col-4 player-badge mt-4">
+                        <span>@player.Username</span>
+                    </div>
+                }
+            </div>
         </div>
-        <div class="col-sm-7 text-right" id="game-party-icons">
+        <div class="col-sm-6 text-right" id="game-party-icons">
+            <div id="party-connect">
             @foreach (var icon in Game.Party)
             {
                 <PartyButton Icon="icon" />
             }
+                <br />
+                <div class="ml-4">
+                    <img src="@(NavigationManager.BaseUri)Games/@Id/qrcode" />
+                </div>
+            </div>
         </div>
     </div>
-    <h2>Players in Lobby @Players.Count()</h2>
-    <div class="row">
-        @foreach (var player in Players)
-        {
-            <div class="col-3 player-badge mt-4">
-                <span>@player</span>
-            </div>
-            <div class="col-1"></div>
-        }
-    </div>
-    @if(Players.Count() >= 3)
+    
+    @if(Game.Players.Count() >= 3)
     {
         <div class="row mt-4">
-            <div class="col">
-                <h3>Hey <u>@Players.First()</u>, press 'Start' when everybody is in</h3>
+            <div class="col mt-4">
+                <h3>Hey <u>@Game.Players.First().Username</u>, press 'Start' when everybody is in</h3>
             </div>
         </div>
     }
 }
 else
 {
-    <h1>Load game...</h1>
+    <div id="app-splash">
+        <div class="container">
+            <div class="row h-100 align-items-center">
+                <div class="col text-center">
+                    <div class="lds-ellipsis mt-4"><div></div><div></div><div></div><div></div></div>
+                    <br />
+                    Loading Game...
+                </div>
+            </div>                
+        </div>
+    </div>
 }
 
 @code {
@@ -50,8 +67,6 @@ else
 
     public Game Game { get; set; }
 
-    public IEnumerable<string> Players { get; set; }
-
     private HubConnection hubConnection;
 
     protected override async Task OnInitializedAsync()
@@ -59,26 +74,22 @@ else
         base.OnInitialized();
 
         Game = await Http.GetFromJsonAsync<Game>($"Games/{Id}");
-
-        Players = await Http.GetFromJsonAsync<IEnumerable<string>>($"Games/{Id}/players");
-
-        foreach (var player in Game.Players)
-        {
-            Console.WriteLine($"{player.Username} is here");
-        }
-
+        
         // connect to hub
         hubConnection = new HubConnectionBuilder()
             .WithUrl(NavigationManager.ToAbsoluteUri("/gamehub"))
             .Build();
 
         // subscribe to other things
-        hubConnection.On<Guid>("PlayersUpdated", async (id) =>
-        {
-            // why can't we get the Game object here?
-            // await UpdateGame(id);
-            // Game = game;
-            Players = await Http.GetFromJsonAsync<IEnumerable<string>>($"Games/{Id}/players");
+        hubConnection.On<Game>("PlayersUpdated", (game) =>
+        {            
+            Game = game;
+            StateHasChanged();
+        });
+
+        hubConnection.On<Game>("PlayersUpdated", (game) =>
+        {            
+            Game = game;
             StateHasChanged();
         });
 
@@ -86,20 +97,6 @@ else
         await hubConnection.StartAsync();
 
         await hubConnection.SendAsync("Subscribe", Id);
-    }
-
-    private async Task UpdateGame(Guid id)
-    {
-        // Game = await Http.GetFromJsonAsync<Game>($"Games/{id}");
-        var result = await Http.GetAsync($"Games/{id}");
-        var content = await result.Content.ReadAsStringAsync();
-        // Game = System.Text.Json.Serialization.JsonSerializer.Parse<Game>(content);
-
-        foreach (var p in Game.Players)
-        {
-            Console.WriteLine($"Uh.. {p.Username}");
-        }
-        StateHasChanged();
     }
 
     public bool IsConnected =>

@@ -1,0 +1,58 @@
+@using ZoomersClient.Shared.Models.Enums
+
+<div class="player-icon @Class" @onclick="OnClickCallback">
+    @switch(Icon)
+    {
+        case PlayerIcon.Ghost:
+            <span>👻</span>
+        break;
+        case PlayerIcon.Alien:
+            <span>👽</span>
+        break;
+        case PlayerIcon.Vampire:
+            <span>🧛</span>
+        break;
+        case PlayerIcon.Mermaid:
+            <span>🧜‍♀️</span>
+        break;
+        case PlayerIcon.Wizard:
+            <span>🧙🏻</span>
+        break;
+        case PlayerIcon.Octopus:
+            <span>🐙</span>
+        break;
+        case PlayerIcon.PalmTree:
+            <span>🌴</span>
+        break;
+        case PlayerIcon.Turtle:
+            <span>🐢</span>
+        break;
+        case PlayerIcon.Elephant:
+            <span>🐘</span>
+        break;
+        case PlayerIcon.Spider:
+            <span>🕷</span>
+        break;
+        case PlayerIcon.Dragon:
+            <span>🐉</span>
+        break;
+        case PlayerIcon.Tornado:
+            <span>🌪</span>
+        break;
+        default:
+            <span>x</span>
+        break;
+    }
+</div>
+
+
+@code {
+    [Parameter]
+    public PlayerIcon Icon { get; set;}
+    
+    [Parameter]
+    public string Class { get; set;}
+    
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClickCallback { get; set; }
+}

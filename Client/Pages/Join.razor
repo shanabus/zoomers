@@ -5,70 +5,171 @@
 @using ZoomersClient.Shared.Models.Enums
 @inject NavigationManager NavigationManager
 @inject ZoomersClient.Shared.Services.GameService GameService
-
 @implements IAsyncDisposable
 
-<div class="row mb-4">
-    <div class="col">
-        <input class="form-control w-100" @bind="Username" />
+@if(!ShowPartyConnect)
+{
+    <div class="row mb-4">
+        <div class="col-8">
+            <input placeholder="Player name" maxlength="25" class="form-control w-100" @bind="Username" />
+        </div>
+        <div class="col-2 offset-2">
+            <div style="background-color: @BackgroundColor;">
+                <PlayerIconButton Icon="@ChosenIcon" />
+            </div>            
+        </div>
     </div>
-</div>
 
-<div class="row">
-    <div class="col-4">
-        <PartyButton Icon="@Party[0]" Class="@IsSelected(0)" OnClickCallback="@(e => ClickRemovePartyIcon(e, 0))"></PartyButton>
-    </div>
-    <div class="col-4">
-        <PartyButton Icon="@Party[1]" Class="@IsSelected(1)" OnClickCallback="@(e => ClickRemovePartyIcon(e, 1))"></PartyButton>         
-    </div>
-    <div class="col-4">
-        <PartyButton Icon="@Party[2]" Class="@IsSelected(2)" OnClickCallback="@(e => ClickRemovePartyIcon(e, 2))"></PartyButton>
-    </div>
-</div>
+    <hr class="my-4" />
 
-<hr class="my-3" />
-
-@if(ShowPartIcons) {
     <div class="row">
-        <div class="col-4">                  
-            <PartyButton Icon="PartyIcon.Girl" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Girl))"></PartyButton>
+        <div class="col-2">
+            <PlayerIconButton Icon="PlayerIcon.Dragon" OnClickCallback="@(e => ClickPlayerIcon(e, PlayerIcon.Dragon))" />
         </div>
-        <div class="col-4">
-            <PartyButton Icon="PartyIcon.Boy" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Boy))"></PartyButton>         
+        <div class="col-2">
+            <PlayerIconButton Icon="PlayerIcon.Alien" OnClickCallback="@(e => ClickPlayerIcon(e, PlayerIcon.Alien))" />
         </div>
-        <div class="col-4">
-            <PartyButton Icon="PartyIcon.Grandma" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Grandma))"></PartyButton>
+        <div class="col-2">
+            <PlayerIconButton Icon="PlayerIcon.Vampire" OnClickCallback="@(e => ClickPlayerIcon(e, PlayerIcon.Vampire))" />
+        </div>
+        <div class="col-2">
+            <PlayerIconButton Icon="PlayerIcon.PalmTree" OnClickCallback="@(e => ClickPlayerIcon(e, PlayerIcon.PalmTree))" />
+        </div>
+        <div class="col-2">
+            <PlayerIconButton Icon="PlayerIcon.Tornado" OnClickCallback="@(e => ClickPlayerIcon(e, PlayerIcon.Tornado))" />
+        </div>
+        <div class="col-2">
+            <PlayerIconButton Icon="PlayerIcon.Mermaid" OnClickCallback="@(e => ClickPlayerIcon(e, PlayerIcon.Mermaid))" />
+        </div>
+        <div class="col-2">
+            <PlayerIconButton Icon="PlayerIcon.Spider" OnClickCallback="@(e => ClickPlayerIcon(e, PlayerIcon.Spider))" />
+        </div>
+        <div class="col-2">
+            <PlayerIconButton Icon="PlayerIcon.Ghost" OnClickCallback="@(e => ClickPlayerIcon(e, PlayerIcon.Ghost))" />
+        </div>
+        <div class="col-2">
+            <PlayerIconButton Icon="PlayerIcon.Elephant" OnClickCallback="@(e => ClickPlayerIcon(e, PlayerIcon.Elephant))" />
+        </div>
+        <div class="col-2">
+            <PlayerIconButton Icon="PlayerIcon.Turtle" OnClickCallback="@(e => ClickPlayerIcon(e, PlayerIcon.Turtle))" />
+        </div>
+        <div class="col-2">
+            <PlayerIconButton Icon="PlayerIcon.Wizard" OnClickCallback="@(e => ClickPlayerIcon(e, PlayerIcon.Wizard))" />
+        </div>
+        <div class="col-2">
+            <PlayerIconButton Icon="PlayerIcon.Octopus" OnClickCallback="@(e => ClickPlayerIcon(e, PlayerIcon.Octopus))" />
+        </div>
+    </div>
+
+    <hr class="my-4" />
+
+    <div class="row">
+        <div class="col-2">
+            <button class="btn w-100" style="background-color: lightblue;" @onclick="@(e => ClickChooseBackgroundColor(e, "lightblue"))">&nbsp;</button>
+        </div>
+        <div class="col-2">
+            <button class="btn w-100" style="background-color: blue;" @onclick="@(e => ClickChooseBackgroundColor(e, "blue"))">&nbsp;</button>
+        </div>
+        <div class="col-2">
+            <button class="btn w-100" style="background-color: green;" @onclick="@(e => ClickChooseBackgroundColor(e, "green"))">&nbsp;</button>
+        </div>
+        <div class="col-2">
+            <button class="btn w-100" style="background-color: red;" @onclick="@(e => ClickChooseBackgroundColor(e, "red"))">&nbsp;</button>
+        </div>
+        <div class="col-2">
+            <button class="btn w-100" style="background-color: grey;" @onclick="@(e => ClickChooseBackgroundColor(e, "grey"))">&nbsp;</button>
+        </div>
+        <div class="col-2">
+            <button class="btn w-100" style="background-color: orange;" @onclick="@(e => ClickChooseBackgroundColor(e, "orange"))">&nbsp;</button>
         </div>
     </div>
     <div class="row mt-2">
-        <div class="col-4">
-            <PartyButton Icon="PartyIcon.Scientist" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Scientist))"></PartyButton>            
+        <div class="col-2">
+            <button class="btn w-100" style="background-color: purple;" @onclick="@(e => ClickChooseBackgroundColor(e, "purple"))">&nbsp;</button>
         </div>
-        <div class="col-4">
-            <PartyButton Icon="PartyIcon.Cat" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Cat))"></PartyButton>          
+        <div class="col-2">
+            <button class="btn w-100" style="background-color: pink;" @onclick="@(e => ClickChooseBackgroundColor(e, "pink"))">&nbsp;</button>
         </div>
-        <div class="col-4">
-            <PartyButton Icon="PartyIcon.Grandpa" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Grandpa))"></PartyButton>          
+        <div class="col-2">
+            <button class="btn w-100" style="background-color: goldenrod;" @onclick="@(e => ClickChooseBackgroundColor(e, "goldenrod"))">&nbsp;</button>
+        </div>
+        <div class="col-2">
+            <button class="btn w-100" style="background-color: brown;" @onclick="@(e => ClickChooseBackgroundColor(e, "brown"))">&nbsp;</button>
+        </div>        
+        <div class="col-2">
+            <button class="btn w-100" style="background-color: lightgreen;" @onclick="@(e => ClickChooseBackgroundColor(e, "lightgreen"))">&nbsp;</button>
+        </div>    
+        <div class="col-2">
+            <button class="btn w-100" style="background-color: black;" @onclick="@(e => ClickChooseBackgroundColor(e, "black"))">&nbsp;</button>
         </div>
     </div>
-    <div class="row mt-2">
-        <div class="col-4">
-            <PartyButton Icon="PartyIcon.Dog" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Dog))"></PartyButton>         
-        </div>
-        <div class="col-4">
-            <PartyButton Icon="PartyIcon.Zombie" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Zombie))"></PartyButton>
-        </div>
-        <div class="col-4">
-            <PartyButton Icon="PartyIcon.Family" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Family))"></PartyButton>
+
+    <div class="row mt-3">
+        <div class="col">
+            <button class="btn btn-success w-100" @onclick="(e => ConnectToParty())" disabled="@(!IsConnected || !PlayerIsValid)">CONNECT TO PARTY</button>
         </div>
     </div>
 }
 
-<div class="row mt-3">
-    <div class="col">
-        <button class="btn btn-success w-100" @onclick="JoinTheGame" disabled="@(!IsConnected || !PartyIsValid)">JOIN PARTY</button>
+
+@if(ShowPartyConnect)
+{
+    <div class="row">
+        <div class="col-4">
+            <PartyButton Icon="@Party[0]" Class="@IsSelected(0)" OnClickCallback="@(e => ClickRemovePartyIcon(e, 0))"></PartyButton>
+        </div>
+        <div class="col-4">
+            <PartyButton Icon="@Party[1]" Class="@IsSelected(1)" OnClickCallback="@(e => ClickRemovePartyIcon(e, 1))"></PartyButton>         
+        </div>
+        <div class="col-4">
+            <PartyButton Icon="@Party[2]" Class="@IsSelected(2)" OnClickCallback="@(e => ClickRemovePartyIcon(e, 2))"></PartyButton>
+        </div>
     </div>
-</div>
+
+    <hr class="my-3" />
+
+    @if(ShowPartyIcons) {
+        <div class="row">
+            <div class="col-4">                  
+                <PartyButton Icon="PartyIcon.Girl" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Girl))"></PartyButton>
+            </div>
+            <div class="col-4">
+                <PartyButton Icon="PartyIcon.Boy" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Boy))"></PartyButton>         
+            </div>
+            <div class="col-4">
+                <PartyButton Icon="PartyIcon.Grandma" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Grandma))"></PartyButton>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-4">
+                <PartyButton Icon="PartyIcon.Scientist" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Scientist))"></PartyButton>            
+            </div>
+            <div class="col-4">
+                <PartyButton Icon="PartyIcon.Cat" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Cat))"></PartyButton>          
+            </div>
+            <div class="col-4">
+                <PartyButton Icon="PartyIcon.Grandpa" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Grandpa))"></PartyButton>          
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-4">
+                <PartyButton Icon="PartyIcon.Dog" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Dog))"></PartyButton>         
+            </div>
+            <div class="col-4">
+                <PartyButton Icon="PartyIcon.Zombie" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Zombie))"></PartyButton>
+            </div>
+            <div class="col-4">
+                <PartyButton Icon="PartyIcon.Family" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Family))"></PartyButton>
+            </div>
+        </div>
+    }
+
+    <div class="row mt-3">
+        <div class="col">
+            <button class="btn btn-success w-100" onclick="(e => JoinTheGame())" disabled="@(!IsConnected || !PartyIsValid)">JOIN PARTY</button>
+        </div>
+    </div>
+}
 
 <div class="row mt-4">
     <div class="col">
@@ -81,13 +182,15 @@
     private HubConnection hubConnection;
 
     public string Username { get; set;}
-    
+    public bool ShowPartyConnect { get; set;}
+    public PlayerIcon ChosenIcon { get; set; }
+    public string BackgroundColor { get; set;}
+    public bool PlayerIsValid => !string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(BackgroundColor) && ChosenIcon != PlayerIcon.None;
+
     public List<PartyIcon> Party { get; set;}
-
     public int IconIndex { get; set;}
-
-    public bool ShowPartIcons { get; set;}
-    public bool PartyIsValid => Party.All(x => x != PartyIcon.None) && !string.IsNullOrEmpty(Username);
+    public bool ShowPartyIcons { get; set;}
+    public bool PartyIsValid => Party.All(x => x != PartyIcon.None);
     
     public string GameStatus { get; set;}
 
@@ -98,9 +201,9 @@
         Party.Add(PartyIcon.None);
         Party.Add(PartyIcon.None);
 
-        GameStatus = "Enter a valid code";
+        GameStatus = "Build your Player";
 
-        ShowPartIcons = true;
+        ShowPartyIcons = true;
 
         // connect to hub
         hubConnection = new HubConnectionBuilder()
@@ -109,12 +212,10 @@
 
         // subscribe to other things
         hubConnection.On<Game>("PlayerJoined", (game) => {
-            Console.WriteLine("Game found");
             GameStatus = $"Welcome to {game.Name} - Waiting for others to start...";
             StateHasChanged();
         });
         hubConnection.On<string>("PlayerJoinedError", (message) => {
-            Console.WriteLine("Game error");
             GameStatus = $"Error joining - {message}";
             StateHasChanged();
         });
@@ -127,6 +228,13 @@
         // maybe check if they were supposed to already be in an active game?
     }
 
+    private void ConnectToParty()
+    {
+        GameStatus = "Enter a valid code";
+        ShowPartyConnect = true;
+        StateHasChanged();
+    }
+
     private string IsSelected(int index)
     {
         if (IconIndex == index && Party.Any(x => x == PartyIcon.None))
@@ -134,6 +242,18 @@
             return "selected";
         }
         return "";
+    }
+
+    private void ClickPlayerIcon(MouseEventArgs eventArgs, PlayerIcon icon)
+    {
+        ChosenIcon = icon;
+        StateHasChanged();
+    }
+
+    private void ClickChooseBackgroundColor(MouseEventArgs eventArgs, string color)
+    {
+        BackgroundColor = color;
+        StateHasChanged();
     }
 
     private void ClickPartyIcon(MouseEventArgs e, PartyIcon icon) 

@@ -4,7 +4,6 @@ using ZoomersClient.Shared.Models.Enums;
 
 namespace ZoomersClient.Shared.Models
 {
-    [Serializable]
     public class Game
     {
         public Guid Id { get; set;}

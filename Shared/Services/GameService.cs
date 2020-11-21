@@ -19,18 +19,11 @@ namespace ZoomersClient.Shared.Services
         {
             var game = Games.FirstOrDefault(x => x.Id == id);
 
-            foreach(var player in game.Players)
-            {
-                Console.WriteLine(player.Username + " still found!");
-            }
-
             return game; 
         }
 
         public Game FindGame(List<PartyIcon> party)
         {
-            // Console.WriteLine($"{party.Count()} items found. Checking {Games.Count()}");
-
             var game = Games.FirstOrDefault(x => x.Party[0] == party[0] && x.Party[1] == party[1] && x.Party[2] == party[2]);
 
             return game; 

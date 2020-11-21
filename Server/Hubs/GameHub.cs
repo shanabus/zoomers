@@ -23,9 +23,9 @@ namespace ZoomersClient.Server.Hubs
 
         public async Task JoinGame(string user)
         {
-            //if (!Players.Contains(user)){
+            if (!Players.Contains(user)){
                 Players.Add(user);
-            //}
+            }
 
             await Clients.All.SendAsync("PlayerJoined", Players);
         }
@@ -35,25 +35,22 @@ namespace ZoomersClient.Server.Hubs
             var game = _gameService.FindGame(partyIcons);
             if (game == null)
             {
-                Console.WriteLine("No game found at Hub, send error");
                 await Clients.Caller.SendAsync("PlayerJoinedError", "Could not find game");
             }
             else
             {                
-                Console.WriteLine($"Joined game {username}");
                 await Clients.Caller.SendAsync("PlayerJoined", game);
                 
                 var player = new Player() { ConnId = Context.ConnectionId, Username = username };
-                 var updatedGame = _gameService.JoinGame(game.Id, player);
+                var updatedGame = _gameService.JoinGame(game.Id, player);
 
                 //await Clients.All.SendAsync("PlayersUpdated", updatedGame);
-                await Clients.All.SendAsync("PlayersUpdated", updatedGame.Id);
+                await Clients.All.SendAsync("PlayersUpdated", updatedGame);
             }
         }
 
         public void Subscribe(Guid id)
         {
-            Console.WriteLine("Joined sub"); 
             _gameService.UpdateConnectionId(id, Context.ConnectionId);
         }
     }

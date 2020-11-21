@@ -1,11 +1,13 @@
 using System;
+using ZoomersClient.Shared.Models.Enums;
 
 namespace ZoomersClient.Shared.Models
 {
-    [Serializable]
     public class Player
     {
-        public string ConnId;
-        public string Username;
+        public string ConnId { get; set; }
+        public string Username { get; set; }
+        public PlayerIcon Icon { get; set; }
+        public string BackgroundColor { get; set;}
     }
 }

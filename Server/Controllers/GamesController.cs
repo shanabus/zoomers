@@ -6,6 +6,9 @@ using Microsoft.Extensions.Logging;
 using ZoomersClient.Shared.Services;
 using ZoomersClient.Shared.Models;
 using System.Linq;
+using Net.Codecrete.QrCodeGenerator;
+using System.Drawing.Imaging;
+using System.IO;
 
 namespace ZoomersClient.Server.Controllers
 {
@@ -63,5 +66,20 @@ namespace ZoomersClient.Server.Controllers
             _gameService.CreateGame(game);
             return game;
         }
+
+        [HttpGet("{id}/qrcode")]
+        public IActionResult GetQrCode([FromQuery]Guid id)
+        {
+            var qr = QrCode.EncodeText("http://teamsievers.ddns.net:5000/join", QrCode.Ecc.Medium);
+            using (var bitmap = qr.ToBitmap(10, 4))
+            {
+                // bitmap.Save("qr-code.png", ImageFormat.Png);
+
+                MemoryStream ms = new MemoryStream();  
+                bitmap.Save(ms, ImageFormat.Png); 
+
+                return File(ms.ToArray(), "image/png");
+            }
+        } 
     }
 }

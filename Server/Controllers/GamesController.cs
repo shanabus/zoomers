@@ -9,6 +9,7 @@ using System.Linq;
 using Net.Codecrete.QrCodeGenerator;
 using System.Drawing.Imaging;
 using System.IO;
+using ZoomersClient.Shared.Models.DTOs;
 
 namespace ZoomersClient.Server.Controllers
 {
@@ -60,9 +61,9 @@ namespace ZoomersClient.Server.Controllers
         }
 
         [HttpPost]
-        public Game Post([FromBody] string name)
+        public Game Post([FromBody] CreateGameDto dto)
         {
-            var game = new Game(name);
+            var game = new Game(dto.Name, dto.Voice);
             _gameService.CreateGame(game);
             return game;
         }

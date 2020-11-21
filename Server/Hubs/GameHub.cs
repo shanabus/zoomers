@@ -55,7 +55,7 @@ namespace ZoomersClient.Server.Hubs
                 var updatedGame = _gameService.JoinGame(game.Id, player);
 
                 //await Clients.All.SendAsync("PlayersUpdated", updatedGame);
-                await Clients.All.SendAsync("PlayersUpdated", updatedGame);
+                await Clients.All.SendAsync("PlayersUpdated", updatedGame, player);
 
                 if (updatedGame.Players.Count >= 3)
                 {

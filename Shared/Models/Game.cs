@@ -11,12 +11,18 @@ namespace ZoomersClient.Shared.Models
         public string ConnectionId { get; set; }
 
         public string Name { get; set; }
+        public string Voice { get; set; }
 
         public List<PartyIcon> Party { get; set; }
 
         public List<Player> Players { get; set;}
 
-        public Game(string name)
+        public Game()
+        {
+            
+        }
+
+        public Game(string name, string voice)
         {
             Id = Guid.NewGuid();
 

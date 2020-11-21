@@ -2,6 +2,9 @@
 @using ZoomersClient.Shared.Models
 @inject NavigationManager NavigationManager
 @inject HttpClient Http
+@using Toolbelt.Blazor.SpeechSynthesis
+@using ZoomersClient.Shared.Models.DTOs
+@inject SpeechSynthesis SpeechSynthesis
 
 <div class="row form-inline">
     <div class="col-sm-12 col-md-6">
@@ -12,6 +15,25 @@
             </label>
             <button class="btn btn-success" @onclick="StartGame">Start Game</button>
         </div>
+    </div>
+    <div class="col-md-6">
+        @if(Voices != null)
+        {
+            <div class="form-group">
+                <label>
+                    Voice:
+                    <select @bind="SelectedVoice" class="form-control mx-2">
+                        <option value="">None</option>
+                    @foreach(var voice in Voices)
+                    {
+                        <option value="@voice.Lang">@voice.Name (@voice.Lang)</option>
+                    }
+                    </select>
+                </label>
+                <button class="btn btn-info" @onclick="PreviewVoice">Preview</button>
+            </div>            
+        }
+        
     </div>
 </div>
 
@@ -28,6 +50,8 @@
     private string Name;
 
     private IEnumerable<Game> Games = new List<Game>();
+    IEnumerable<SpeechSynthesisVoice> Voices;
+    private string SelectedVoice { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -41,10 +65,35 @@
 
     private async Task StartGame()
     {
-        var response = await Http.PostAsJsonAsync("Games", Name);
+        var response = await Http.PostAsJsonAsync<CreateGameDto>("Games", new CreateGameDto { Name = Name, Voice = SelectedVoice });
 
         var game = await response.Content.ReadFromJsonAsync<Game>();
 
         NavigationManager.NavigateTo($"game/{game.Id}");
     }    
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            this.Voices = await this.SpeechSynthesis.GetVoicesAsync();
+            this.StateHasChanged();
+        }
+    }
+
+    private void PreviewVoice()
+    {
+        if (!string.IsNullOrEmpty(SelectedVoice))
+        {
+            var text = !string.IsNullOrEmpty(this.Name) ? $"Lets play the game with a lobby named {this.Name}" : "This is how I will sound throughout the game";
+            var utterancet = new SpeechSynthesisUtterance {
+                Text = text,
+                Lang = SelectedVoice, // BCP 47 language tag
+                Pitch = 1.0, // 0.0 ~ 2.0 (Default 1.0)
+                Rate = 1.0, // 0.1 ~ 10.0 (Default 1.0)
+                Volume = 1.0 // 0.0 ~ 1.0 (Default 1.0)
+            };
+            this.SpeechSynthesis.Speak(utterancet);
+        }
+    }
 }

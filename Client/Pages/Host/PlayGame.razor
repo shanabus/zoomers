@@ -6,6 +6,8 @@
 @using Microsoft.AspNetCore.SignalR.Client
 @inject NavigationManager NavigationManager
 @inject ZoomersClient.Shared.Services.GameService GameService
+@using Toolbelt.Blazor.SpeechSynthesis
+@inject SpeechSynthesis SpeechSynthesis
 
 @if (Game != null)
 {
@@ -74,16 +76,18 @@ else
             .Build();
 
         // subscribe to other things
-        hubConnection.On<Game>("PlayersUpdated", (game) =>
+        hubConnection.On<Game, Player>("PlayersUpdated", (game, player) =>
         {            
             Game = game;
             StateHasChanged();
+
+            IntroducePlayer(player);
         });
 
-        hubConnection.On<Game>("PlayersUpdated", (game) =>
+        hubConnection.On<Game>("GameStarted", (id) =>
         {            
-            Game = game;
-            StateHasChanged();
+            //Game = game;
+            //StateHasChanged();
         });
 
         // start hub
@@ -92,11 +96,40 @@ else
         await hubConnection.SendAsync("Subscribe", Id);
     }
 
+    private void IntroducePlayer(Player player)
+    {
+        var utterancet = new SpeechSynthesisUtterance {
+            Text = GetRandomWelcome(player.Username),
+            Lang = Game.Voice, // BCP 47 language tag
+            Pitch = 1.0, // 0.0 ~ 2.0 (Default 1.0)
+            Rate = 1.0, // 0.1 ~ 10.0 (Default 1.0)
+            Volume = 1.0 // 0.0 ~ 1.0 (Default 1.0)
+        };
+        this.SpeechSynthesis.Speak(utterancet); 
+    }
+
     public bool IsConnected =>
         hubConnection.State == HubConnectionState.Connected;
 
     public async ValueTask DisposeAsync()
     {
         await hubConnection.DisposeAsync();
+    }
+
+
+    public string GetRandomWelcome(string username)
+    {
+        var phrases = new string[] {
+            "Holy Smoke! We are playing with __USER__",
+            "Well look who showed up, its __USER__",
+            "__USER__ has joined the gang",
+            "Let us acknowledge that __USER__ is among us",
+            "Alrigh, my friend __USER__ has joined the lobby",
+            "Let us welcome __USER__ to the lobby"
+        };
+        var random = new Random();
+        var message = phrases[random.Next(phrases.Length)].Replace("__USER__", username);
+
+        return message;
     }
 }

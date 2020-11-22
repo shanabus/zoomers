@@ -2,7 +2,10 @@
     font-size: 1.7em;
     text-align: center;    
     align-self: center;
-    border: solid #7fbdff 1px;
-    border-radius: 2px;
+    border: solid #717274 1px;
+    border-radius: 4px;
     cursor: pointer;
+    height: 50px;
+    width: 50px;
+    padding: 4px;
 }

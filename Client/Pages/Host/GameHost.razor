@@ -9,7 +9,7 @@
 @using Toolbelt.Blazor.SpeechSynthesis
 @inject SpeechSynthesis SpeechSynthesis
 
-@if (Game != null)
+@if (Game != null && IsInLobby)
 {
     <div class="row">
         <div class="col-sm-6">
@@ -51,6 +51,10 @@
         </div>
     }
 }
+else if (IsPlaying)
+{
+    <PlayGame Game="Game"></PlayGame>
+}
 else
 {
     <LoadingMessage Message="Loading Game..."></LoadingMessage>
@@ -61,7 +65,8 @@ else
     public string Id { get; set; }
 
     public Game Game { get; set; }
-
+    public bool IsInLobby { get; set; }
+    public bool IsPlaying { get; set; }
     private HubConnection hubConnection;
 
     protected override async Task OnInitializedAsync()
@@ -69,6 +74,7 @@ else
         base.OnInitialized();
 
         Game = await Http.GetFromJsonAsync<Game>($"Games/{Id}");
+        IsInLobby = true;
         
         // connect to hub
         hubConnection = new HubConnectionBuilder()
@@ -91,8 +97,9 @@ else
                 Lang = Game.Voice,
                 Text = $"Ok, let us begin the game!"
             }); 
-
-            NavigationManager.NavigateTo($"game/{id}/play");
+            IsInLobby = false;
+            IsPlaying = true;
+            StateHasChanged();
         });
 
         // start hub

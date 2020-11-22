@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using TinyCsvParser;
 using TinyCsvParser.Mapping;
+using ZoomersClient.Shared.Models;
 
 namespace ZoomersClient.Server.Services
 {
@@ -30,6 +31,8 @@ namespace ZoomersClient.Server.Services
                         .ToList();
             
             LastQuestions = new List<int>();
+
+            Console.WriteLine($"Found {Questions.Count} Questions in WordPlay");
         }
 
         public WordPlayQuestion GetRandomQuestion(string category)
@@ -38,6 +41,8 @@ namespace ZoomersClient.Server.Services
 
             Random rnd = new Random();
             int question = rnd.Next(questionPool.Count());
+
+            Console.WriteLine("Got a good one at " + question);
 
             var gameQuestion = questionPool.Skip(question).Take(1).FirstOrDefault();
 

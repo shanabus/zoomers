@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
@@ -23,10 +24,11 @@ namespace ZoomersClient.Server.Hubs
 
         public async Task AskQuestion()
         {
+            Console.WriteLine("here it is");
             var q = _wordPlay.GetRandomQuestion(null);
-            _logger.LogDebug(q.Question);
+            Console.WriteLine($"Ok, found {q.Question}");
 
-            await Clients.Caller.SendAsync("QuestionReady", q as QuestionBase);
+            await Clients.All.SendAsync("QuestionReady", q);
         }
 
         public Task NextQuestion()

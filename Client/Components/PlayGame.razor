@@ -1,8 +1,5 @@
-@page "/game/{id}/play"
-@layout GameLayout
 @inject HttpClient Http
 @using ZoomersClient.Shared.Models
-@using ZoomersClient.Client.Components
 @using Microsoft.AspNetCore.SignalR.Client
 @inject NavigationManager NavigationManager
 @inject ZoomersClient.Shared.Services.GameService GameService
@@ -27,20 +24,17 @@
                 <PlayerIconButton Icon="CurrentPlayer.Icon"></PlayerIconButton>
             }
         </div>
-    </div>
-}
-else
-{
-    <LoadingMessage Message="Loading Question..."></LoadingMessage>
+    </div>    
 }
 
 @code {
     [Parameter]
     public string Id { get; set; }
 
+    [CascadingParameter]
     public Game Game { get; set; }
     public Player CurrentPlayer { get; set; }
-    public QuestionBase CurrentQuestion { get; set; }
+    public WordPlayQuestion CurrentQuestion { get; set; }
 
     public ElementReference FakeButton { get; set; }
 
@@ -50,7 +44,7 @@ else
     {
         base.OnInitialized();
 
-        Game = await Http.GetFromJsonAsync<Game>($"Games/{Id}");
+        // Game = await Http.GetFromJsonAsync<Game>($"Games/{Id}");
         
         // connect to hub
         hubConnection = new HubConnectionBuilder()
@@ -62,10 +56,12 @@ else
         {               
             Console.WriteLine(player.Username + " you are first!");
         });
-        hubConnection.On<QuestionBase>("QuestionReady", async (question) =>
+
+        hubConnection.On<WordPlayQuestion>("QuestionReady", async (question) =>
         {               
             CurrentQuestion = question;
-            
+            StateHasChanged();
+
             Console.WriteLine(question.Question);
             await SpeakPhrase(question.Question);
         });
@@ -73,6 +69,7 @@ else
         // start hub
         await hubConnection.StartAsync();
 
+        Console.WriteLine("Bout to ask a q");
         // ask first question
         await hubConnection.SendAsync("AskQuestion");
 

@@ -9,6 +9,11 @@
 
 @if(Game != null){
     <h1>@Game.Name</h1>
+
+    @if(CurrentQuestion != null)
+    {
+        <p>@CurrentQuestion.Question</p>
+    }
 }
 else 
 {
@@ -23,6 +28,7 @@ else
     [Parameter]
     public string Id { get; set; }
     public Game Game { get; set;}
+    public WordPlayQuestion CurrentQuestion { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -35,10 +41,12 @@ else
             .Build();
 
         // subscribe to other things
-        //hubConnection.On<Game>("PlayerJoined", (game) => {
-            //    GameStatus = $"Welcome to {game.Name} - Waiting for others to start...";
-          //  StateHasChanged();
-        //});
+        hubConnection.On<WordPlayQuestion>("QuestionReady", (question) =>
+        {               
+            CurrentQuestion = question;
+
+            Console.WriteLine(question.Question);            
+        });
     }
 
     public async ValueTask DisposeAsync()

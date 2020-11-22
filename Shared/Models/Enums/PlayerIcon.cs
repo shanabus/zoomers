@@ -15,6 +15,13 @@ namespace ZoomersClient.Shared.Models.Enums
         Elephant,
         Spider,
         Dragon,
-        Tornado
+        Tornado,
+
+        Poop,
+        Robot,
+        Cook,
+        Elf,
+        Devil,
+        Skull
     }
 }

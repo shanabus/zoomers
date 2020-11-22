@@ -1,6 +1,9 @@
-public abstract class QuestionBase
+namespace ZoomersClient.Shared.Models
 {
-    public int Id { get; set; }
-    
-    public string Question { get; set; }
+    public abstract class QuestionBase
+    {
+        public int Id { get; set; }
+        
+        public string Question { get; set; }
+    }
 }

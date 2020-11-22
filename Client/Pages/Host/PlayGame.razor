@@ -1,4 +1,4 @@
-@page "/game/{id}"
+@page "/game/{id}/play"
 @layout GameLayout
 @inject HttpClient Http
 @using ZoomersClient.Shared.Models
@@ -12,48 +12,26 @@
 @if (Game != null)
 {
     <div class="row">
-        <div class="col-sm-6">
+        <div class="col">
             <h1>Game Name: <u>@Game.Name</u></h1>
 
-            <h2>Players in Lobby @Game.Players.Count()</h2>
-            <div class="row" id="player-lobby">
-                @foreach (var player in Game.Players)
+            <div class="jumbotron">
+                @if(CurrentQuestion != null)
                 {
-                    <div class="col-4 player-badge mt-4">
-                        <div style="background-color: @player.BackgroundColor">
-                            <PlayerIconButton Icon="@player.Icon"></PlayerIconButton>
-                        </div>
-                        <span>@player.Username</span>                        
-                    </div>
-                }
+                    @CurrentQuestion.Question
+                }                
             </div>
-        </div>
-        <div class="col-sm-6 text-right" id="game-party-icons">
-            <div id="party-connect">
-            @foreach (var icon in Game.Party)
+
+            @if(CurrentPlayer != null)
             {
-                <PartyButton Icon="icon" />
+                <PlayerIconButton Icon="CurrentPlayer.Icon"></PlayerIconButton>
             }
-                <br />
-                <div class="ml-4">
-                    <img src="@(NavigationManager.BaseUri)Games/@Id/qrcode" />
-                </div>
-            </div>
         </div>
     </div>
-    
-    @if(Game.Players.Count() >= 3)
-    {
-        <div class="row mt-4">
-            <div class="col mt-4">
-                <h3>Hey <u>@Game.Players.First().Username</u>, press 'Start' when everybody is in</h3>
-            </div>
-        </div>
-    }
 }
 else
 {
-    <LoadingMessage Message="Loading Game..."></LoadingMessage>
+    <LoadingMessage Message="Loading Question..."></LoadingMessage>
 }
 
 @code {
@@ -61,6 +39,10 @@ else
     public string Id { get; set; }
 
     public Game Game { get; set; }
+    public Player CurrentPlayer { get; set; }
+    public QuestionBase CurrentQuestion { get; set; }
+
+    public ElementReference FakeButton { get; set; }
 
     private HubConnection hubConnection;
 
@@ -72,53 +54,46 @@ else
         
         // connect to hub
         hubConnection = new HubConnectionBuilder()
-            .WithUrl(NavigationManager.ToAbsoluteUri("/gamehub"))
+            .WithUrl(NavigationManager.ToAbsoluteUri($"/{Game.GameType}hub"))
             .Build();
 
         // subscribe to other things
-        hubConnection.On<Game, Player, SpeechSynthesisUtterance>("PlayersUpdated", (game, player, phrase) =>
-        {            
-            Game = game;
-            StateHasChanged();
-            
-            Console.WriteLine(player.Username + " needs an introduction");
-            IntroducePlayer(phrase);
+        hubConnection.On<Player>("PlayerConnected", (player) =>
+        {               
+            Console.WriteLine(player.Username + " you are first!");
         });
-
-        hubConnection.On<Guid>("GameStarted", (id) =>
-        {            
-            //Game = game;
-            //StateHasChanged();
-            Console.WriteLine("The game is afoot");
-            this.SpeechSynthesis.Speak(new SpeechSynthesisUtterance() {
-                Lang = Game.Voice,
-                Text = $"Ok, let us begin the game!  {Game.Players.First().Username}, you will go first so let's take a look at the first question."
-            }); 
+        hubConnection.On<QuestionBase>("QuestionReady", async (question) =>
+        {               
+            CurrentQuestion = question;
+            
+            Console.WriteLine(question.Question);
+            await SpeakPhrase(question.Question);
         });
 
         // start hub
         await hubConnection.StartAsync();
 
-        await hubConnection.SendAsync("Subscribe", Id);
+        // ask first question
+        await hubConnection.SendAsync("AskQuestion");
+
+        // await hubConnection.SendAsync("Subscribe", Id);
     }
 
-    private void IntroducePlayer(SpeechSynthesisUtterance phrase)
+    private async Task SpeakPhrase(string message)
     {
+        await FakeButton.FocusAsync();
+
         if (this.SpeechSynthesis.Speaking)
         {
             this.SpeechSynthesis.Cancel();
         }
         
-        this.SpeechSynthesis.Speak(phrase);         
+        this.SpeechSynthesis.Speak(new SpeechSynthesisUtterance() {
+            Lang = Game.Voice,
+            Text = message
+        });
     }
-
-    public async Task<PlayerJoinedPhrase> GetRandomWelcome(string username, string voice)
-    {
-        var message = await Http.GetFromJsonAsync<PlayerJoinedPhrase>($"Games/{Game.Id}/playerjoinedphrases?username={username}&voice={voice}");
-
-        return message;
-    }
-
+    
     public bool IsConnected =>
         hubConnection.State == HubConnectionState.Connected;
 

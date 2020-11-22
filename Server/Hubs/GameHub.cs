@@ -59,7 +59,6 @@ namespace ZoomersClient.Server.Hubs
                 // let new player know
                 await Clients.Caller.SendAsync("PlayerJoined", game, player);                
 
-                _logger.LogInformation($"Using game voice {updatedGame.Voice}");
                 var phrase = _phrases.GetRandomPlayerJoinedPhrase(username, updatedGame.Voice) as SpeechSynthesisUtterance;
                 await Clients.All.SendAsync("PlayersUpdated", updatedGame, player, phrase);
 
@@ -76,7 +75,7 @@ namespace ZoomersClient.Server.Hubs
             // get game, start it (set date?)
 
             // inform players game has started
-            await Clients.All.SendAsync("S", id);
+            await Clients.All.SendAsync("GameStarted", id);
 
             // inform host game has started
         }

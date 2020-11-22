@@ -1,0 +1,128 @@
+@page "/game/{id}"
+@layout GameLayout
+@inject HttpClient Http
+@using ZoomersClient.Shared.Models
+@using ZoomersClient.Client.Components
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NavigationManager
+@inject ZoomersClient.Shared.Services.GameService GameService
+@using Toolbelt.Blazor.SpeechSynthesis
+@inject SpeechSynthesis SpeechSynthesis
+
+@if (Game != null)
+{
+    <div class="row">
+        <div class="col-sm-6">
+            <h1>Game Name: <u>@Game.Name</u></h1>
+
+            <h2>Players in Lobby @Game.Players.Count()</h2>
+            <div class="row" id="player-lobby">
+                @foreach (var player in Game.Players)
+                {
+                    <div class="col-4 player-badge mt-4">
+                        <div style="background-color: @player.BackgroundColor">
+                            <PlayerIconButton Icon="@player.Icon"></PlayerIconButton>
+                        </div>
+                        <span>@player.Username</span>                        
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="col-sm-6 text-right" id="game-party-icons">
+            <div id="party-connect">
+            @foreach (var icon in Game.Party)
+            {
+                <PartyButton Icon="icon" />
+            }
+                <br />
+                <div class="ml-4">
+                    <img src="@(NavigationManager.BaseUri)Games/@Id/qrcode" />
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    @if(Game.Players.Count() >= 3)
+    {
+        <div class="row mt-4">
+            <div class="col mt-4">
+                <h3>Hey <u>@Game.Players.First().Username</u>, press 'Start' when everybody is in</h3>
+            </div>
+        </div>
+    }
+}
+else
+{
+    <LoadingMessage Message="Loading Game..."></LoadingMessage>
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    public Game Game { get; set; }
+
+    private HubConnection hubConnection;
+
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        Game = await Http.GetFromJsonAsync<Game>($"Games/{Id}");
+        
+        // connect to hub
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/gamehub"))
+            .Build();
+
+        // subscribe to other things
+        hubConnection.On<Game, Player, SpeechSynthesisUtterance>("PlayersUpdated", (game, player, phrase) =>
+        {            
+            Game = game;
+            StateHasChanged();
+            
+            Console.WriteLine(player.Username + " needs an introduction");
+            IntroducePlayer(phrase);
+        });
+
+        hubConnection.On<Guid>("GameStarted", (id) =>
+        {            
+            this.SpeechSynthesis.Speak(new SpeechSynthesisUtterance() {
+                Lang = Game.Voice,
+                Text = $"Ok, let us begin the game!"
+            }); 
+
+            NavigationManager.NavigateTo($"game/{id}/play");
+        });
+
+        // start hub
+        await hubConnection.StartAsync();
+
+        await hubConnection.SendAsync("Subscribe", Id);
+    }
+
+    private void IntroducePlayer(SpeechSynthesisUtterance phrase)
+    {
+        if (this.SpeechSynthesis.Speaking)
+        {
+            this.SpeechSynthesis.Cancel();
+        }
+        
+        this.SpeechSynthesis.Speak(phrase);         
+    }
+
+    public async Task<PlayerJoinedPhrase> GetRandomWelcome(string username, string voice)
+    {
+        var message = await Http.GetFromJsonAsync<PlayerJoinedPhrase>($"Games/{Game.Id}/playerjoinedphrases?username={username}&voice={voice}");
+
+        return message;
+    }
+
+    public bool IsConnected =>
+        hubConnection.State == HubConnectionState.Connected;
+
+    public async ValueTask DisposeAsync()
+    {
+        await hubConnection.DisposeAsync();
+    }    
+}

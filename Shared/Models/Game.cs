@@ -12,6 +12,7 @@ namespace ZoomersClient.Shared.Models
 
         public string Name { get; set; }
         public string Voice { get; set; }
+        public string GameType = "wordplay";
 
         public List<PartyIcon> Party { get; set; }
 

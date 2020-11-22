@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using ZoomersClient.Shared.Services;
@@ -10,6 +9,7 @@ using Net.Codecrete.QrCodeGenerator;
 using System.Drawing.Imaging;
 using System.IO;
 using ZoomersClient.Shared.Models.DTOs;
+using ZoomersClient.Server.Services;
 
 namespace ZoomersClient.Server.Controllers
 {
@@ -18,13 +18,14 @@ namespace ZoomersClient.Server.Controllers
     public class GamesController : ControllerBase
     {
         private readonly GameService _gameService;
-
+        private readonly Phrases _phrases;
         private readonly ILogger<GamesController> _logger;
 
-        public GamesController(ILogger<GamesController> logger, GameService gameService)
+        public GamesController(ILogger<GamesController> logger, GameService gameService, Phrases phrases)
         {
             _logger = logger;
             _gameService = gameService;
+            _phrases = phrases;
         }
 
         [HttpGet]
@@ -35,27 +36,17 @@ namespace ZoomersClient.Server.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetGame([FromRoute]Guid id)
+        public Game GetGame([FromRoute]Guid id)
         {
             var game = _gameService.FindGame(id);
 
-            foreach(var p in game.Players)
-            {
-                _logger.LogInformation("Games has player: " + p.Username);
-            }
-
-            return Ok(game);
+            return game;
         }
 
         [HttpGet("{id}/players")]
         public IEnumerable<string> GetPlayers([FromRoute]Guid id)
         {
             var game = _gameService.FindGame(id);
-
-            foreach(var p in game.Players)
-            {
-                _logger.LogInformation("Still has player " + p.Username);
-            }
 
             return game.Players.Select(x => x.Username);
         }
@@ -74,13 +65,19 @@ namespace ZoomersClient.Server.Controllers
             var qr = QrCode.EncodeText("http://teamsievers.ddns.net:5000/join", QrCode.Ecc.Medium);
             using (var bitmap = qr.ToBitmap(10, 4))
             {
-                // bitmap.Save("qr-code.png", ImageFormat.Png);
-
                 MemoryStream ms = new MemoryStream();  
                 bitmap.Save(ms, ImageFormat.Png); 
 
                 return File(ms.ToArray(), "image/png");
             }
         } 
+
+        [HttpGet("{id}/playerjoinedphrases")]
+        public PlayerJoinedPhrase GetPlayerJoinedPhrases([FromQuery]string username, string voice)
+        {
+            var phrase = _phrases.GetRandomPlayerJoinedPhrase(username, voice);
+            
+            return phrase;        
+        }
     }
 }

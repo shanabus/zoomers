@@ -53,7 +53,7 @@
 }
 else
 {
-    <LoadingMessage Message="Loading Game..." />
+    <LoadingMessage Message="Loading Game..."></LoadingMessage>
 }
 
 @code {
@@ -76,18 +76,24 @@ else
             .Build();
 
         // subscribe to other things
-        hubConnection.On<Game, Player>("PlayersUpdated", (game, player) =>
+        hubConnection.On<Game, Player, SpeechSynthesisUtterance>("PlayersUpdated", (game, player, phrase) =>
         {            
             Game = game;
             StateHasChanged();
-
-            IntroducePlayer(player);
+            
+            Console.WriteLine(player.Username + " needs an introduction");
+            IntroducePlayer(phrase);
         });
 
-        hubConnection.On<Game>("GameStarted", (id) =>
+        hubConnection.On<Guid>("GameStarted", (id) =>
         {            
             //Game = game;
             //StateHasChanged();
+            Console.WriteLine("The game is afoot");
+            this.SpeechSynthesis.Speak(new SpeechSynthesisUtterance() {
+                Lang = Game.Voice,
+                Text = $"Ok, let us begin the game!  {Game.Players.First().Username}, you will go first so let's take a look at the first question."
+            }); 
         });
 
         // start hub
@@ -96,16 +102,21 @@ else
         await hubConnection.SendAsync("Subscribe", Id);
     }
 
-    private void IntroducePlayer(Player player)
+    private void IntroducePlayer(SpeechSynthesisUtterance phrase)
     {
-        var utterancet = new SpeechSynthesisUtterance {
-            Text = GetRandomWelcome(player.Username),
-            Lang = Game.Voice, // BCP 47 language tag
-            Pitch = 1.0, // 0.0 ~ 2.0 (Default 1.0)
-            Rate = 1.0, // 0.1 ~ 10.0 (Default 1.0)
-            Volume = 1.0 // 0.0 ~ 1.0 (Default 1.0)
-        };
-        this.SpeechSynthesis.Speak(utterancet); 
+        if (this.SpeechSynthesis.Speaking)
+        {
+            this.SpeechSynthesis.Cancel();
+        }
+        
+        this.SpeechSynthesis.Speak(phrase);         
+    }
+
+    public async Task<PlayerJoinedPhrase> GetRandomWelcome(string username, string voice)
+    {
+        var message = await Http.GetFromJsonAsync<PlayerJoinedPhrase>($"Games/{Game.Id}/playerjoinedphrases?username={username}&voice={voice}");
+
+        return message;
     }
 
     public bool IsConnected =>
@@ -114,22 +125,5 @@ else
     public async ValueTask DisposeAsync()
     {
         await hubConnection.DisposeAsync();
-    }
-
-
-    public string GetRandomWelcome(string username)
-    {
-        var phrases = new string[] {
-            "Holy Smoke! We are playing with __USER__",
-            "Well look who showed up, its __USER__",
-            "__USER__ has joined the gang",
-            "Let us acknowledge that __USER__ is among us",
-            "Alrigh, my friend __USER__ has joined the lobby",
-            "Let us welcome __USER__ to the lobby"
-        };
-        var random = new Random();
-        var message = phrases[random.Next(phrases.Length)].Replace("__USER__", username);
-
-        return message;
-    }
+    }    
 }

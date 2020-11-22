@@ -25,8 +25,8 @@ namespace ZoomersClient.Shared.Models
         public Game(string name, string voice)
         {
             Id = Guid.NewGuid();
-
             Name = name;
+            Voice = voice;
 
             Players = new List<Player>();
 

@@ -37,6 +37,7 @@ namespace ZoomersClient.Server
             });
 
             services.AddSingleton<WordPlay>();
+            services.AddSingleton<Phrases>();
             services.AddSingleton<GameService>();
         }
 

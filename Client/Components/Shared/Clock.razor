@@ -1,0 +1,21 @@
+<div id="game-glock" class="@Class">
+    <div id="remaining-time">@Seconds</div>
+    <div id="unit-of-measure">sec</div>
+</div>
+
+@code {
+    [Parameter]
+    public int Seconds { get; set; }
+    [Parameter]
+    public string Class { get; set; }
+
+    [Parameter]
+    public EventCallback TimeEllapsed { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
+}
+
+    

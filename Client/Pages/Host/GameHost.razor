@@ -1,6 +1,8 @@
 @page "/game/{id}"
 @layout GameLayout
 @inject HttpClient Http
+@using ZoomersClient.Client.Components.Host
+@using ZoomersClient.Client.Components.Shared
 @using ZoomersClient.Shared.Models
 @using ZoomersClient.Client.Components
 @using Microsoft.AspNetCore.SignalR.Client
@@ -97,9 +99,9 @@ else
         this.SpeechSynthesis.Speak(phrase);         
     }
 
-    public async Task<PlayerJoinedPhrase> GetRandomWelcome(string username, string voice)
+    public async Task<SpokenPhrase> GetRandomWelcome(string username, string voice)
     {
-        var message = await Http.GetFromJsonAsync<PlayerJoinedPhrase>($"Games/{Game.Id}/playerjoinedphrases?username={username}&voice={voice}");
+        var message = await Http.GetFromJsonAsync<SpokenPhrase>($"Games/{Game.Id}/playerjoinedphrases?username={username}&voice={voice}");
 
         return message;
     }

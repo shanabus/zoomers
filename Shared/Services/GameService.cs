@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
+using ZoomersClient.Shared.Exceptions;
 using ZoomersClient.Shared.Models;
 using ZoomersClient.Shared.Models.Enums;
 
@@ -74,9 +75,21 @@ namespace ZoomersClient.Shared.Services
             }
         }
 
-        public void EndGame(Guid id)
+        public Player GetNextPlayer(Guid gameId)
         {
-            var game = Games.FirstOrDefault(x => x.Id == id);
+            var game = Games.FirstOrDefault(x => x.Id == gameId);
+
+            if (game != null)
+            {
+                return game.GetNextPlayer();
+            }
+            
+            throw new GameNotFoundException();
+        }
+
+        public void EndGame(Guid gameId)
+        {
+            var game = Games.FirstOrDefault(x => x.Id == gameId);
 
             if (game != null)
             {

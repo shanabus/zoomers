@@ -1,0 +1,18 @@
+#game-clock {
+    color: #fff;
+    background: green;
+    width: 6em;
+    text-align: center;
+    border-radius: 1em;
+    height: 6em;
+    position: absolute;
+    bottom: 5%;
+    right: 5%;
+}
+
+#remaining-time {
+    font-size: 3em;
+    clear: both;
+    line-height: 1em;
+    padding-top: .25em;
+}

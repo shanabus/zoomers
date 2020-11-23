@@ -11,14 +11,16 @@ namespace ZoomersClient.Server.Services
 {
     public class Phrases
     {        
-        public List<PlayerJoinedPhrase> PlayerJoinedPhrases { get; set; }
+        public List<SpokenPhrase> PlayerJoinedPhrases { get; set; }
+
+        public List<SpokenPhrase> AnswersFinishedPhrases { get; set; }
         
         public Phrases()
         {
             PlayerJoinedPhrases = GetPlayerJoinedPhrases();
         }            
 
-        public PlayerJoinedPhrase GetRandomPlayerJoinedPhrase(string username, string voiceLang)
+        public SpokenPhrase GetRandomPlayerJoinedPhrase(string username, string voiceLang)
         {
             var random = new Random();
             var phrase = PlayerJoinedPhrases[random.Next(PlayerJoinedPhrases.Count)];
@@ -28,10 +30,20 @@ namespace ZoomersClient.Server.Services
             return phrase;
         }
 
-        public List<PlayerJoinedPhrase> GetPlayerJoinedPhrases() {
+        public SpokenPhrase GetRandomAnswersFinishedPhrase(string username, string voiceLang)
+        {
+            var random = new Random();
+            var phrase = AnswersFinishedPhrases[random.Next(AnswersFinishedPhrases.Count)];
+            phrase.Text = phrase.Text.Replace("__USER__", username);
+            phrase.Lang = voiceLang;
+
+            return phrase;
+        }
+
+        public List<SpokenPhrase> GetPlayerJoinedPhrases() {
             CsvParserOptions csvParserOptions = new CsvParserOptions(true, ',');
-            CsvPlayerJoinedPhrasesMapping csvMapper = new CsvPlayerJoinedPhrasesMapping();
-            CsvParser<PlayerJoinedPhrase> csvParser = new CsvParser<PlayerJoinedPhrase>(csvParserOptions, csvMapper);
+            CsvPhrasesMapping csvMapper = new CsvPhrasesMapping();
+            CsvParser<SpokenPhrase> csvParser = new CsvParser<SpokenPhrase>(csvParserOptions, csvMapper);
            
             var filePath = ToApplicationPath("Data","player-joined-phrases.csv");
             var phrases = csvParser           
@@ -42,15 +54,29 @@ namespace ZoomersClient.Server.Services
             return phrases.Skip(1).ToList(); // miss header row
         }
 
+        public List<SpokenPhrase> GetAnswersFinishedPhrases() {
+            CsvParserOptions csvParserOptions = new CsvParserOptions(true, ',');
+            CsvPhrasesMapping csvMapper = new CsvPhrasesMapping();
+            CsvParser<SpokenPhrase> csvParser = new CsvParser<SpokenPhrase>(csvParserOptions, csvMapper);
+           
+            var filePath = ToApplicationPath("Data","answers-finished-phrases.csv");
+            var phrases = csvParser           
+                        .ReadFromFile(filePath, Encoding.ASCII)
+                        .Select(x => x.Result)
+                        .ToList();
+            
+            return phrases.ToList(); // do we need to skip?  it should handle in options??
+        }
+
         private string ToApplicationPath(string path, string fileName)
         {
             var exePath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
             return Path.Combine(exePath, path, fileName);
         }
 
-        public class CsvPlayerJoinedPhrasesMapping : CsvMapping<PlayerJoinedPhrase>
+        public class CsvPhrasesMapping : CsvMapping<SpokenPhrase>
         {
-            public CsvPlayerJoinedPhrasesMapping() : base()
+            public CsvPhrasesMapping() : base()
             {
                 MapProperty(0, x => x.Id);
                 MapProperty(1, x => x.Text);

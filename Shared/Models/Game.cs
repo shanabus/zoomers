@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ZoomersClient.Shared.Exceptions;
 using ZoomersClient.Shared.Models.Enums;
 
 namespace ZoomersClient.Shared.Models
@@ -17,11 +18,8 @@ namespace ZoomersClient.Shared.Models
         public int MinimumNumberOfPlayers => 2;
         
         public GameState State { get; set; }
-
         public List<PartyIcon> Party { get; set; }
-
         public List<Player> Players { get; set;}
-
         public List<AnsweredQuestions> AnsweredQuestions { get; set; }
         public List<QuestionBase> Questions { get; set; }
 
@@ -70,6 +68,36 @@ namespace ZoomersClient.Shared.Models
         {
             var v = Enum.GetValues (typeof (T));
             return (T) v.GetValue (_R.Next(1,v.Length));
+        }
+
+        public void UpdatePlayerConnection(Guid playerId, string connectionId)
+        {
+            var player = Players.FirstOrDefault(x => x.Id == playerId);
+
+            if (player != null)
+            {
+                player.ConnectionId = connectionId;
+            }
+        }
+
+        public Player GetNextPlayer()
+        {
+            try
+            {
+                // this assumes the question was asked first...
+                var nextPlayer = Players[Questions.Count];
+                return nextPlayer;
+            }
+            catch(Exception e) 
+            {
+                throw new PlayerQuestionMismatchException(e.Message);
+            }
+        }
+
+        public void ShufflePlayerOrder()
+        {
+            var rand = new Random();
+            var randomList = Players.OrderBy(x => rand.Next()).ToList();
         }
     }
 }

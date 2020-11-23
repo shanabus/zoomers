@@ -6,10 +6,14 @@ namespace ZoomersClient.Server.Hubs
     public interface IGameTypeHub
     {       
 
-        Task AskQuestion(Guid id);
+        Task AskQuestion(Guid gameId);
 
-        Task AnswerQuestion(Guid id, int questionId, string answer);
+        Task AnswerQuestion(Guid gameId, int questionId, Guid playerId, string answer);
 
-        Task NextQuestion(Guid id);
+        Task AnswersFinished(Guid gameId, string username);
+
+        Task QuestionFinished(Guid gameId, int questionId);
+        
+        Task UpdateConnectionId(Guid gameId, Guid playerId);
     }
 }

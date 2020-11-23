@@ -3,7 +3,10 @@
 @layout PlayerLayout
 @using Microsoft.AspNetCore.SignalR.Client
 @using ZoomersClient.Client.Components
+@using ZoomersClient.Client.Components.Shared
 @using ZoomersClient.Shared.Models
+@using Blazored.LocalStorage;
+@inject Blazored.LocalStorage.ILocalStorageService localStore
 @inject NavigationManager NavigationManager
 @implements IAsyncDisposable
 
@@ -52,6 +55,7 @@ else
     private HubConnection hubConnection;
     [Parameter]
     public string Id { get; set; }
+    public Player CurrentPlayer { get; set; }
     public string Answer { get; set; }
     public bool AnswerSubmitted { get; set; }
     public Game Game { get; set;}
@@ -62,6 +66,8 @@ else
         base.OnInitialized();
 
         Game = await Http.GetFromJsonAsync<Game>($"Games/{Id}");
+
+        CurrentPlayer = await GetPlayerFromStorage();
             
         hubConnection = new HubConnectionBuilder()
             .WithUrl(NavigationManager.ToAbsoluteUri($"/{Game.GameType}hub"))
@@ -77,13 +83,28 @@ else
 
         // start hub
         await hubConnection.StartAsync();
+
+        await hubConnection.SendAsync("UpdateConnectionId", CurrentPlayer.Id);
     }
 
     public async Task SubmitAnswer() {
         Console.WriteLine("An answer was submitted!");
         AnswerSubmitted = true;
-        await hubConnection.SendAsync("AnswerQuestion", Game.Id, CurrentQuestion.Id, Answer);
+        await hubConnection.SendAsync("AnswerQuestion", Game.Id, CurrentQuestion.Id, CurrentPlayer.Id, Answer);
         StateHasChanged();
+    }
+
+    public async Task<Player> GetPlayerFromStorage()
+    {
+        var playerExists = await localStore.ContainKeyAsync("player");
+        if (playerExists)
+        {
+            var player = await localStore.GetItemAsync<Player>("player");
+
+            return player;
+        }
+        
+        throw new Exception("Player not found!");        
     }
 
     public async ValueTask DisposeAsync()

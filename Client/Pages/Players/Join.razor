@@ -1,8 +1,11 @@
 @page "/join"
 @using Microsoft.AspNetCore.SignalR.Client
 @using ZoomersClient.Client.Components
+@using ZoomersClient.Client.Components.Shared
 @using ZoomersClient.Shared.Models
 @using ZoomersClient.Shared.Models.Enums
+@using Blazored.LocalStorage;
+@inject Blazored.LocalStorage.ILocalStorageService localStore
 @inject NavigationManager NavigationManager
 @inject ZoomersClient.Shared.Services.GameService GameService
 @implements IAsyncDisposable
@@ -255,11 +258,11 @@
             .Build();
 
         // subscribe to other things
-        hubConnection.On<Game, Player>("PlayerJoined", (game, player) => {
+        hubConnection.On<Game, Player>("PlayerJoined", async (game, player) => {
             Player = player;
             Game = game;
             GameStatus = $"Welcome to {game.Name} - Waiting for others to start...";
-            
+            await SavePlayerToStorage(player);
             StateHasChanged();
         });
         hubConnection.On<string>("PlayerJoinedError", (message) => {
@@ -354,6 +357,14 @@
         GameStatus = "Waiting for response...";
         
         StateHasChanged();
+    }
+
+    private async Task SavePlayerToStorage(Player player)
+    {
+        // good idea to start fresh?
+        await localStore.ClearAsync();
+
+        await localStore.SetItemAsync<Player>("player", player);
     }
 
     private async Task StartGame() => await hubConnection.SendAsync("StartGame", Game.Id);

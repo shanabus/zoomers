@@ -73,7 +73,7 @@ namespace ZoomersClient.Server.Controllers
         } 
 
         [HttpGet("{id}/playerjoinedphrases")]
-        public PlayerJoinedPhrase GetPlayerJoinedPhrases([FromQuery]string username, string voice)
+        public SpokenPhrase GetPlayerJoinedPhrases([FromQuery]string username, string voice)
         {
             var phrase = _phrases.GetRandomPlayerJoinedPhrase(username, voice);
             

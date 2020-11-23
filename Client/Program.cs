@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using ZoomersClient.Shared.Services;
 using Toolbelt.Blazor.Extensions.DependencyInjection;
 using Plk.Blazor.DragDrop;
+using Blazored.LocalStorage;
 
 namespace ZoomersClient.Client
 {
@@ -22,6 +23,7 @@ namespace ZoomersClient.Client
             
             builder.Services.AddBlazorDragDrop();
             builder.Services.AddSpeechSynthesis();
+            builder.Services.AddBlazoredLocalStorage();
 
             builder.Services.AddSingleton<GameService>();
 

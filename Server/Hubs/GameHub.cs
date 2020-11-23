@@ -44,7 +44,7 @@ namespace ZoomersClient.Server.Hubs
                     Icon = icon,
                     BackgroundColor = color    
                 };
-                _logger.LogInformation(player.Username + " connected");
+                _logger.LogInformation(player.Username + " connected as " + player.ConnectionId);
                 
                 var updatedGame = _gameService.JoinGame(game.Id, player);
 

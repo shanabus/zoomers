@@ -1,4 +1,5 @@
 @inject HttpClient Http
+@using ZoomersClient.Client.Components.Shared
 @using ZoomersClient.Shared.Models
 @using Microsoft.AspNetCore.SignalR.Client
 @inject NavigationManager NavigationManager
@@ -19,15 +20,23 @@
 
             @if(CurrentPlayer != null)
             {
-                <PlayerIconButton Icon="CurrentPlayer.Icon"></PlayerIconButton>
+                <div class="row">
+                    <div class="col">
+                        <PlayerIconButton Icon="CurrentPlayer.Icon"></PlayerIconButton>
+                    </div>
+                </div>
+                
             }
         </div>
     </div>    
+
     <div class="row my-4">
         <div class="col">
-            <h3>@(StatusMessage)</h3>
+            <h3>@StatusMessage</h3>
         </div>
     </div>
+
+    <Clock Seconds="60" Class="slide-in-blurred-bottom"></Clock>
 
     @if(PlayersAnswered.Any())
     {
@@ -58,58 +67,54 @@
         base.OnInitialized();
         
         PlayersAnswered = new List<Player>();
+        CurrentPlayer = Game.Players.FirstOrDefault();
         
         // connect to hub
         hubConnection = new HubConnectionBuilder()
             .WithUrl(NavigationManager.ToAbsoluteUri($"/{Game.GameType}hub"))
             .Build();
 
-        // subscribe to other things
-        hubConnection.On<Player>("PlayerConnected", (player) =>
-        {               
-            
-            Console.WriteLine(player.Username + " you are first!");
-            StatusMessage = player.Username + " is first so they won't need to answer this one";
-            StateHasChanged();
-        });
-
-        hubConnection.On<WordPlayQuestion>("QuestionReady", async (question) =>
+        // subscribe to game events        
+        hubConnection.On<WordPlayQuestion>("QuestionReady", (question) =>
         {               
             CurrentQuestion = question;
             StateHasChanged();
 
             Console.WriteLine(question.Question);
-            await SpeakPhrase(question.Question);
+            SpeakPhrase(question.Question);
         });
 
         hubConnection.On<Player>("QuestionAnswered", async (player) => {
             Console.WriteLine("A person answered a question! " + player.Username);
             PlayersAnswered.Add(player);
 
-            if (PlayersAnswered.Count == Game.Players.Count - 1)
-            {
-                StatusMessage = "I think everybody has answered, know we'll let " + CurrentPlayer.Username + " guess who said what";
-                await SpeakPhrase(StatusMessage);
-            }
-
             StateHasChanged();
+
+            if (PlayersAnswered.Count >= Game.Players.Count - 1)
+            {
+                await hubConnection.SendAsync("AnswersFinished", Game.Id, CurrentPlayer.Username);
+            }
+        });
+
+        hubConnection.On<Game, SpeechSynthesisUtterance>("AnswersFinished", (game, phrase) => {
+            Console.WriteLine("finished Answers - " + phrase.Text);
+            StatusMessage = phrase.Text;
+            StateHasChanged();
+            SpeakPhrase(phrase.Text);
         });
 
         // start hub
         await hubConnection.StartAsync();
-
-        Console.WriteLine("Bout to ask a q");
         
-        // ask first question
+        // get player on deck, ask first question
+        await hubConnection.SendAsync("GetNextPlayer", Game.Id);
         await hubConnection.SendAsync("AskQuestion", Game.Id);
 
         // await hubConnection.SendAsync("Subscribe", Id);
     }
 
-    private async Task SpeakPhrase(string message)
+    private void SpeakPhrase(string message)
     {
-        // await FakeButton.FocusAsync();
-
         if (this.SpeechSynthesis.Speaking)
         {
             this.SpeechSynthesis.Cancel();

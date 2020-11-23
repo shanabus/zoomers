@@ -1,6 +1,6 @@
 @using ZoomersClient.Shared.Models.Enums
 
-<div class="player-icon @Class" @onclick="OnClickCallback">
+<div class="player-icon @Class" style="background-color: @BackgroundColor" @onclick="OnClickCallback">
     @switch(Icon)
     {
         case PlayerIcon.Ghost:
@@ -70,6 +70,9 @@
     
     [Parameter]
     public string Class { get; set;}
+
+    [Parameter]
+    public string BackgroundColor { get; set; }
     
     [Parameter]
     public EventCallback<MouseEventArgs> OnClickCallback { get; set; }

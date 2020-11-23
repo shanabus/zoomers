@@ -31,19 +31,14 @@
         if (ClockRunning) {
             await ClockTick();
         }
-        else
-        {
-
-        }
     }
 
     async Task ClockTick()
     {
-        var is_running = true;
-        while (is_running)
+        while (ClockRunning)
         {
             await Task.Delay(1000);
-            if (is_running)
+            if (ClockRunning)
             {
                 ClockValue = ClockValue.Add(new TimeSpan(0,0,-1));
                 CurrentSeconds = ClockValue.Seconds;
@@ -52,7 +47,7 @@
                 if (CurrentSeconds <= 0)
                 {
                     await TimeEllapsed.InvokeAsync();
-                    is_running = false;
+                    ClockRunning = false;
                 }
             }
         }

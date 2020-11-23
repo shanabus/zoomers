@@ -2,6 +2,7 @@
 @inject HttpClient Http
 @layout PlayerLayout
 @using Microsoft.AspNetCore.SignalR.Client
+@using Plk.Blazor.DragDrop
 @using Toolbelt.Blazor.SpeechSynthesis
 @using ZoomersClient.Client.Components
 @using ZoomersClient.Client.Components.Shared
@@ -18,12 +19,11 @@
             <h1>@Game.Name</h1>
         </div>
         <div class="col-2 justify-content-end">
-            <PlayerIconButton Icon="@Player.Icon" Class="rotate-in-center mt-2"></PlayerIconButton>
+            <PlayerIconButton Icon="@Player.Icon" BackgroundColor="@Player.BackgroundColor" Class="rotate-in-center mt-2"></PlayerIconButton>
         </div>
     </div>    
     
-
-    @if(CurrentQuestion != null && CurrentPlayer.Id != Player.Id)
+    @if(CurrentQuestion != null && CurrentPlayer.Id != Player.Id && !AnswerSubmitted)
     {        
         <div class="@((AnswerSubmitted)? "slide-out-fwd-center": "swing-in-top-fwd")">
             
@@ -42,13 +42,31 @@
             </div>
         </div>
     }
-    @if (AnswerSubmitted || CurrentPlayer.Id == Player.Id)
+    @if (AnswerSubmitted || CurrentPlayer.Id == Player.Id && !ShowQuestionCompletePhase)
     {
         <div class="row">
             <div class="col">
                 @StatusMessage
             </div>
         </div>
+    }
+    @if (ShowQuestionCompletePhase)
+    {
+        <h1>You have 30 seconds to guess who said what:</h1>
+
+        <Dropzone Items="@Game.Players.Where(x => x.Id != Player.Id).ToList()" TItem="Player">
+            <PlayerBadge Player="@context"></PlayerBadge>
+        </Dropzone>
+        
+        <hr class="my-2" />
+
+        <Dropzone Items="@Game.AnsweredQuestions.ToList()" TItem="AnsweredQuestions">
+            <div class="row" style="border: 1px solid orange;">
+                <div class="col">
+                    @context.Answer
+                </div>
+            </div>
+        </Dropzone>
     }
 }
 else 
@@ -70,6 +88,7 @@ else
     public bool AnswerSubmitted { get; set; }
     public Game Game { get; set;}
     public WordPlayQuestion CurrentQuestion { get; set; }
+    public bool ShowQuestionCompletePhase { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -87,12 +106,17 @@ else
         hubConnection.On<WordPlayQuestion, Player>("QuestionReady", (question, player) => {               
             CurrentQuestion = question;
             CurrentPlayer = player;
+            ShowQuestionCompletePhase = false;
             StateHasChanged();
             Console.WriteLine("Player received question (QuestionReady) : " + question.Question);            
         });
 
         hubConnection.On<Game, SpeechSynthesisUtterance>("AnswersFinished", (game, phrase) => {            
             StatusMessage = phrase.Text;
+            if (CurrentPlayer.Id == Player.Id)
+            {
+                ShowQuestionCompletePhase = true;
+            }
             StateHasChanged();
         });  
 

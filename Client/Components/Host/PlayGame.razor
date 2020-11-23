@@ -36,7 +36,10 @@
         </div>
     </div>
     
-    <Clock Seconds="10" Class="@ClockClass" ClockRunning="@StartClock" TimeEllapsed="AnswersFinished"></Clock>
+    @if(StartClock)
+    {
+        <Clock Seconds="10" Class="slide-in-blurred-bottom" ClockRunning="@StartClock" TimeEllapsed="AnswersFinished"></Clock>
+    }
 
     @if(PlayersAnswered.Any())
     {
@@ -60,7 +63,6 @@
     public WordPlayQuestion CurrentQuestion { get; set; }
     public List<Player> PlayersAnswered { get; set; }
     public bool StartClock { get; set; }
-    public string ClockClass { get; set; }
 
     private HubConnection hubConnection;
 
@@ -82,7 +84,6 @@
             CurrentQuestion = question;
             CurrentPlayer = player;
             StartClock = true;
-            ClockClass = "slide-in-blurred-bottom";
             StateHasChanged();
 
             Console.WriteLine(question.Question);
@@ -120,7 +121,6 @@
     public async Task AnswersFinished()
     {
         StartClock = false;
-        ClockClass = "slide-out-blurred-bottom";
         await hubConnection.SendAsync("AnswersFinished", Game.Id, CurrentPlayer.Username);
     }
 

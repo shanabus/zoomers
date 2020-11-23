@@ -1,9 +1,7 @@
 @using ZoomersClient.Shared.Models
 
-<div class="player-badge @Class">
-    <div style="background-color: @Player.BackgroundColor">
-        <PlayerIconButton Icon="@Player.Icon" Class="rotate-in-center"></PlayerIconButton>
-    </div>
+<div class="player-badge @Class">    
+    <PlayerIconButton Icon="@Player.Icon" BackgroundColor="@Player.BackgroundColor" Class="rotate-in-center"></PlayerIconButton>    
     <span>@Player.Username</span>                        
 </div>
 

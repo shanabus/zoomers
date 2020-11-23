@@ -23,6 +23,15 @@ namespace ZoomersClient.Server.Hubs
             _gameService = gameService;
             _phrases = phrases;
         }
+
+        public async Task GetPlayerOrder(Guid gameId)
+        {
+            var game = _gameService.FindGame(gameId);
+
+            game.ShufflePlayerOrder();
+
+            await Clients.All.SendAsync("PlayersShuffled", game); 
+        }
         
         public async Task AnswerQuestion(Guid gameId, int questionId, Guid playerId, string answer)
         {

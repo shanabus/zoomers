@@ -10,10 +10,19 @@
 @inject NavigationManager NavigationManager
 @implements IAsyncDisposable
 
-@if(Game != null){
-    <h1>@Game.Name</h1>
+@if(Game != null && Player != null)
+{
+    <div class="row">
+        <div class="col-9">
+            <h1>@Game.Name</h1>
+        </div>
+        <div class="col-3 justify-content-end">
+            <PlayerBadge Player="@Player"></PlayerBadge>
+        </div>
+    </div>    
+    
 
-    @if(CurrentQuestion != null)
+    @if(CurrentQuestion != null && CurrentPlayer.Id != Player.Id)
     {        
         <div class="@((AnswerSubmitted)? "slide-out-fwd-center": "swing-in-top-fwd")">
             
@@ -31,16 +40,14 @@
                 </div>
             </div>
         </div>
-            
-        
-        @if (AnswerSubmitted)
-        {
-            <div class="row">
-                <div class="col">
-                    Hang tight while others submit their answers...
-                </div>
+    }
+    @if (AnswerSubmitted || CurrentPlayer.Id == Player.Id)
+    {
+        <div class="row">
+            <div class="col">
+                Hang tight while others submit their answers...
             </div>
-        }
+        </div>
     }
 }
 else 
@@ -55,6 +62,7 @@ else
     private HubConnection hubConnection;
     [Parameter]
     public string Id { get; set; }
+    public Player Player { get; set; }
     public Player CurrentPlayer { get; set; }
     public string Answer { get; set; }
     public bool AnswerSubmitted { get; set; }
@@ -67,16 +75,17 @@ else
 
         Game = await Http.GetFromJsonAsync<Game>($"Games/{Id}");
 
-        CurrentPlayer = await GetPlayerFromStorage();
+        Player = await GetPlayerFromStorage();
             
         hubConnection = new HubConnectionBuilder()
             .WithUrl(NavigationManager.ToAbsoluteUri($"/{Game.GameType}hub"))
             .Build();
 
         // subscribe to other things
-        hubConnection.On<WordPlayQuestion>("QuestionReady", (question) =>
+        hubConnection.On<WordPlayQuestion, Player>("QuestionReady", (question, player) =>
         {               
             CurrentQuestion = question;
+            CurrentPlayer = player;
             StateHasChanged();
             Console.WriteLine("Player received question (QuestionReady) : " + question.Question);            
         });
@@ -84,13 +93,13 @@ else
         // start hub
         await hubConnection.StartAsync();
 
-        await hubConnection.SendAsync("UpdateConnectionId", CurrentPlayer.Id);
+        await hubConnection.SendAsync("UpdateConnectionId", Player.Id);
     }
 
     public async Task SubmitAnswer() {
         Console.WriteLine("An answer was submitted!");
         AnswerSubmitted = true;
-        await hubConnection.SendAsync("AnswerQuestion", Game.Id, CurrentQuestion.Id, CurrentPlayer.Id, Answer);
+        await hubConnection.SendAsync("AnswerQuestion", Game.Id, CurrentQuestion.Id, Player.Id, Answer);
         StateHasChanged();
     }
 

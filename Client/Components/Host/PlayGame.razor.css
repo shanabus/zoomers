@@ -1,3 +1,7 @@
+#game-layout {
+    overflow-y: hidden;
+}
+
 #current-question {
     font-size: 4em;
 }

@@ -67,17 +67,18 @@
         base.OnInitialized();
         
         PlayersAnswered = new List<Player>();
-        CurrentPlayer = Game.Players.FirstOrDefault();
-        
+                
         // connect to hub
         hubConnection = new HubConnectionBuilder()
             .WithUrl(NavigationManager.ToAbsoluteUri($"/{Game.GameType}hub"))
             .Build();
 
-        // subscribe to game events        
-        hubConnection.On<WordPlayQuestion>("QuestionReady", (question) =>
+        // subscribe to game events     
+        
+        hubConnection.On<WordPlayQuestion, Player>("QuestionReady", (question, player) =>
         {               
             CurrentQuestion = question;
+            CurrentPlayer = player;
             StateHasChanged();
 
             Console.WriteLine(question.Question);
@@ -101,13 +102,12 @@
             StatusMessage = phrase.Text;
             StateHasChanged();
             SpeakPhrase(phrase.Text);
-        });
+        });        
 
         // start hub
         await hubConnection.StartAsync();
         
         // get player on deck, ask first question
-        await hubConnection.SendAsync("GetNextPlayer", Game.Id);
         await hubConnection.SendAsync("AskQuestion", Game.Id);
 
         // await hubConnection.SendAsync("Subscribe", Id);

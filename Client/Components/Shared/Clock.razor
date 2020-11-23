@@ -1,5 +1,5 @@
-<div id="game-glock" class="@Class">
-    <div id="remaining-time">@Seconds</div>
+<div id="game-clock" class="@Class">
+    <div id="remaining-time">@CurrentSeconds</div>
     <div id="unit-of-measure">sec</div>
 </div>
 
@@ -8,13 +8,54 @@
     public int Seconds { get; set; }
     [Parameter]
     public string Class { get; set; }
+    [Parameter]
+    public bool ClockRunning { get; set; }
 
     [Parameter]
     public EventCallback TimeEllapsed { get; set; }
 
+    public int CurrentSeconds { get; set; }
+    public TimeSpan ClockValue { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+
+        CurrentSeconds = Seconds;
+
+        ClockValue = new TimeSpan(0, 0, Seconds);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ClockRunning) {
+            await ClockTick();
+        }
+        else
+        {
+
+        }
+    }
+
+    async Task ClockTick()
+    {
+        var is_running = true;
+        while (is_running)
+        {
+            await Task.Delay(1000);
+            if (is_running)
+            {
+                ClockValue = ClockValue.Add(new TimeSpan(0,0,-1));
+                CurrentSeconds = ClockValue.Seconds;
+                StateHasChanged();
+
+                if (CurrentSeconds <= 0)
+                {
+                    await TimeEllapsed.InvokeAsync();
+                    is_running = false;
+                }
+            }
+        }
     }
 }
 

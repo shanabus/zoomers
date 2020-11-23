@@ -13,6 +13,9 @@
                 Game Name:
                 <input @bind="Name" class="form-control mx-2" />                
             </label>
+             <button class="btn btn-outline-dark mr-4" @onclick="RandomLobby">
+                <span class="oi oi-loop-square" aria-hidden="true"></span>
+            </button>
             <button class="btn btn-success" @onclick="StartGame">Start Game</button>
         </div>
     </div>
@@ -79,6 +82,17 @@
             this.Voices = await this.SpeechSynthesis.GetVoicesAsync();
             this.StateHasChanged();
         }
+    }
+
+    private void RandomLobby()
+    {
+        Name = NameHelper.GetRandomLobbyName();
+        var r = new Random();
+        SelectedVoice = Voices.ToArray()[r.Next(Voices.Count())].Lang;
+
+        PreviewVoice();
+
+        StateHasChanged();
     }
 
     private void PreviewVoice()

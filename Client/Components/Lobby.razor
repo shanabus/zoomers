@@ -1,0 +1,99 @@
+@using ZoomersClient.Shared.Models
+@inject NavigationManager NavigationManager
+
+<div class="row mb-4">
+        <div class="col text-center">
+            <h1 class="game-name swing-in-top-fwd">@Game.Name</h1>            
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-4">
+            @if(Game.Players.Any() && Game.Players[0] != null) {
+                <div class="row my-4">
+                    <div class="col-8 offset-4">
+                        <PlayerBadge Class="mt-4" Player="@Game.Players[0]"></PlayerBadge>
+                    </div>
+                </div>                
+            }
+            @if(Game.Players.Count > 2 && Game.Players[2] != null) {
+                <div class="row my-4">
+                    <div class="col-8 offset-2">
+                        <PlayerBadge Class="mt-4" Player="@Game.Players[2]"></PlayerBadge>
+                    </div>
+                </div>                
+            }
+            @if(Game.Players.Count > 4 && Game.Players[4] != null) {
+                <div class="row my-4">
+                    <div class="col-8 offset-4">
+                        <PlayerBadge Class="mt-4" Player="@Game.Players[4]"></PlayerBadge>
+                    </div>
+                </div>                
+            }
+        </div>
+        <div class="col-4" id="game-party-icons">
+            <div id="party-connect">
+                <div class="row">
+                    <div class="col-12 text-center slide-in-elliptic-bottom-fwd">
+                    @foreach (var icon in Game.Party)
+                    {                        
+                       <PartyButton Icon="icon"></PartyButton>                    
+                    }   
+                    </div>                
+                </div>
+                <br />
+                <div class="text-center">
+                    <img src="@(NavigationManager.BaseUri)Games/@Game.Id/qrcode" class="flip-in-hor-bottom" />
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            @if(Game.Players.Count > 1 && Game.Players[1] != null) {
+                <div class="row my-4">
+                    <div class="col-8 offset-2">
+                        <PlayerBadge Class="mt-4" Player="@Game.Players[1]"></PlayerBadge>
+                    </div>
+                </div>                
+            }
+            @if(Game.Players.Count > 3 && Game.Players[3] != null) {
+                <div class="row my-4">
+                    <div class="col-8 offset-4">
+                        <PlayerBadge Class="mt-4" Player="@Game.Players[3]"></PlayerBadge>
+                    </div>
+                </div>                
+            }
+            @if(Game.Players.Count > 5 && Game.Players[5] != null) {
+                <div class="row my-4">
+                    <div class="col-8 offset-2">
+                        <PlayerBadge Class="mt-4" Player="@Game.Players[5]"></PlayerBadge>
+                    </div>
+                </div>                
+            }
+        </div>
+    </div>
+    <div class="row my-4">
+        <div class="col-3 offset-3 text-right">
+            @if(Game.Players.Count > 6 && Game.Players[6] != null) {                
+                <PlayerBadge Class="mt-4" Player="@Game.Players[6]"></PlayerBadge>
+            }
+        </div>
+        <div class="col-6">
+            @if(Game.Players.Count > 7 && Game.Players[7] != null) {                
+                <PlayerBadge Class="mt-4" Player="@Game.Players[7]"></PlayerBadge>
+            }
+        </div>
+    </div>
+
+    <div class="row mt-4 text-center">
+        <div class="col mt-4">
+            <h3>@(StatusMessage)</h3>
+        </div>
+    </div>
+    
+
+@code {
+    [Parameter]
+    public Game Game { get; set; }    
+    [Parameter]
+    public string StatusMessage { get; set; }
+}

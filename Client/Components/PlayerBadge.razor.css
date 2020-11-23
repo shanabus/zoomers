@@ -1,0 +1,13 @@
+.player-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: .4em;
+    text-align: left;
+  }
+  
+  .player-badge span {    
+    font-size: 2rem;
+    width: 100%;
+    padding: .2em .4em;
+  }

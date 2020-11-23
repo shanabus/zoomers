@@ -28,15 +28,6 @@ namespace ZoomersClient.Server.Hubs
             _phrases = phrases;
         }
 
-        public async Task JoinGame(string user)
-        {
-            if (!Players.Contains(user)){
-                Players.Add(user);
-            }
-
-            await Clients.All.SendAsync("PlayerJoined", Players);
-        }
-
         public async Task JoinTheGame(List<PartyIcon> partyIcons, string username, PlayerIcon icon, string color)
         {
             var game = _gameService.FindGame(partyIcons);
@@ -47,7 +38,8 @@ namespace ZoomersClient.Server.Hubs
             else
             {                   
                 var player = new Player() { 
-                    ConnId = Context.ConnectionId, 
+                    Id = Guid.NewGuid(),
+                    ConnectionId = Context.ConnectionId, 
                     Username = username,
                     Icon = icon,
                     BackgroundColor = color    
@@ -62,7 +54,7 @@ namespace ZoomersClient.Server.Hubs
                 var phrase = _phrases.GetRandomPlayerJoinedPhrase(username, updatedGame.Voice) as SpeechSynthesisUtterance;
                 await Clients.All.SendAsync("PlayersUpdated", updatedGame, player, phrase);
 
-                if (updatedGame.Players.Count >= 3)
+                if (updatedGame.Players.Count >= updatedGame.MinimumNumberOfPlayers)
                 {
                     // send to first player really
                     await Clients.All.SendAsync("ReadyToStartGame", updatedGame);

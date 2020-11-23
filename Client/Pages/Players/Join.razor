@@ -268,7 +268,7 @@
         });
         hubConnection.On<Game>("ReadyToStartGame", (game) => {
             Game = game;
-            if (game.Players.Count() >= 3 && game.Players.First().Username == Username)
+            if (game.Players.Count() >= game.MinimumNumberOfPlayers && game.Players.First().Username == Username)
             {
                 ShowStartButton = true;
             }

@@ -9,15 +9,13 @@
 @if (Game != null)
 {
     <div class="row">
-        <div class="col">
-            <h1>Game Name: <u>@Game.Name</u></h1>
-
-            <div class="jumbotron">
-                @if(CurrentQuestion != null)
-                {
+        <div class="col">            
+            @if(CurrentQuestion != null)
+            {
+                <div class="jumbotron swing-in-top-fwd" id="current-question">
                     @CurrentQuestion.Question
-                }                
-            </div>
+                </div>
+            }         
 
             @if(CurrentPlayer != null)
             {
@@ -25,26 +23,41 @@
             }
         </div>
     </div>    
+    <div class="row my-4">
+        <div class="col">
+            <h3>@(StatusMessage)</h3>
+        </div>
+    </div>
+
+    @if(PlayersAnswered.Any())
+    {
+        <div class="row">
+        @foreach(var player in PlayersAnswered)
+        {
+            <div class="col">
+                <PlayerBadge Player="@player" Class="my-4"></PlayerBadge>
+            </div>
+        }
+        </div>
+    }
 }
 
 @code {
-    [Parameter]
-    public string Id { get; set; }
 
-    [CascadingParameter]
+    [Parameter]
     public Game Game { get; set; }
     public Player CurrentPlayer { get; set; }
+    public string StatusMessage { get; set; }
     public WordPlayQuestion CurrentQuestion { get; set; }
-
-    public ElementReference FakeButton { get; set; }
-
+    public List<Player> PlayersAnswered { get; set; }
+    
     private HubConnection hubConnection;
 
     protected override async Task OnInitializedAsync()
     {
         base.OnInitialized();
-
-        // Game = await Http.GetFromJsonAsync<Game>($"Games/{Id}");
+        
+        PlayersAnswered = new List<Player>();
         
         // connect to hub
         hubConnection = new HubConnectionBuilder()
@@ -54,7 +67,10 @@
         // subscribe to other things
         hubConnection.On<Player>("PlayerConnected", (player) =>
         {               
+            
             Console.WriteLine(player.Username + " you are first!");
+            StatusMessage = player.Username + " is first so they won't need to answer this one";
+            StateHasChanged();
         });
 
         hubConnection.On<WordPlayQuestion>("QuestionReady", async (question) =>
@@ -66,19 +82,33 @@
             await SpeakPhrase(question.Question);
         });
 
+        hubConnection.On<Player>("QuestionAnswered", async (player) => {
+            Console.WriteLine("A person answered a question! " + player.Username);
+            PlayersAnswered.Add(player);
+
+            if (PlayersAnswered.Count == Game.Players.Count - 1)
+            {
+                StatusMessage = "I think everybody has answered, know we'll let " + CurrentPlayer.Username + " guess who said what";
+                await SpeakPhrase(StatusMessage);
+            }
+
+            StateHasChanged();
+        });
+
         // start hub
         await hubConnection.StartAsync();
 
         Console.WriteLine("Bout to ask a q");
+        
         // ask first question
-        await hubConnection.SendAsync("AskQuestion");
+        await hubConnection.SendAsync("AskQuestion", Game.Id);
 
         // await hubConnection.SendAsync("Subscribe", Id);
     }
 
     private async Task SpeakPhrase(string message)
     {
-        await FakeButton.FocusAsync();
+        // await FakeButton.FocusAsync();
 
         if (this.SpeechSynthesis.Speaking)
         {

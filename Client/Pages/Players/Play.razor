@@ -11,8 +11,33 @@
     <h1>@Game.Name</h1>
 
     @if(CurrentQuestion != null)
-    {
-        <p>@CurrentQuestion.Question</p>
+    {        
+        <div class="@((AnswerSubmitted)? "slide-out-fwd-center": "swing-in-top-fwd")">
+            
+            <p>@CurrentQuestion.Question</p>
+
+            <div class="row my-4">
+                <div class="col">
+                    <input @bind-value="Answer" class="form-control" />
+                </div>
+            </div>
+
+            <div class="row my-4">
+                <div class="col">
+                    <button class="btn btn-success w-100 text-center" @onclick="SubmitAnswer" disabled="@AnswerSubmitted">SUBMIT</button>
+                </div>
+            </div>
+        </div>
+            
+        
+        @if (AnswerSubmitted)
+        {
+            <div class="row">
+                <div class="col">
+                    Hang tight while others submit their answers...
+                </div>
+            </div>
+        }
     }
 }
 else 
@@ -27,6 +52,8 @@ else
     private HubConnection hubConnection;
     [Parameter]
     public string Id { get; set; }
+    public string Answer { get; set; }
+    public bool AnswerSubmitted { get; set; }
     public Game Game { get; set;}
     public WordPlayQuestion CurrentQuestion { get; set; }
 
@@ -37,16 +64,26 @@ else
         Game = await Http.GetFromJsonAsync<Game>($"Games/{Id}");
             
         hubConnection = new HubConnectionBuilder()
-            .WithUrl(NavigationManager.ToAbsoluteUri("/gamehub"))
+            .WithUrl(NavigationManager.ToAbsoluteUri($"/{Game.GameType}hub"))
             .Build();
 
         // subscribe to other things
         hubConnection.On<WordPlayQuestion>("QuestionReady", (question) =>
         {               
             CurrentQuestion = question;
-
-            Console.WriteLine(question.Question);            
+            StateHasChanged();
+            Console.WriteLine("Player received question (QuestionReady) : " + question.Question);            
         });
+
+        // start hub
+        await hubConnection.StartAsync();
+    }
+
+    public async Task SubmitAnswer() {
+        Console.WriteLine("An answer was submitted!");
+        AnswerSubmitted = true;
+        await hubConnection.SendAsync("AnswerQuestion", Game.Id, CurrentQuestion.Id, Answer);
+        StateHasChanged();
     }
 
     public async ValueTask DisposeAsync()

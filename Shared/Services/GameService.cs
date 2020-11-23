@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 using ZoomersClient.Shared.Models;
 using ZoomersClient.Shared.Models.Enums;
 
@@ -9,10 +10,17 @@ namespace ZoomersClient.Shared.Services
     public class GameService
     {        
         public List<Game> Games { get; set; }
+        private ILogger<GameService> _logger { get; set; }
 
-        public GameService()
+        public GameService(ILogger<GameService> logger)
         {
+            _logger = logger;
+            
             Games = new List<Game>();
+
+            var defaultGame = new Game("Default Game", "en-US");
+            defaultGame.Id = Guid.Parse("5b05a3a6-7665-47dd-b515-03372211a95e");
+            Games.Add(defaultGame);
         }
 
         public Game FindGame(Guid id)
@@ -44,6 +52,16 @@ namespace ZoomersClient.Shared.Services
             }
 
             return game;
+        }
+
+        public void AddQuestion(Guid id, WordPlayQuestion q)
+        {
+            var game = FindGame(id);
+
+            if (game != null) {
+                _logger.LogInformation(q.Question + " was just added");
+                game.Questions.Add(q as QuestionBase);
+            }
         }
 
         public void UpdateConnectionId(Guid id, string connectionId)

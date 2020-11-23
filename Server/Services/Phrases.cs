@@ -18,6 +18,7 @@ namespace ZoomersClient.Server.Services
         public Phrases()
         {
             PlayerJoinedPhrases = GetPlayerJoinedPhrases();
+            AnswersFinishedPhrases = GetAnswersFinishedPhrases();
         }            
 
         public SpokenPhrase GetRandomPlayerJoinedPhrase(string username, string voiceLang)

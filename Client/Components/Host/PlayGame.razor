@@ -35,8 +35,8 @@
             <h3>@StatusMessage</h3>
         </div>
     </div>
-
-    <Clock Seconds="60" Class="slide-in-blurred-bottom"></Clock>
+    
+    <Clock Seconds="10" Class="@ClockClass" ClockRunning="@StartClock" TimeEllapsed="AnswersFinished"></Clock>
 
     @if(PlayersAnswered.Any())
     {
@@ -59,7 +59,9 @@
     public string StatusMessage { get; set; }
     public WordPlayQuestion CurrentQuestion { get; set; }
     public List<Player> PlayersAnswered { get; set; }
-    
+    public bool StartClock { get; set; }
+    public string ClockClass { get; set; }
+
     private HubConnection hubConnection;
 
     protected override async Task OnInitializedAsync()
@@ -79,6 +81,8 @@
         {               
             CurrentQuestion = question;
             CurrentPlayer = player;
+            StartClock = true;
+            ClockClass = "slide-in-blurred-bottom";
             StateHasChanged();
 
             Console.WriteLine(question.Question);
@@ -93,7 +97,7 @@
 
             if (PlayersAnswered.Count >= Game.Players.Count - 1)
             {
-                await hubConnection.SendAsync("AnswersFinished", Game.Id, CurrentPlayer.Username);
+                await AnswersFinished();
             }
         });
 
@@ -111,6 +115,13 @@
         await hubConnection.SendAsync("AskQuestion", Game.Id);
 
         // await hubConnection.SendAsync("Subscribe", Id);
+    }
+
+    public async Task AnswersFinished()
+    {
+        StartClock = false;
+        ClockClass = "slide-out-blurred-bottom";
+        await hubConnection.SendAsync("AnswersFinished", Game.Id, CurrentPlayer.Username);
     }
 
     private void SpeakPhrase(string message)

@@ -24,14 +24,14 @@ namespace ZoomersClient.Server.Hubs
             _phrases = phrases;
         }
 
-        public async Task GetPlayerOrder(Guid gameId)
-        {
-            var game = _gameService.FindGame(gameId);
+        // public async Task GetPlayerOrder(Guid gameId)
+        // {
+        //     var game = _gameService.FindGame(gameId);
 
-            game.ShufflePlayerOrder();
+        //     game.ShufflePlayerOrder();
 
-            await Clients.All.SendAsync("PlayersShuffled", game); 
-        }
+        //     await Clients.All.SendAsync("PlayersShuffled", game); 
+        // }        
         
         public async Task AnswerQuestion(Guid gameId, int questionId, Guid playerId, string answer)
         {

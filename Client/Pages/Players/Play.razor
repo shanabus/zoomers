@@ -2,6 +2,7 @@
 @inject HttpClient Http
 @layout PlayerLayout
 @using Microsoft.AspNetCore.SignalR.Client
+@using Toolbelt.Blazor.SpeechSynthesis
 @using ZoomersClient.Client.Components
 @using ZoomersClient.Client.Components.Shared
 @using ZoomersClient.Shared.Models
@@ -10,14 +11,14 @@
 @inject NavigationManager NavigationManager
 @implements IAsyncDisposable
 
-@if(Game != null && Player != null)
+@if(Game != null && Player != null && CurrentPlayer != null)
 {
     <div class="row">
-        <div class="col-9">
+        <div class="col-10">
             <h1>@Game.Name</h1>
         </div>
-        <div class="col-3 justify-content-end">
-            <PlayerBadge Player="@Player"></PlayerBadge>
+        <div class="col-2 justify-content-end">
+            <PlayerIconButton Icon="@Player.Icon" Class="rotate-in-center mt-2"></PlayerIconButton>
         </div>
     </div>    
     
@@ -45,7 +46,7 @@
     {
         <div class="row">
             <div class="col">
-                Hang tight while others submit their answers...
+                @StatusMessage
             </div>
         </div>
     }
@@ -65,6 +66,7 @@ else
     public Player Player { get; set; }
     public Player CurrentPlayer { get; set; }
     public string Answer { get; set; }
+    public string StatusMessage { get; set; }
     public bool AnswerSubmitted { get; set; }
     public Game Game { get; set;}
     public WordPlayQuestion CurrentQuestion { get; set; }
@@ -82,22 +84,28 @@ else
             .Build();
 
         // subscribe to other things
-        hubConnection.On<WordPlayQuestion, Player>("QuestionReady", (question, player) =>
-        {               
+        hubConnection.On<WordPlayQuestion, Player>("QuestionReady", (question, player) => {               
             CurrentQuestion = question;
             CurrentPlayer = player;
             StateHasChanged();
             Console.WriteLine("Player received question (QuestionReady) : " + question.Question);            
         });
 
+        hubConnection.On<Game, SpeechSynthesisUtterance>("AnswersFinished", (game, phrase) => {            
+            StatusMessage = phrase.Text;
+            StateHasChanged();
+        });  
+
         // start hub
         await hubConnection.StartAsync();
-
+        
         await hubConnection.SendAsync("UpdateConnectionId", Player.Id);
+
+        StatusMessage = "Hang tight while others submit their answers...";
     }
 
     public async Task SubmitAnswer() {
-        Console.WriteLine("An answer was submitted!");
+        Console.WriteLine("An answer was submitted!");        
         AnswerSubmitted = true;
         await hubConnection.SendAsync("AnswerQuestion", Game.Id, CurrentQuestion.Id, Player.Id, Answer);
         StateHasChanged();

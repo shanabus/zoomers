@@ -2,7 +2,11 @@
 
 <div class="player-badge @Class">    
     <PlayerIconButton Icon="@Player.Icon" BackgroundColor="@Player.BackgroundColor" Class="rotate-in-center"></PlayerIconButton>    
-    <span>@Player.Username</span>                        
+    <span class="player-badge__username">@Player.Username</span>       
+    @if(ChildContent != null)
+    {
+        <span class="player-badge__content">@ChildContent</span>                 
+    }    
 </div>
 
 @code {
@@ -11,4 +15,7 @@
 
     [Parameter]
     public Player Player { get; set; }
+    
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
 }

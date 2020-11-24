@@ -1,13 +1,24 @@
 .player-badge {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: .4em;
-    text-align: left;
-  }
+  display: flex;
+  align-items: center;
+  padding: .4em;
+  text-align: left;
+}
   
-  .player-badge span {    
-    font-size: 2rem;
-    width: 100%;
-    padding: .2em .4em;
-  }
+.player-badge span {    
+  font-size: 2rem;
+  padding: .2em .4em;
+  width: 100%;
+}
+
+.players-to-answer .player-badge,
+.players-to-answer span.player-badge__username,
+.players-to-answer span.player-badge__content {
+  font-size: 16px;  
+}
+
+.players-to-answer span.player-badge__username,
+.players-to-answer span.player-badge__content {
+  width: auto;
+  text-align: left;
+}

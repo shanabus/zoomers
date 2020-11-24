@@ -52,7 +52,7 @@
     }
     @if (ShowQuestionCompletePhase)
     {
-        <h1>You have 30 seconds to guess who said what:</h1>
+        <h2>You have 30 seconds to guess who said what:</h2>
 
         <Dropzone Items="@Game.Players.Where(x => x.Id != Player.Id).ToList()" TItem="Player">
             <PlayerBadge Player="@context"></PlayerBadge>
@@ -67,6 +67,17 @@
                 </div>
             </div>
         </Dropzone>
+
+        <div class="row my-4">
+            <div class="col">
+                <button class="btn btn-success w-100 text-center" @onclick="SubmitQuestionCompleteAnswer" disabled="@QuestionCompleteAnswerSubmitted">SUBMIT</button>
+            </div>
+        </div>
+        @if(!QuestionCompleteAnswerSubmitted)
+        {
+            <Clock Class="slide-in-blurred-bottom" Seconds="30" ClockRunning="@true" TimeEllapsed="QuestionCompletePhaseTimeExpired"></Clock>
+        }
+        
     }
 }
 else 
@@ -89,6 +100,7 @@ else
     public Game Game { get; set;}
     public WordPlayQuestion CurrentQuestion { get; set; }
     public bool ShowQuestionCompletePhase { get; set; }
+    public bool QuestionCompleteAnswerSubmitted { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -113,6 +125,7 @@ else
 
         hubConnection.On<Game, SpeechSynthesisUtterance>("AnswersFinished", (game, phrase) => {            
             StatusMessage = phrase.Text;
+            Game = game;
             if (CurrentPlayer.Id == Player.Id)
             {
                 ShowQuestionCompletePhase = true;
@@ -132,6 +145,22 @@ else
         Console.WriteLine("An answer was submitted!");        
         AnswerSubmitted = true;
         await hubConnection.SendAsync("AnswerQuestion", Game.Id, CurrentQuestion.Id, Player.Id, Answer);
+        StateHasChanged();
+    }
+
+    public async Task QuestionCompletePhaseTimeExpired()
+    {
+        QuestionCompleteAnswerSubmitted = true;
+        await hubConnection.SendAsync("QuestionCompletedAnswer", null);
+        Console.WriteLine("Time expired!");
+        StateHasChanged();
+    }
+
+    public async Task SubmitQuestionCompleteAnswer()
+    {
+        QuestionCompleteAnswerSubmitted = true;
+        await hubConnection.SendAsync("QuestionCompletedAnswer", true);
+        Console.WriteLine("Question Complete Submitted");
         StateHasChanged();
     }
 

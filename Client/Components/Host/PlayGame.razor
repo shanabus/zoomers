@@ -38,7 +38,7 @@
     
     @if(StartClock)
     {
-        <Clock Seconds="10" Class="slide-in-blurred-bottom" ClockRunning="@StartClock" TimeEllapsed="AnswersFinished"></Clock>
+        <Clock Seconds="45" Class="slide-in-blurred-bottom" ClockRunning="@StartClock" TimeEllapsed="AnswersFinished"></Clock>
     }
 
     @if(PlayersAnswered.Any())
@@ -47,7 +47,7 @@
         @foreach(var player in PlayersAnswered)
         {
             <div class="col">
-                <PlayerBadge Player="@player" Class="my-4"></PlayerBadge>
+                <PlayerBadge Player="@player" Class="my-4 slide-in-blurred-bottom"></PlayerBadge>
             </div>
         }
         </div>
@@ -90,8 +90,8 @@
             SpeakPhrase(question.Question);
         });
 
-        hubConnection.On<Player>("QuestionAnswered", async (player) => {
-            Console.WriteLine("A person answered a question! " + player.Username);
+        hubConnection.On<Game, Player>("QuestionAnswered", async (game, player) => {
+            Game = game;
             PlayersAnswered.Add(player);
 
             StateHasChanged();

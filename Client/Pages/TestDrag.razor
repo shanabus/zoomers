@@ -1,0 +1,67 @@
+@page "/drag"
+@using Plk.Blazor.DragDrop
+@using ZoomersClient.Client.Components.Shared
+@using ZoomersClient.Shared.Models
+@using ZoomersClient.Shared.Models.Enums
+
+<div class="row">
+<Dropzone Items="PlayerList" TItem="Player" OnItemDrop="@((i)=>lastdropped = i)" Class="players-to-answer">
+    <div style="border: 2px solid blue;">
+        <PlayerBadge Player="@context"></PlayerBadge>
+    </div>
+</Dropzone>
+</div>
+
+<hr />
+
+<div class="row">
+    <div class="col bg-dark">
+        <div class="answered" style="pointer-events: none;">
+            There is a really long answer here.
+        </div>     
+        <Dropzone MaxItems="1" TItem="Player" Items="@PlayerListOfLists[0]" OnItemDrop="@((i)=>lastdropped = i)" Class="players-to-answer answers">
+            <div style="border: 2px solid black">
+                <PlayerBadge Player="@context">There is a really long answer here!</PlayerBadge>
+            </div>
+        </Dropzone>           
+    </div>
+</div>
+
+<div class="row">
+    <div class="col bg-dark">
+        <div class="answered" style="pointer-events: none;">
+            Some other answer
+        </div>     
+        <Dropzone MaxItems="1" TItem="Player" Items="@PlayerListOfLists[1]" OnItemDrop="@((i)=>lastdropped = i)" Class="players-to-answer answers">
+            <div style="border: 2px solid black">
+                <PlayerBadge Player="@context">You did it!</PlayerBadge>
+            </div>
+        </Dropzone>           
+    </div>
+</div>
+
+<hr />
+
+<div>Last Dropped Item: @lastdropped?.Username</div>
+
+@code {
+
+    public List<Player> PlayerList = new List<Player>() {
+            new Player { Icon = PlayerIcon.Spider, BackgroundColor = "rgb(12,132,5)", Username = "Hugo Chavez" },
+            new Player { Icon = PlayerIcon.Ghost, BackgroundColor = "rgb(124,132,5)", Username = "Player Play" },
+            new Player { Icon = PlayerIcon.PalmTree, BackgroundColor = "rgb(12,1,56)", Username = "Tegan the Wise" },
+            new Player { Icon = PlayerIcon.Vampire, BackgroundColor = "rgb(123,32,5)", Username = "Shane Sievers" },
+            new Player { Icon = PlayerIcon.Dragon, BackgroundColor = "rgb(12,132,5)", Username = "Captain Dad" },
+            new Player { Icon = PlayerIcon.Mermaid, BackgroundColor = "rgb(232,132,75)", Username = "Ace Darroh" },
+            new Player { Icon = PlayerIcon.Wizard, BackgroundColor = "rgb(100,252,0)", Username = "Carl Segan" },
+        };
+
+    public List<List<Player>> PlayerListOfLists = new List<List<Player>>() {
+        new List<Player>(),
+        new List<Player>(),
+        new List<Player>(),
+        new List<Player>(),
+    };
+
+    private Player lastdropped { get; set; }
+}

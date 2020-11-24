@@ -96,9 +96,11 @@ namespace ZoomersClient.Client
             "Pandemic",
             "Crazy",
             "Feeling Rough",
-            "Getting Slimy",
+            "Getting Slimey",
             "Mobs",
             "Sticky",
+            "Open",
+            "Primo"
         };
 
         public static string[] LobbyLastNames => new string[] {
@@ -118,6 +120,7 @@ namespace ZoomersClient.Client
             "First",
             "to the Max",
             "Stacks",
+            "Vibes",
             "",
         };
 

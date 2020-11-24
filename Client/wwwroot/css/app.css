@@ -510,9 +510,9 @@ a, .btn-link {
 }
 
 .plk-dd-dragged-over-denied {
-background-color: red;
-opacity: 0.6;
-animation: blinker 1s linear infinite;
+  background-color: red;
+  opacity: 0.6;
+  animation: blinker 1s linear infinite;
 }
 
 .plk-dd-in-transit {
@@ -520,7 +520,7 @@ animation: blinker 1s linear infinite;
 }
 
 .plk-dd-in-transit > div {
-   opacity: 0;
+  opacity: 0;
 }
 
 @keyframes blinker {
@@ -567,7 +567,7 @@ animation: blinker 1s linear infinite;
   -moz-user-select: none; /* Old versions of Firefox */
   -ms-user-select: none; /* Internet Explorer/Edge */
   user-select: none; /* Non-prefixed version, currently
-                                supported by Chrome, Edge, Opera and Firefox */
+                                  supported by Chrome, Edge, Opera and Firefox */
 }
 
 .plk-dd-dropzone {
@@ -577,13 +577,28 @@ animation: blinker 1s linear infinite;
   flex-wrap: wrap;
   margin-right: -15px;
   margin-left: -15px;
+  width: 100%;
 }
 
 .plk-dd-draggable {
   flex: 0 0 50%; 
   max-width: 50%;
+  padding-right: 15px;
+  padding-left: 15px;
+  margin: 4px 0;
 }
+
 .answers .plk-dd-draggable {
   flex: 0 0 100%; 
   max-width: 100%;
+}
+
+
+.answers.plk-dd-dropzone {
+  border: 2px dotted #666;
+}
+
+.answers .plk-dd-draggable {
+  padding: 0;
+  margin: 0;
 }

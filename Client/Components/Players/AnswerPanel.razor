@@ -1,67 +1,102 @@
-@using Plk.Blazor.DragDrop
-@using ZoomersClient.Client.Components.Shared
 @using ZoomersClient.Shared.Models
+@using ZoomersClient.Shared.Models.DTOs
 
 
 <div class="row">
-<Dropzone Items="Players" TItem="Player" Class="players-to-answer">
-    <div style="border: 2px solid blue;">
-        <PlayerBadge Player="@context"></PlayerBadge>
-    </div>
-</Dropzone>
-</div>
-
-<hr />
-
-@for(var p = 0;  p < Players.Count; p++)
-{
-    <div class="row">
-        <div class="col bg-light">
-            <div class="answered" style="pointer-events: none;">
-                There is a really long answer here.
-            </div>     
-            <Dropzone MaxItems="1" TItem="Player" Items="@ListOfPlayers[p]" Class="players-to-answer answers">
-                <div style="border: 2px solid black">
-                    <PlayerBadge Player="@context">There is a really long answer here!</PlayerBadge>
-                </div>
-            </Dropzone>           
-        </div>
+@foreach(var playerAnswer in CurrentPlayerAnswers)
+{    
+    <div class="col-6">
+        <PlayerAnswerButton Player="playerAnswer.Player" Answer="playerAnswer" Selected="@(playerAnswer.Player == SelectedPlayer)" OnClickButton="OnClickPlayer">
+            @playerAnswer.Answer
+        </PlayerAnswerButton>
     </div>
 }
+</div>
+<hr class="my-4">
 
-
+<div class="row">
+@foreach(var answer in Answers)
+{
+    <div class="col-5 my-1">
+        @answer.Answer
+    </div>
+    <div class="col-1 my-1" @onclick="@((e) => OnClickSelectAnswer(e, answer))">
+        @if(CurrentPlayerAnswers.Any(x => x.Answer == answer.Answer))
+        {
+            <span class='oi oi-check text-info' aria-hidden="true"></span>
+        }
+        else
+        {
+            <span class='oi oi-circle-check @((SelectedAnswer == answer)? "text-success" : "text-secondary")' aria-hidden="true"></span>
+        }
+        
+    </div>
+}
+</div>
 
 <div class="row my-4">
     <div class="col">
-        <button class="btn btn-success w-100 text-center" @onclick="SubmitPlayerAnswers" disabled="@(!Enabled)">SUBMIT</button>
+        <button class="btn btn-success w-100 text-center" @onclick="SubmitPlayerAnswers" disabled="@(!Enabled || !Valid)">SUBMIT</button>
     </div>
 </div>
 
 @code {
-
     [Parameter]
     public List<Player> Players { get; set; }
+
+    public Player SelectedPlayer { get; set; }
+    public AnsweredQuestions SelectedAnswer { get; set; }
+
     [Parameter]
     public bool Enabled { get; set; }
+    public bool Valid => CurrentPlayerAnswers.All(x => !string.IsNullOrEmpty(x.Answer));
 
     [Parameter]
     public List<AnsweredQuestions> Answers { get; set; }
-
-    public List<List<Player>> ListOfPlayers { get; set; }
-
+    
+    public List<AnsweredQuestions> CurrentPlayerAnswers { get; set; }
+        
     [Parameter]
     public EventCallback SubmitAnswers { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    [Parameter]
+    public Player CurrentPlayer { get; set; }
+
+    
+
+    protected override void OnParametersSet()
     {
-        ListOfPlayers = new List<List<Player>>();
+        base.OnInitialized();
+
+        CurrentPlayerAnswers = Answers.Where(x => x.Player.Id != CurrentPlayer.Id)
+            .Select(x => new AnsweredQuestions() { Question = x.Question, Answer = "", Player = x.Player })
+            .ToList();   
     }
 
-    protected override async Task OnParametersSetAsync(){
-        foreach(var p in Players){
-            ListOfPlayers.Add(new List<Player>());
+    public void OnClickPlayer(Player player)
+    {
+        Console.WriteLine(player.Username);
+        SelectedPlayer = SelectedPlayer == player? null : player;
+        CheckAnswer();
+    }
+
+    public void OnClickSelectAnswer(MouseEventArgs eventArgs, AnsweredQuestions answer){
+        SelectedAnswer = answer;
+        CheckAnswer();
+    }
+
+    public void CheckAnswer()
+    {
+        if (SelectedPlayer != null && SelectedAnswer != null)
+        {
+            var playerAnswer = CurrentPlayerAnswers.FirstOrDefault(x => x.Player == SelectedPlayer);
+            if (playerAnswer != null){
+                playerAnswer.Answer = SelectedAnswer.Answer;
+            }
+            SelectedPlayer = null;
+            SelectedAnswer = null;
+            StateHasChanged();
         }
-        StateHasChanged();
     }
 
     public async Task SubmitPlayerAnswers()

@@ -26,12 +26,12 @@
         ClockClass = "slide-in-blurred-bottom";
         StateHasChanged();
     }
-    public async Task StartClock() {
+    public void StartClock() {
         ClockRunning = !ClockRunning;
         StateHasChanged();
     }
 
-    public async Task ClockFinished()
+    public void ClockFinished()
     {
         ShowFinishedMessage = true;
         ClockClass = "slide-out-fwd-center";

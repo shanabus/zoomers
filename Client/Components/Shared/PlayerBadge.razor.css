@@ -22,3 +22,12 @@
   width: auto;
   text-align: left;
 }
+
+
+.player-answer-button .player-badge {
+  flex: 1 0 auto;
+}
+.player-answer-button .player-badge span {
+  font-size: 1em;
+  padding: .1em .2em;
+}

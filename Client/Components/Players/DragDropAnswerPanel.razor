@@ -1,0 +1,71 @@
+@using Plk.Blazor.DragDrop
+@using ZoomersClient.Client.Components.Shared
+@using ZoomersClient.Shared.Models
+
+
+<div class="row">
+<Dropzone Items="Players" TItem="Player" Class="players-to-answer">
+    <div style="border: 2px solid blue;">
+        <PlayerBadge Player="@context"></PlayerBadge>
+    </div>
+</Dropzone>
+</div>
+
+<hr />
+
+@for(var p = 0;  p < Players.Count; p++)
+{
+    <div class="row">
+        <div class="col bg-light">
+            <div class="answered" style="pointer-events: none;">
+                There is a really long answer here.
+            </div>     
+            <Dropzone MaxItems="2" TItem="Player" Items="@ListOfPlayers[p]" Class="players-to-answer answers">
+                <div style="border: 2px solid black">
+                    <PlayerBadge Player="@context">There is a really long answer here!</PlayerBadge>
+                </div>
+            </Dropzone>           
+        </div>
+    </div>
+}
+
+
+
+<div class="row my-4">
+    <div class="col">
+        <button class="btn btn-success w-100 text-center" @onclick="SubmitPlayerAnswers" disabled="@(!Enabled)">SUBMIT</button>
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public List<Player> Players { get; set; }
+    [Parameter]
+    public bool Enabled { get; set; }
+
+    [Parameter]
+    public List<AnsweredQuestions> Answers { get; set; }
+
+    public List<List<Player>> ListOfPlayers { get; set; }
+
+    [Parameter]
+    public EventCallback SubmitAnswers { get; set; }
+
+    protected override void OnInitialized()
+    {
+        ListOfPlayers = new List<List<Player>>();
+    }
+
+    protected override void OnParametersSet(){
+        foreach(var p in Players){
+            ListOfPlayers.Add(new List<Player>());
+        }
+        StateHasChanged();
+    }
+
+    public async Task SubmitPlayerAnswers()
+    {
+        await SubmitAnswers.InvokeAsync();
+    }
+}

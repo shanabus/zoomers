@@ -10,8 +10,9 @@
     padding: 4px;
 }
 
-.players-to-answer .player-icon {
+.players-to-answer .player-icon,
+.player-answer-button .player-icon {
     height: 32px;
     width: 32px;
     font-size: 1em;
-  }
+}

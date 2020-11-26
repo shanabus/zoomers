@@ -3,7 +3,7 @@
 @using ZoomersClient.Shared.Models
 @using ZoomersClient.Shared.Models.Enums
 
-<AnswerPanel Players="@PlayerList" Answers="@Answers" Enabled="true" SubmitAnswers="Submit"></AnswerPanel>
+<DragDropAnswerPanel Players="@PlayerList" Answers="@Answers" Enabled="true" SubmitAnswers="Submit"></DragDropAnswerPanel>
 
 @code {
 
@@ -30,7 +30,7 @@
         new AnsweredQuestions() { Question = new QuestionBase() { Question = "Hey, are you listening?"}, Answer = "Ok, over here" },
     };
 
-    public async Task Submit()
+    public void Submit()
     {
         Console.WriteLine("Ok, we made it");
     }

@@ -55,7 +55,7 @@
     {
         <h4>You have 30 seconds to guess who said what:</h4>
 
-        <AnswerPanel Players="@Game.Players.Where(x => x.Id != Player.Id).ToList()" Answers="Game.AnsweredQuestions" SubmitAnswers="SubmitQuestionCompleteAnswer" Enabled="@QuestionCompleteAnswerSubmitted"></AnswerPanel>
+        <AnswerPanel Players="@Game.Players" Answers="Game.AnsweredQuestions" CurrentPlayer="" Enabled="ShowQuestionCompletePhase" SubmitAnswers="SubmitQuestionCompleteAnswer" Enabled="@QuestionCompleteAnswerSubmitted"></AnswerPanel>
         
         @if(!QuestionCompleteAnswerSubmitted)
         {

@@ -1,0 +1,47 @@
+@using ZoomersClient.Client.Components.Shared
+@using ZoomersClient.Shared.Models
+
+<div class="player-answer-button my-1 @Class" @onclick="ClickToggleActive">
+    <PlayerBadge Player="Player"></PlayerBadge>
+    <div class="player-answer-button__check">
+        @if(!string.IsNullOrEmpty(Answer.Answer))
+        {
+            <span class='oi oi-check text-info' aria-hidden="true"></span>
+        }
+        else {
+            <span class='oi oi-circle-check @((Selected)? "text-success" : "text-secondary")' aria-hidden="true"></span>
+        }
+        
+    </div>
+</div>
+    @if (ChildContent != null)
+    {
+        <div class="player-answer-button__answer">
+            @ChildContent
+        </div>
+    }
+
+@code {
+    [Parameter]
+    public Player Player { get; set; }
+
+    [Parameter]
+    public AnsweredQuestions Answer { get; set; }
+
+    [Parameter]
+    public string Class { get; set; }
+
+    [Parameter]
+    public bool Selected { get; set; }
+
+    [Parameter]
+    public EventCallback<Player> OnClickButton { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    public async Task ClickToggleActive()
+    {
+        await OnClickButton.InvokeAsync(Player);
+    }
+}

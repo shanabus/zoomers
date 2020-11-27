@@ -20,6 +20,7 @@ namespace ZoomersClient.Shared.Models
         public GameState State { get; set; }
         public List<PartyIcon> Party { get; set; }
         public List<Player> Players { get; set;}        
+        public Player CurrentPlayer { get; set; }
         public List<AnsweredQuestion> AnsweredQuestions { get; set; }
         public List<QuestionBase> Questions { get; set; }
 
@@ -95,8 +96,8 @@ namespace ZoomersClient.Shared.Models
             try
             {
                 // this assumes the question was asked first...
-                var nextPlayer = Players[Questions.Count];
-                return nextPlayer;
+                CurrentPlayer = Players[Questions.Count];
+                return CurrentPlayer;
             }
             catch(Exception e) 
             {
@@ -104,10 +105,22 @@ namespace ZoomersClient.Shared.Models
             }
         }
 
-        public void ShufflePlayerOrder()
+        #region Game method chaining
+
+        public Game ResetAnswers()
+        {
+            AnsweredQuestions = new List<AnsweredQuestion>();
+            return this;
+        }
+
+        public Game ShufflePlayerOrder()
         {
             var rand = new Random();
             var randomList = Players.OrderBy(x => rand.Next()).ToList();
+
+            return this;
         }
+
+        #endregion
     }
 }

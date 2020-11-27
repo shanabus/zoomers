@@ -55,14 +55,20 @@ namespace ZoomersClient.Shared.Services
             return game;
         }
 
-        public void AddQuestion(Guid id, WordPlayQuestion q)
+        public Game AddQuestion(Guid id, WordPlayQuestion q)
         {
             var game = FindGame(id);
 
             if (game != null) {
                 _logger.LogInformation(q.Question + " was just added");
-                game.Questions.Add(q as QuestionBase);
+                
+                game.ResetAnswers()
+                    .Questions.Add(q as QuestionBase);
+
+                _logger.LogInformation(game.Questions.Count + " questions total");
             }
+
+            return game;
         }
 
         public void UpdateConnectionId(Guid id, string connectionId)

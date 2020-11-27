@@ -147,6 +147,11 @@ a, .btn-link {
   font-size: 2rem;
   padding: 0;
 }
+.game-round {
+  position: absolute;
+  top: 8px;
+  left: 24px;
+}
 
 
 

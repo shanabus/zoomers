@@ -13,7 +13,7 @@
 @inject NavigationManager NavigationManager
 @implements IAsyncDisposable
 
-@if(Game != null && Player != null && CurrentPlayer != null)
+@if(Game != null && Player != null && Game.CurrentPlayer != null)
 {
     <div class="row">
         <div class="col-10">
@@ -24,7 +24,7 @@
         </div>
     </div>    
     
-    @if(CurrentQuestion != null && CurrentPlayer.Id != Player.Id && !AnswerSubmitted)
+    @if(CurrentQuestion != null && Game.CurrentPlayer.Id != Player.Id && !AnswerSubmitted)
     {        
         <div class="@((AnswerSubmitted)? "slide-out-fwd-center": "swing-in-top-fwd")">
             
@@ -43,7 +43,7 @@
             </div>
         </div>
     }
-    @if (AnswerSubmitted || CurrentPlayer.Id == Player.Id && !ShowQuestionCompletePhase)
+    @if (AnswerSubmitted || Game.CurrentPlayer.Id == Player.Id && !ShowQuestionCompletePhase)
     {
         <div class="row">
             <div class="col">
@@ -55,7 +55,7 @@
     {
         <h4>You have 30 seconds to guess who said what:</h4>
 
-        <AnswerPanel Players="@Game.Players" Answers="@Game.AnsweredQuestions" CurrentPlayer="@CurrentPlayer" SubmitAnswers="@((a) => SubmitQuestionCompleteAnswer(a))" Enabled="@(!QuestionCompleteAnswerSubmitted)"></AnswerPanel>        
+        <AnswerPanel Players="@Game.Players" Answers="@Game.AnsweredQuestions" CurrentPlayer="@Game.CurrentPlayer" SubmitAnswers="@((a) => SubmitQuestionCompleteAnswer(a))" Enabled="@(!QuestionCompleteAnswerSubmitted)"></AnswerPanel>        
     }
 }
 else 
@@ -63,15 +63,12 @@ else
     <LoadingMessage Message="Loading Game..."></LoadingMessage>
 }
 
-
-
 @code {
 
     private HubConnection hubConnection;
     [Parameter]
     public string Id { get; set; }
     public Player Player { get; set; }
-    public Player CurrentPlayer { get; set; }
     public string Answer { get; set; }
     public string StatusMessage { get; set; }
     public bool AnswerSubmitted { get; set; }
@@ -85,27 +82,33 @@ else
         base.OnInitialized();
 
         Game = await Http.GetFromJsonAsync<Game>($"Games/{Id}");
+        // todo: handle null game
+        // todo: handle game in progress
 
         Player = await GetPlayerFromStorage();
-            
+        
         hubConnection = new HubConnectionBuilder()
             .WithUrl(NavigationManager.ToAbsoluteUri($"/{Game.GameType}hub"))
             .Build();
 
         // subscribe to other things
-        hubConnection.On<WordPlayQuestion, Player>("QuestionReady", (question, player) => {               
+        hubConnection.On<Game, WordPlayQuestion, Player>("QuestionReady", (game, question, player) => {               
+            // reset UI
+            Game = game;
             CurrentQuestion = question;
-            CurrentPlayer = player;
             ShowQuestionCompletePhase = false;
             QuestionCompleteAnswerSubmitted = false;
+            Answer = "";
+            AnswerSubmitted = false;
+            StatusMessage = "Hang tight while others submit their answers...";
+
             StateHasChanged();
-            Console.WriteLine("Player received question (QuestionReady) : " + question.Question);            
         });
 
         hubConnection.On<Game, SpeechSynthesisUtterance>("AnswersFinished", (game, phrase) => {            
             StatusMessage = phrase.Text;
             Game = game;
-            if (CurrentPlayer.Id == Player.Id)
+            if (game.CurrentPlayer.Id == Player.Id)
             {
                 ShowQuestionCompletePhase = true;
             }
@@ -126,8 +129,6 @@ else
         await hubConnection.StartAsync();
         
         await hubConnection.SendAsync("UpdateConnectionId", Player.Id);
-
-        StatusMessage = "Hang tight while others submit their answers...";
     }
 
     public async Task SubmitAnswer() {

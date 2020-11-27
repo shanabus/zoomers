@@ -172,6 +172,15 @@
             <button class="btn btn-success w-100" @onclick="(e => JoinTheGame())" disabled="@(!IsConnected || !PartyIsValid)">JOIN PARTY</button>
         </div>
     </div>
+
+    @if(Player != null)
+    {
+        <div class="row mt-3">
+            <div class="col">
+                <button class="btn btn-outline-secondary w-100" @onclick="EditPlayer">EDIT PLAYER</button>
+            </div>
+        </div>
+    }
 }
 
 @if(State == LobbyState.ConnectedToGame)
@@ -310,6 +319,12 @@
             return "selected";
         }
         return "";
+    }
+
+    private void EditPlayer()
+    {
+        State = LobbyState.CreatingPlayer;
+        StateHasChanged();
     }
 
     private void RandomPlayer()

@@ -54,7 +54,7 @@ namespace ZoomersClient.Server.Hubs
                 var phrase = _phrases.GetRandomPlayerJoinedPhrase(username, updatedGame.Voice) as SpeechSynthesisUtterance;
                 await Clients.All.SendAsync("PlayersUpdated", updatedGame, player, phrase);
 
-                if (updatedGame.Players.Count >= updatedGame.MinimumNumberOfPlayers)
+                if (updatedGame.HasEnoughPlayers())
                 {
                     // send to first player really
                     await Clients.All.SendAsync("ReadyToStartGame", updatedGame);

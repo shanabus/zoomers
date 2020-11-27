@@ -37,7 +37,7 @@
 
 <div class="row my-4">
     <div class="col">
-        <button class="btn btn-success w-100 text-center" @onclick="SubmitPlayerAnswers" disabled="@(!Enabled || !Valid)">SUBMIT</button>
+        <button class="btn btn-success w-100 text-center" @onclick="SubmitPlayerAnswers" disabled="@(!Enabled || !Valid)">SUBMIT ANSWERS</button>
     </div>
 </div>
 
@@ -66,9 +66,8 @@
 
     private Timer answerTimerRef { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {        
-
         CurrentPlayerAnswers = new List<AnsweredQuestion>();
     }
 

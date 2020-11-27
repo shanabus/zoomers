@@ -91,7 +91,7 @@ namespace ZoomersClient.Server.Hubs
             }            
         }
 
-        public async Task UpdateConnectionId(Guid gameId, Guid playerId)
+        public void UpdateConnectionId(Guid gameId, Guid playerId)
         {
             var game = _gameService.FindGame(gameId);
 

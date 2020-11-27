@@ -15,7 +15,7 @@ namespace ZoomersClient.Shared.Models
         public string Name { get; set; }
         public string Voice { get; set; }
         public string GameType = "wordplay";
-        public int MinimumNumberOfPlayers => 2;
+        public const int MinimumNumberOfPlayers = 2;
         
         public GameState State { get; set; }
         public List<PartyIcon> Party { get; set; }
@@ -115,7 +115,7 @@ namespace ZoomersClient.Shared.Models
 
         public bool HasEnoughPlayers()
         {
-            return MinimumNumberOfPlayers >= Players.Count();
+            return Players.Count() >= MinimumNumberOfPlayers;
         }
 
         #region Game method chaining

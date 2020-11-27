@@ -48,6 +48,13 @@ namespace ZoomersClient.Shared.Models
                 RandomEnumValue<PartyIcon>()
             };
         }
+        
+        public Game StartGame()
+        {
+            State = GameState.Started;
+
+            return this;
+        }
 
         public void EndGame()
         {

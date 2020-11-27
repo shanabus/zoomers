@@ -25,6 +25,7 @@ namespace ZoomersClient.Server.Hubs
             _gameService = gameService;
             _phrases = phrases;
         }
+        
         public async Task AnswerQuestion(Guid gameId, int questionId, Guid playerId, string answer)
         {
             _logger.LogInformation("Processing an Answer! " + answer);

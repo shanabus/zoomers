@@ -402,7 +402,12 @@
                     Console.WriteLine("Game is null or has");
                     State = LobbyState.SelectingParty;
                 }
-                else
+                else if (Game.State == GameState.Started || Game.State == GameState.Playing)
+                {
+                    Console.WriteLine("Game has started or is being played, will try to catch up!");
+                    NavigationManager.NavigateTo($"play/{Game.Id}");
+                }
+                else if (Game.State == GameState.Lobby)
                 {
                     Console.WriteLine("Game looks valid, trying to connect");
                     State = LobbyState.ConnectedToGame;

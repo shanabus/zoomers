@@ -102,5 +102,17 @@ namespace ZoomersClient.Shared.Services
                 game.EndGame();
             }
         }
+
+        public Game StartGame(Guid gameId)
+        {
+            var game = Games.FirstOrDefault(x => x.Id == gameId);
+
+            if (game != null)
+            {
+                game.StartGame();
+            }
+
+            return game;
+        }
     }
 }

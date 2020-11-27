@@ -62,14 +62,13 @@ namespace ZoomersClient.Server.Hubs
             }
         }
 
-        public async Task StartGame(Guid id)
+        public async Task StartGame(Guid gameId)
         {
             // get game, start it (set date?)
+            var game = _gameService.StartGame(gameId);
 
             // inform players game has started
-            await Clients.All.SendAsync("GameStarted", id);
-
-            // inform host game has started
+            await Clients.All.SendAsync("GameStarted", gameId);
         }
 
         public void Subscribe(Guid id)

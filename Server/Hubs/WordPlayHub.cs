@@ -25,8 +25,6 @@ namespace ZoomersClient.Server.Hubs
             _gameService = gameService;
             _phrases = phrases;
         }
- 
-        
         public async Task AnswerQuestion(Guid gameId, int questionId, Guid playerId, string answer)
         {
             _logger.LogInformation("Processing an Answer! " + answer);
@@ -51,15 +49,23 @@ namespace ZoomersClient.Server.Hubs
 
         public async Task AskQuestion(Guid gameId)
         {
+            var game = _gameService.FindGame(gameId);
+
             var question = _wordPlay.GetRandomQuestion(null);
 
             _logger.LogInformation("Randomly chose question " + question.Id);
 
-            _gameService.AddQuestion(gameId, question);
-
-            var player = _gameService.GetNextPlayer(gameId);
+            // todo: double check, it should be handled in QuestionFinished!
+            if (game.Questions.Count == game.Players.Count)
+            {
+                await Clients.All.SendAsync("GameOver", game);
+            }
             
-            await Clients.All.SendAsync("QuestionReady", question, player);
+            game = _gameService.AddQuestion(gameId, question);
+
+            var player = game.GetNextPlayer();
+            
+            await Clients.All.SendAsync("QuestionReady", game, question, player);
         }
 
         public async Task QuestionFinished(Guid gameId, int questionId, int score)
@@ -71,12 +77,14 @@ namespace ZoomersClient.Server.Hubs
 
             if (game.Questions.Count == game.Players.Count)
             {
+                _logger.LogInformation("Hey, its Game Over!");
                 await Clients.All.SendAsync("GameOver", game);
             }
             else
             {
-                await AskQuestion(gameId);
-            }
+                _logger.LogInformation("Proceeding to next question");
+                await Clients.Caller.SendAsync("ProceedToNextQuestion", game);
+            }            
         }
 
         public async Task UpdateConnectionId(Guid gameId, Guid playerId)
@@ -94,11 +102,14 @@ namespace ZoomersClient.Server.Hubs
 
             var phrase = _phrases.GetRandomAnswersFinishedPhrase(username, game.Voice) as SpeechSynthesisUtterance;
             
+            _logger.LogInformation("AnswersFinished on WordPlayHub was called");
+
             await Clients.All.SendAsync("AnswersFinished", game, phrase);
         }
 
         public async Task QuestionCompletedAnswer(Guid gameId, bool timeExpired, List<AnsweredQuestion> currentPlayerAnswers)
         {
+            // todo: should calculate Game scores and Answers here
             Console.WriteLine("Received player answers");
 
             // needs to be different!

@@ -4,3 +4,13 @@ Id,Phrase
 3,"Nice, lets see what we have",1,1
 4,"Ok, it is time to see if __USER__ can do the next part",0.7,1
 5,"Answers are in.  Now let us see if the player can guess who said what",1.1,1.1
+6,"Answers have been submitted. Time to see what __USER__ chooses",1,1
+7,"That wraps up the answers from the players, what does __USER__ do now?",0.6,0.3
+8,"Perfect.  Let's go to __USER__ and conclude their choices",0.8,1
+9,"Tada! Time for __USER__ to choose what the other players have answered",0.7,1.1
+10,"Hang tight while __USER__ picks who said what",0.8,1
+11,"Now 30 more seconds and we'll now how this round ends",0.9,1.1
+12,"Players have done their part. Now lets see if __USER__ can do theirs",0.9,1
+13,"That ends the question part of the round.  Time to see if __USER__ can figure who said what",0.6,1
+14,"Thirty seconds on the clock.  __USER__ is up. Lets go!",1.2,1.2
+15,"Excellent. It is up to __USER__ to unravel the responses.",0.7,1.3

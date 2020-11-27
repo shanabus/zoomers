@@ -92,7 +92,7 @@ else
         });
 
         hubConnection.On<List<AnsweredQuestions>>("QuestionSummaryStarted", (currentPlayerAnswers) => {
-            Console.WriteLine("Ok, lets start the Question Summary!");
+            Console.WriteLine("Start the Question Summary!");
             CurrentPlayerAnswers = currentPlayerAnswers;
             State = GameState.Summary;
             StateHasChanged();

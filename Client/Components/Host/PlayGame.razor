@@ -103,13 +103,12 @@
 
             if (PlayersAnswered.Count >= Game.Players.Count - 1)
             {
-                Console.WriteLine("Players have all answered, proceed! " + PlayersAnswered.Count);
+                // Console.WriteLine("Players have all answered, proceed! " + PlayersAnswered.Count);
                 await AnswersFinished();
             }
         });
 
         hubConnection.On<Game, SpeechSynthesisUtterance>("AnswersFinished", (game, phrase) => {
-            Console.WriteLine("finished Answers - " + phrase.Text);
             StatusMessage = phrase.Text;
             StateHasChanged();
             SpeakPhrase(phrase.Text);

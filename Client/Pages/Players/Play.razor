@@ -111,9 +111,8 @@ else
             }
             StateHasChanged();
         });  
-        hubConnection.On<List<AnsweredQuestions>>("QuestionSummaryStarted", (currentPlayerAnswers) => {
-            Console.WriteLine("Ok, players should watch the summary");
-            StatusMessage = "Check the screen for a summary";
+        hubConnection.On<List<AnsweredQuestions>>("QuestionSummaryStarted", (currentPlayerAnswers) => {            
+            StatusMessage = "Check the screen for a summary of the question";
             StateHasChanged();
         });
 
@@ -126,7 +125,6 @@ else
     }
 
     public async Task SubmitAnswer() {
-        Console.WriteLine("An answer was submitted!");        
         AnswerSubmitted = true;
         await hubConnection.SendAsync("AnswerQuestion", Game.Id, CurrentQuestion.Id, Player.Id, Answer);
         StateHasChanged();

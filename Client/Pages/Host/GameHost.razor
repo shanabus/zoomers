@@ -25,10 +25,6 @@ else if (State == GameState.Playing)
         <PlayGame Game="Game"></PlayGame>
     </CascadingValue>
 }
-else if (State == GameState.Summary)
-{
-    <QuestionSummary Game="Game" CurrentPlayer="@Game.Players.First()" CurrentPlayerAnswers="CurrentPlayerAnswers"></QuestionSummary>
-}
 else
 {
     <LoadingMessage Message="Loading Game..."></LoadingMessage>
@@ -40,9 +36,7 @@ else
     public Game Game { get; set; }
     public string StatusMessage { get; set; }
     public GameState State { get; set; }
-    
-    public List<AnsweredQuestions> CurrentPlayerAnswers { get; set; }
-    
+        
     private HubConnection hubConnection;
 
     protected override async Task OnInitializedAsync()
@@ -89,13 +83,6 @@ else
                 State = GameState.Playing;
                 StateHasChanged();
             });
-        });
-
-        hubConnection.On<List<AnsweredQuestions>>("QuestionSummaryStarted", (currentPlayerAnswers) => {
-            Console.WriteLine("Start the Question Summary!");
-            CurrentPlayerAnswers = currentPlayerAnswers;
-            State = GameState.Summary;
-            StateHasChanged();
         });
 
         // start hub

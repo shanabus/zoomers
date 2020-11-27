@@ -97,7 +97,7 @@ namespace ZoomersClient.Server.Hubs
             if (!timeExpired)
             {
                 Console.WriteLine("with time on the clock");
-                await Clients.All.SendAsync("QuestionSummaryStarted", currentPlayerAnswers);
+                await Clients.All.SendAsync("QuestionSummaryStarted", timeExpired, currentPlayerAnswers);
             }            
             else {
                 Console.WriteLine("Time expired for current player?");

@@ -19,29 +19,26 @@
                 </div>
             }         
 
-            @if(CurrentPlayer != null)
-            {
-                <div class="row">
+                <div class="row">                    
+                @if(CurrentPlayer != null)
+                {
                     <div class="col">
-                        <PlayerIconButton Icon="CurrentPlayer.Icon" BackgroundColor="@CurrentPlayer.BackgroundColor"></PlayerIconButton>
+                        <PlayerBadge Player="CurrentPlayer"></PlayerBadge>
+                    </div>                     
+                }      
+                    <div class="col">
+                        <h3>@StatusMessage</h3>
                     </div>
                 </div>                
-            }
+            <hr />
         </div>
     </div>    
-
-    <div class="row my-4">
-        <div class="col">
-            <h3>@StatusMessage</h3>
-        </div>
-    </div>
     
     @if(State == GameState.Playing)
     {
         <Timer @ref="timerRef" Seconds="30" Class="slide-in-blurred-bottom" TimeEllapsed="AnswersFinished"></Timer>
-    }
-    
-    
+    }    
+
     @if(PlayersAnswered.Any())
     {
         <div class="row">
@@ -49,6 +46,14 @@
         {
             <div class="col">
                 <PlayerBadge Player="@player" Class="my-4 slide-in-blurred-bottom"></PlayerBadge>
+                
+                @if(State == GameState.Summary)
+                {
+                    <div>Player answer:</div>
+
+                    <div>@CurrentPlayer.Username answer:</div>
+                }
+    
             </div>
         }
         </div>
@@ -67,6 +72,7 @@
     public List<Player> PlayersAnswered { get; set; }
     public bool StartClock { get; set; }
     private Timer timerRef { get; set; }
+    public List<AnsweredQuestions> CurrentPlayerAnswers { get; set; }
 
     private HubConnection hubConnection;
 
@@ -113,6 +119,13 @@
             StateHasChanged();
             SpeakPhrase(phrase.Text);
         });        
+        
+        hubConnection.On<bool, List<AnsweredQuestions>>("QuestionSummaryStarted", (timeExpired, currentPlayerAnswers) => {
+            Console.WriteLine("Start the Question Summary!  " + currentPlayerAnswers);
+            // CurrentPlayerAnswers = currentPlayerAnswers;
+            State = GameState.Summary;
+            StateHasChanged();
+        });
 
         // start hub
         await hubConnection.StartAsync();

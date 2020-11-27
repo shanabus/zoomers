@@ -111,7 +111,8 @@ else
             }
             StateHasChanged();
         });  
-        hubConnection.On<List<AnsweredQuestions>>("QuestionSummaryStarted", (currentPlayerAnswers) => {            
+        
+        hubConnection.On<bool, List<AnsweredQuestions>>("QuestionSummaryStarted", (timeExpired, currentPlayerAnswers) => {            
             StatusMessage = "Check the screen for a summary of the question";
             StateHasChanged();
         });

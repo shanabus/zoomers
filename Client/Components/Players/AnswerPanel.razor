@@ -1,3 +1,4 @@
+@using ZoomersClient.Client.Components.Shared
 @using ZoomersClient.Shared.Models
 @using ZoomersClient.Shared.Models.DTOs
 
@@ -40,6 +41,9 @@
     </div>
 </div>
 
+<Clock Class="slide-in-blurred-bottom" Seconds="30" ClockRunning="Enabled" TimeEllapsed="SubmitPlayerAnswers"></Clock>
+
+
 @code {
     [Parameter]
     public List<Player> Players { get; set; }
@@ -57,7 +61,7 @@
     public List<AnsweredQuestions> CurrentPlayerAnswers { get; set; }
         
     [Parameter]
-    public EventCallback SubmitAnswers { get; set; }
+    public EventCallback<List<AnsweredQuestions>> SubmitAnswers { get; set; }
 
     [Parameter]
     public Player CurrentPlayer { get; set; }
@@ -75,7 +79,6 @@
 
     public void OnClickPlayer(Player player)
     {
-        Console.WriteLine(player.Username);
         SelectedPlayer = SelectedPlayer == player? null : player;
         CheckAnswer();
     }
@@ -101,6 +104,11 @@
 
     public async Task SubmitPlayerAnswers()
     {
-        await SubmitAnswers.InvokeAsync();
+        // shouldn't have to check this but time ellapsed was firing
+        if (Enabled)
+        {
+            Console.WriteLine("SubmitPlayerAnswers");
+            // await SubmitAnswers.InvokeAsync(CurrentPlayerAnswers);
+        }        
     }
 }

@@ -19,7 +19,7 @@ namespace ZoomersClient.Shared.Models
         
         public GameState State { get; set; }
         public List<PartyIcon> Party { get; set; }
-        public List<Player> Players { get; set;}
+        public List<Player> Players { get; set;}        
         public List<AnsweredQuestions> AnsweredQuestions { get; set; }
         public List<QuestionBase> Questions { get; set; }
 

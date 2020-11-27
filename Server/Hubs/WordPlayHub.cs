@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Toolbelt.Blazor.SpeechSynthesis;
 using ZoomersClient.Server.Services;
+using ZoomersClient.Shared.Models;
 using ZoomersClient.Shared.Services;
 
 namespace ZoomersClient.Server.Hubs
@@ -85,6 +87,20 @@ namespace ZoomersClient.Server.Hubs
             var phrase = _phrases.GetRandomAnswersFinishedPhrase(username, game.Voice) as SpeechSynthesisUtterance;
             
             await Clients.All.SendAsync("AnswersFinished", game, phrase);
+        }
+
+        public async Task QuestionCompletedAnswer(Guid gameId, bool timeExpired, List<AnsweredQuestions> currentPlayerAnswers)
+        {
+            Console.WriteLine("Received player answers");
+
+            // needs to be different!
+            if (!timeExpired)
+            {
+                await Clients.All.SendAsync("QuestionSummaryStarted", currentPlayerAnswers);
+            }            
+            else {
+                Console.WriteLine("Time expired for current player?");
+            }
         }
 
         public override async Task OnConnectedAsync()

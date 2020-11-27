@@ -23,6 +23,10 @@ else if (State == GameState.Playing)
 {
     <PlayGame Game="Game"></PlayGame>
 }
+else if (State == GameState.Summary)
+{
+    <QuestionSummary Game="Game" CurrentPlayer="@Game.Players.First()" CurrentPlayerAnswers="CurrentPlayerAnswers"></QuestionSummary>
+}
 else
 {
     <LoadingMessage Message="Loading Game..."></LoadingMessage>
@@ -34,6 +38,8 @@ else
     public Game Game { get; set; }
     public string StatusMessage { get; set; }
     public GameState State { get; set; }
+    
+    public List<AnsweredQuestions> CurrentPlayerAnswers { get; set; }
     
     private HubConnection hubConnection;
 
@@ -81,6 +87,13 @@ else
                 State = GameState.Playing;
                 StateHasChanged();
             });
+        });
+
+        hubConnection.On<List<AnsweredQuestions>>("QuestionSummaryStarted", (currentPlayerAnswers) => {
+            Console.WriteLine("Ok, lets start the Question Summary!");
+            CurrentPlayerAnswers = currentPlayerAnswers;
+            State = GameState.Summary;
+            StateHasChanged();
         });
 
         // start hub

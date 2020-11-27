@@ -98,6 +98,7 @@
 
             if (PlayersAnswered.Count >= Game.Players.Count - 1)
             {
+                Console.WriteLine("Players have all answered, proceed! " + PlayersAnswered.Count);
                 await AnswersFinished();
             }
         });

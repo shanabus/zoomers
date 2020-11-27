@@ -26,13 +26,6 @@
         ClockValue = new TimeSpan(0, 0, Seconds);
     }
 
-    protected override async Task OnParametersSetAsync()
-    {
-        if (ClockRunning) {
-            await ClockTick();
-        }
-    }
-
     async Task ClockTick()
     {
         while (ClockRunning)
@@ -44,7 +37,7 @@
                 CurrentSeconds = ClockValue.Seconds;
                 StateHasChanged();
 
-                if (CurrentSeconds <= 0)
+                if (CurrentSeconds <= 0 && ClockRunning)
                 {
                     await TimeEllapsed.InvokeAsync();
                     ClockRunning = false;

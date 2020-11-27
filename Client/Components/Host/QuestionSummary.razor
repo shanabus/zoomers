@@ -1,0 +1,30 @@
+@using ZoomersClient.Client.Components.Players
+@using ZoomersClient.Shared.Models
+
+<h1>The answers are, lets see how they did:</h1>
+
+<div class="row">
+@foreach(var playerAnswer in Game.AnsweredQuestions)
+{    
+    var currentPlayerAnswer = CurrentPlayerAnswers.FirstOrDefault(x => x.Player.Id == playerAnswer.Player.Id);
+
+    <div class="col-6">
+        <PlayerAnswerButton Player="playerAnswer.Player" Answer="playerAnswer" Selected="@(playerAnswer.Answer == currentPlayerAnswer?.Answer)">
+            @playerAnswer.Answer
+            <label>@CurrentPlayer.Username chose:</label>
+            @currentPlayerAnswer?.Answer
+        </PlayerAnswerButton>
+    </div>
+}
+</div>
+
+@code {
+    [Parameter]
+    public Game Game { get; set; }
+
+    [Parameter]
+    public Player CurrentPlayer { get; set; }
+    
+    [Parameter]
+    public List<AnsweredQuestions> CurrentPlayerAnswers { get; set; }
+}

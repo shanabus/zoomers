@@ -41,8 +41,7 @@
     </div>
 </div>
 
-<Clock Class="slide-in-blurred-bottom" Seconds="30" ClockRunning="Enabled" TimeEllapsed="SubmitPlayerAnswers"></Clock>
-
+<Timer @ref="answerTimerRef" Seconds="30" Class="slide-in-blurred-bottom" TimeEllapsed="SubmitPlayerAnswers"></Timer>
 
 @code {
     [Parameter]
@@ -66,7 +65,20 @@
     [Parameter]
     public Player CurrentPlayer { get; set; }
 
-    
+    private Timer answerTimerRef { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {        
+        if (answerTimerRef != null)
+        {
+            // answerTimerRef.StartTimer();
+        }        
+        else
+        {
+            await Task.Delay(1000);
+            // answerTimerRef.StartTimer();            
+        }
+    }
 
     protected override void OnParametersSet()
     {
@@ -104,11 +116,13 @@
 
     public async Task SubmitPlayerAnswers()
     {
+        answerTimerRef.StopTimer();
+
         // shouldn't have to check this but time ellapsed was firing
         if (Enabled)
         {
             Console.WriteLine("SubmitPlayerAnswers");
-            // await SubmitAnswers.InvokeAsync(CurrentPlayerAnswers);
+            await SubmitAnswers.InvokeAsync(CurrentPlayerAnswers);
         }        
     }
 }

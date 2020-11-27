@@ -1,0 +1,57 @@
+<div id="game-clock" class="@Class">
+    <div id="remaining-time">@counter</div>
+    <div id="unit-of-measure">sec</div>
+</div>
+
+
+@code {
+    [Parameter]
+    public string Class { get; set; }
+    [Parameter]
+    public int Seconds { get; set; }
+    [Parameter]
+    public EventCallback<int> TimeEllapsed { get; set; }
+    
+    private static System.Timers.Timer aTimer;
+    private int counter = 0;
+    
+    protected override void OnInitialized()
+    {
+        aTimer = new System.Timers.Timer(1000);
+        counter = Seconds;
+        base.OnInitialized();
+    }
+
+    public void StartTimer()
+    {
+        if(!aTimer.Enabled)
+        {            
+            aTimer.Elapsed += CountDownTimer;
+            aTimer.Enabled = true;
+        }        
+    }
+
+    public void StopTimer()
+    {
+        if(aTimer.Enabled)
+        {
+            aTimer.Elapsed -= CountDownTimer;
+            aTimer.Enabled = false;
+        }
+    }
+
+    public void CountDownTimer(Object source, System.Timers.ElapsedEventArgs e)
+    {
+        if (counter > 0)
+        {
+            counter -= 1;
+        }
+        else
+        {
+            aTimer.Enabled = false;
+            TimeEllapsed.InvokeAsync(counter);
+        }
+        StateHasChanged();
+    }
+
+}

@@ -97,6 +97,7 @@ else
             CurrentQuestion = question;
             CurrentPlayer = player;
             ShowQuestionCompletePhase = false;
+            QuestionCompleteAnswerSubmitted = false;
             StateHasChanged();
             Console.WriteLine("Player received question (QuestionReady) : " + question.Question);            
         });

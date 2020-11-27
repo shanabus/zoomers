@@ -5,6 +5,7 @@
 @inject NavigationManager NavigationManager
 @inject ZoomersClient.Shared.Services.GameService GameService
 @using Toolbelt.Blazor.SpeechSynthesis
+@using ZoomersClient.Shared.Models.Enums
 @inject SpeechSynthesis SpeechSynthesis
 
 @if (Game != null)
@@ -36,11 +37,12 @@
         </div>
     </div>
     
-    @if(StartClock)
+    @if(State == GameState.Playing)
     {
-        <Clock Seconds="45" Class="slide-in-blurred-bottom" ClockRunning="@StartClock" TimeEllapsed="AnswersFinished"></Clock>
+        <Timer @ref="timerRef" Seconds="30" Class="slide-in-blurred-bottom" TimeEllapsed="AnswersFinished"></Timer>
     }
-
+    
+    
     @if(PlayersAnswered.Any())
     {
         <div class="row">
@@ -58,11 +60,14 @@
 
     [Parameter]
     public Game Game { get; set; }
+    [CascadingParameter]
+    public GameState State { get; set; }
     public Player CurrentPlayer { get; set; }
     public string StatusMessage { get; set; }
     public WordPlayQuestion CurrentQuestion { get; set; }
     public List<Player> PlayersAnswered { get; set; }
     public bool StartClock { get; set; }
+    private Timer timerRef { get; set; }
 
     private HubConnection hubConnection;
 
@@ -83,7 +88,8 @@
         {               
             CurrentQuestion = question;
             CurrentPlayer = player;
-            StartClock = true;
+            timerRef.StartTimer();
+
             StateHasChanged();
 
             Console.WriteLine(question.Question);
@@ -121,8 +127,10 @@
 
     public async Task AnswersFinished()
     {
-        StartClock = false;
+        timerRef.StopTimer();
+        State = GameState.PlayerChoosing;
         await hubConnection.SendAsync("AnswersFinished", Game.Id, CurrentPlayer.Username);
+        StateHasChanged();
     }
 
     private void SpeakPhrase(string message)

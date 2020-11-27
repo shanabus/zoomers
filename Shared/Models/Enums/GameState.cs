@@ -6,6 +6,7 @@ namespace ZoomersClient.Shared.Models.Enums
         Starting,
         Started,
         Playing,
+        PlayerChoosing,
         Summary,
         Ending,
         Ended

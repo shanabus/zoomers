@@ -21,7 +21,9 @@
 }
 else if (State == GameState.Playing)
 {
-    <PlayGame Game="Game"></PlayGame>
+    <CascadingValue Value="State">
+        <PlayGame Game="Game"></PlayGame>
+    </CascadingValue>
 }
 else if (State == GameState.Summary)
 {

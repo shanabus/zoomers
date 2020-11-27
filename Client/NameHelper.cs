@@ -43,7 +43,16 @@ namespace ZoomersClient.Client
             "Sir",
             "Big",
             "Little",
-            "Lady"
+            "Lady",
+            "Emperor",
+            "Grand",
+            "Esteemed",
+            "Longlasting",
+            "Famous",
+            "Lonely",
+            "Lovely",
+            "Larry",
+            "Harry"
         };
         
         public static string[] LastNames => new string[] {
@@ -77,6 +86,15 @@ namespace ZoomersClient.Client
             "Monkey",
             "Tiger",
             "in Charge",
+            "Problems",
+            "Brown",
+            "Green",
+            "Pink",
+            "Blue",
+            "Slime",
+            "the Ripper",
+            "the Wicked",
+            "the Fearsome",
             "",
         };
 

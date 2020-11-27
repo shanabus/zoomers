@@ -110,14 +110,12 @@
     </div>
     }
         
-
     <div class="row mt-4">
         <div class="col">
             <button class="btn btn-success w-100" @onclick="(e => ConnectToParty())" disabled="@(!IsConnected || !PlayerIsValid)">CONNECT TO PARTY</button>
         </div>
     </div>
 }
-
 
 @if(State == LobbyState.SelectingParty)
 {
@@ -168,15 +166,12 @@
             <PartyButton Icon="PartyIcon.Family" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Family))"></PartyButton>
         </div>
     </div>
-
-    @if(Game == null || Player == null)
-    {
-        <div class="row mt-3">
-            <div class="col">
-                <button class="btn btn-success w-100" @onclick="(e => JoinTheGame())" disabled="@(!IsConnected || !PartyIsValid)">JOIN PARTY</button>
-            </div>
+    
+    <div class="row mt-3">
+        <div class="col">
+            <button class="btn btn-success w-100" @onclick="(e => JoinTheGame())" disabled="@(!IsConnected || !PartyIsValid)">JOIN PARTY</button>
         </div>
-    } 
+    </div>
 }
 
 @if(State == LobbyState.ConnectedToGame)
@@ -249,7 +244,8 @@
     
     public string GameStatus { get; set;}
     public Game Game { get; set; }
-    public bool ShowStartButton { get; set; }
+    
+    public bool ShowStartButton => Game != null && Game.HasEnoughPlayers();
 
     protected override async Task OnInitializedAsync()
     {
@@ -285,10 +281,6 @@
 
         hubConnection.On<Game>("ReadyToStartGame", (game) => {
             Game = game;
-            if (game.Players.Count() >= game.MinimumNumberOfPlayers && game.Players.First().Username == Username)
-            {
-                ShowStartButton = true;
-            }
             StateHasChanged();
         });
 
@@ -391,6 +383,10 @@
         }        
         else
         {
+            Username = Player.Username;
+            BackgroundColor = Player.BackgroundColor;
+            ChosenIcon = Player.Icon;
+
             Console.WriteLine("Player found, checking for an existing game");
             try
             {
@@ -400,6 +396,7 @@
                 if (Game == null || Game.State == GameState.Ended)
                 {
                     Console.WriteLine("Game is null or has");
+                    GameStatus = "Found a game but its over, enter a new code";
                     State = LobbyState.SelectingParty;
                 }
                 else if (Game.State == GameState.Started || Game.State == GameState.Playing)
@@ -409,8 +406,17 @@
                 }
                 else if (Game.State == GameState.Lobby)
                 {
-                    Console.WriteLine("Game looks valid, trying to connect");
-                    State = LobbyState.ConnectedToGame;
+                    if (Game.Players.Any(x => x.Id == Player.Id))
+                    {
+                        Console.WriteLine("Game looks valid, should be in lobby");
+                        GameStatus = "Reconnected to game";
+                        State = LobbyState.ConnectedToGame;
+                    }
+                    else {
+                        Console.WriteLine("Game looks valid, need to rejoin with party code");
+                        GameStatus = "Found a game the lobby is empty, enter a new code";
+                        State = LobbyState.SelectingParty;
+                    }
                 }
             }
             catch(Exception e)

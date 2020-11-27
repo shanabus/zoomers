@@ -56,9 +56,10 @@ namespace ZoomersClient.Shared.Models
             return this;
         }
 
-        public void EndGame()
+        public Game EndGame()
         {
-            // do something that says its over
+            State = GameState.Ended;
+            return this;
         }
 
         public void AnswerQuestion(Player player, int questionId, string answer)
@@ -110,6 +111,11 @@ namespace ZoomersClient.Shared.Models
             {
                 throw new PlayerQuestionMismatchException(e.Message);
             }
+        }
+
+        public bool HasEnoughPlayers()
+        {
+            return MinimumNumberOfPlayers >= Players.Count();
         }
 
         #region Game method chaining

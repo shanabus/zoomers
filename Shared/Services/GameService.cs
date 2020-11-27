@@ -93,14 +93,16 @@ namespace ZoomersClient.Shared.Services
             throw new GameNotFoundException();
         }
 
-        public void EndGame(Guid gameId)
+        public Game EndGame(Guid gameId)
         {
             var game = Games.FirstOrDefault(x => x.Id == gameId);
 
             if (game != null)
             {
-                game.EndGame();
+                return game.EndGame();
             }
+            
+            return game;
         }
 
         public Game StartGame(Guid gameId)

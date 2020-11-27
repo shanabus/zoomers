@@ -25,7 +25,7 @@ namespace ZoomersClient.Server.Hubs
             _gameService = gameService;
             _phrases = phrases;
         }
-        
+
         public async Task AnswerQuestion(Guid gameId, int questionId, Guid playerId, string answer)
         {
             _logger.LogInformation("Processing an Answer! " + answer);
@@ -78,7 +78,10 @@ namespace ZoomersClient.Server.Hubs
 
             if (game.Questions.Count == game.Players.Count)
             {
+                game = _gameService.EndGame(gameId);
+
                 _logger.LogInformation("Hey, its Game Over!");
+                
                 await Clients.All.SendAsync("GameOver", game);
             }
             else

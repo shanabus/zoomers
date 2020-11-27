@@ -6,6 +6,7 @@
 @using ZoomersClient.Client.Components.Players
 @using ZoomersClient.Client.Components.Shared
 @using ZoomersClient.Shared.Models
+@using ZoomersClient.Shared.Models.Enums
 @inject Blazored.LocalStorage.ILocalStorageService localStore
 @inject NavigationManager NavigationManager
 @implements IAsyncDisposable
@@ -68,7 +69,10 @@ else
     public Player Player { get; set; }
     public string Answer { get; set; }
     public string StatusMessage { get; set; }
+
     public bool AnswerSubmitted { get; set; }
+    public PlayState State { get; set; }
+
     public Game Game { get; set;}
     public WordPlayQuestion CurrentQuestion { get; set; }
     public bool ShowQuestionCompletePhase { get; set; }
@@ -79,12 +83,11 @@ else
         base.OnInitialized();
 
         Game = await Http.GetFromJsonAsync<Game>($"Games/{Id}");
-        if (Game == null)
+        if (Game == null || Game.State == GameState.Ended || Game.State == GameState.Lobby)
         {
             NavigationManager.NavigateTo("/join");
         }
 
-        // todo: handle game in progress
         Player = await GetPlayerFromStorageAsync();
         
         hubConnection = new HubConnectionBuilder()

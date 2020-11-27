@@ -62,13 +62,21 @@ namespace ZoomersClient.Server.Hubs
             await Clients.All.SendAsync("QuestionReady", question, player);
         }
 
-        public Task QuestionFinished(Guid gameId, int questionId)
+        public async Task QuestionFinished(Guid gameId, int questionId, int score)
         {
             var game = _gameService.FindGame(gameId);
 
             // total scores?  let player whose turn it is answer?
+            game.RecordScore(questionId, score);
 
-            throw new System.NotImplementedException();
+            if (game.Questions.Count == game.Players.Count)
+            {
+                await Clients.All.SendAsync("GameOver", game);
+            }
+            else
+            {
+                await AskQuestion(gameId);
+            }
         }
 
         public async Task UpdateConnectionId(Guid gameId, Guid playerId)
@@ -89,7 +97,7 @@ namespace ZoomersClient.Server.Hubs
             await Clients.All.SendAsync("AnswersFinished", game, phrase);
         }
 
-        public async Task QuestionCompletedAnswer(Guid gameId, bool timeExpired, List<AnsweredQuestions> currentPlayerAnswers)
+        public async Task QuestionCompletedAnswer(Guid gameId, bool timeExpired, List<AnsweredQuestion> currentPlayerAnswers)
         {
             Console.WriteLine("Received player answers");
 

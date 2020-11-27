@@ -1,4 +1,5 @@
 @inject HttpClient Http
+@using ZoomersClient.Client.Components.Players
 @using ZoomersClient.Client.Components.Shared
 @using ZoomersClient.Shared.Models
 @using Microsoft.AspNetCore.SignalR.Client
@@ -18,15 +19,14 @@
                     @CurrentQuestion.Question
                 </div>
             }         
-
                 <div class="row">                    
                 @if(CurrentPlayer != null)
                 {
-                    <div class="col">
+                    <div class="col-5">
                         <PlayerBadge Player="CurrentPlayer"></PlayerBadge>
                     </div>                     
                 }      
-                    <div class="col">
+                    <div class="col-7 pt-3">
                         <h3>@StatusMessage</h3>
                     </div>
                 </div>                
@@ -37,6 +37,10 @@
     @if(State == GameState.Playing)
     {
         <Timer @ref="timerRef" Seconds="30" Class="slide-in-blurred-bottom" TimeEllapsed="AnswersFinished"></Timer>
+    }  
+    @if(State == GameState.Summary)
+    {
+        <Scorecard @ref="scorecardRef" Score="@CurrentPlayerScore" Class="slide-in-blurred-bottom"></Scorecard>
     }    
 
     @if(PlayersAnswered.Any())
@@ -44,14 +48,15 @@
         <div class="row">
         @foreach(var player in PlayersAnswered)
         {
-            <div class="col">
-                <PlayerBadge Player="@player" Class="my-4 slide-in-blurred-bottom"></PlayerBadge>
+            <div class="col my-2">
+                <PlayerBadge Player="@player" Class="slide-in-blurred-bottom"></PlayerBadge>
                 
                 @if(State == GameState.Summary)
                 {
-                    <div>Player answer:</div>
+                    var playerAnswer = Game.AnsweredQuestions.FirstOrDefault(x => x.Player.Id == player.Id)?.Answer;
+                    var currentPlayerAnswer = CurrentPlayerAnswers.FirstOrDefault(x => x.Player.Id == player.Id)?.Answer;
 
-                    <div>@CurrentPlayer.Username answer:</div>
+                    <PlayerAnswerResult PlayerAnswer="@playerAnswer" CurrentPlayer="CurrentPlayer" CurrentPlayerAnswer="@currentPlayerAnswer" Show="@(ScoreShown > PlayersAnswered.IndexOf(player))"></PlayerAnswerResult>
                 }
     
             </div>
@@ -72,7 +77,11 @@
     public List<Player> PlayersAnswered { get; set; }
     public bool StartClock { get; set; }
     private Timer timerRef { get; set; }
-    public List<AnsweredQuestions> CurrentPlayerAnswers { get; set; }
+
+    public List<AnsweredQuestion> CurrentPlayerAnswers { get; set; }
+    public int CurrentPlayerScore { get; set; }
+    private Scorecard scorecardRef { get; set; }
+    private int ScoreShown { get; set; }
 
     private HubConnection hubConnection;
 
@@ -87,17 +96,21 @@
             .WithUrl(NavigationManager.ToAbsoluteUri($"/{Game.GameType}hub"))
             .Build();
 
-        // subscribe to game events     
-        
+        // subscribe to game events             
         hubConnection.On<WordPlayQuestion, Player>("QuestionReady", (question, player) =>
-        {               
+        {   
+            // reset UI            
             CurrentQuestion = question;
             CurrentPlayer = player;
+            CurrentPlayerAnswers = new List<AnsweredQuestion>();
+            PlayersAnswered = new List<Player>();
+            State = GameState.Playing;
+            ScoreShown = 0;
+
             timerRef.StartTimer();
 
             StateHasChanged();
 
-            Console.WriteLine(question.Question);
             SpeakPhrase(question.Question);
         });
 
@@ -109,7 +122,6 @@
 
             if (PlayersAnswered.Count >= Game.Players.Count - 1)
             {
-                // Console.WriteLine("Players have all answered, proceed! " + PlayersAnswered.Count);
                 await AnswersFinished();
             }
         });
@@ -120,12 +132,40 @@
             SpeakPhrase(phrase.Text);
         });        
         
-        hubConnection.On<bool, List<AnsweredQuestions>>("QuestionSummaryStarted", (timeExpired, currentPlayerAnswers) => {
-            Console.WriteLine("Start the Question Summary!  " + currentPlayerAnswers);
-            // CurrentPlayerAnswers = currentPlayerAnswers;
+        hubConnection.On<bool, List<AnsweredQuestion>>("QuestionSummaryStarted", async (timeExpired, currentPlayerAnswers) => {
+            StatusMessage = $"Time to see how you did";
+            CurrentPlayerAnswers = currentPlayerAnswers;
             State = GameState.Summary;
             StateHasChanged();
+
+            foreach(var player in PlayersAnswered)
+            {
+                var playerAnswer = Game.AnsweredQuestions.FirstOrDefault(x => x.Player.Id == player.Id)?.Answer;
+                var currentPlayerAnswer = CurrentPlayerAnswers.FirstOrDefault(x => x.Player.Id == player.Id)?.Answer;
+
+                await Task.Delay(1000);
+                ScoreShown++;
+                
+                if (playerAnswer == currentPlayerAnswer)
+                {
+                    CurrentPlayerScore = CurrentPlayerScore + (ScoreShown * 100);
+                }
+                
+                StateHasChanged();
+            }
+
+            // record score?
+            await Task.Delay(5000);            
+            await hubConnection.SendAsync("QuestionFinished", Game.Id, CurrentQuestion.Id, CurrentPlayerScore);
+            // await hubConnection.SendAsync("AskQuestion", Game.Id);
         });
+
+        hubConnection.On<Game>("GameOver", (game) => {
+            StatusMessage = "Game Over";
+            State = GameState.Ending;
+            StateHasChanged();
+            SpeakPhrase("That wraps up this game of Word Play. Let's check the scores.");
+        }); 
 
         // start hub
         await hubConnection.StartAsync();

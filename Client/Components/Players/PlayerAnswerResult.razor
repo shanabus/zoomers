@@ -1,0 +1,35 @@
+@using ZoomersClient.Shared.Models
+
+@if(Show)
+{
+    <div class="row player-answer-result m-2 p-2">
+        <div class="col-9 swing-in-top-fwd">
+            <div>Answer: @PlayerAnswer</div>
+            <div>@CurrentPlayer.Username chose: @CurrentPlayerAnswer</div>
+        </div>
+        <div class="col-3 text-right player-answer-result__icon">
+            @if(PlayerAnswer == CurrentPlayerAnswer)
+            {
+                <span class='oi oi-thumb-up text-success flip-in-hor-bottom' aria-hidden="true"></span>
+            } 
+            else
+            {
+                <span class='oi oi-thumb-down text-danger flip-in-hor-bottom' aria-hidden="true"></span>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string PlayerAnswer { get; set; }
+
+    [Parameter]
+    public string CurrentPlayerAnswer { get; set; }
+    
+    [Parameter]
+    public Player CurrentPlayer { get; set; }
+    
+    [Parameter]
+    public bool Show { get; set; }
+}

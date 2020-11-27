@@ -1,6 +1,6 @@
 namespace ZoomersClient.Shared.Models
 {
-    public class AnsweredQuestions {
+    public class AnsweredQuestion {
         public Player Player { get; set; }
 
         public QuestionBase Question { get; set; }

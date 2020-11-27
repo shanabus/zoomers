@@ -1,0 +1,19 @@
+#scorecard {
+    color: #fff;
+    background: orange;
+    width: auto;
+    text-align: center;
+    border-radius: 1em;
+    height: 6em;
+    padding: 0 20px;
+    position: absolute;
+    top: 13%;
+    right: 5%;
+}
+
+#score {
+    font-size: 3em;
+    clear: both;
+    line-height: 1em;
+    padding-top: .25em;
+}

@@ -20,14 +20,14 @@ namespace ZoomersClient.Shared.Models
         public GameState State { get; set; }
         public List<PartyIcon> Party { get; set; }
         public List<Player> Players { get; set;}        
-        public List<AnsweredQuestions> AnsweredQuestions { get; set; }
+        public List<AnsweredQuestion> AnsweredQuestions { get; set; }
         public List<QuestionBase> Questions { get; set; }
 
         public Game()
         {
             Party = new List<PartyIcon>();
             Players = new List<Player>();
-            AnsweredQuestions = new List<AnsweredQuestions>();
+            AnsweredQuestions = new List<AnsweredQuestion>();
             Questions = new List<QuestionBase>();
         }
 
@@ -38,7 +38,7 @@ namespace ZoomersClient.Shared.Models
             Voice = voice;
 
             Players = new List<Player>();
-            AnsweredQuestions = new List<AnsweredQuestions>();
+            AnsweredQuestions = new List<AnsweredQuestion>();
             Questions = new List<QuestionBase>();
 
             Party = new List<PartyIcon>() {
@@ -55,7 +55,7 @@ namespace ZoomersClient.Shared.Models
 
         public void AnswerQuestion(Player player, int questionId, string answer)
         {
-            AnsweredQuestions.Add(new AnsweredQuestions() {
+            AnsweredQuestions.Add(new AnsweredQuestion() {
                 Player = player,
                 Question = Questions.FirstOrDefault(x => x.Id == questionId),
                 Answer = answer
@@ -77,6 +77,16 @@ namespace ZoomersClient.Shared.Models
             if (player != null)
             {
                 player.ConnectionId = connectionId;
+            }
+        }
+
+        public void RecordScore(int questionId, int score)
+        {
+            var q = Questions.FirstOrDefault(x => x.Id == questionId);
+
+            if (q != null)
+            {
+                Players[Questions.Count].Score += score;
             }
         }
 

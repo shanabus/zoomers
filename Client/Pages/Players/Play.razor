@@ -112,10 +112,15 @@ else
             StateHasChanged();
         });  
         
-        hubConnection.On<bool, List<AnsweredQuestions>>("QuestionSummaryStarted", (timeExpired, currentPlayerAnswers) => {            
+        hubConnection.On<bool, List<AnsweredQuestion>>("QuestionSummaryStarted", (timeExpired, currentPlayerAnswers) => {            
             StatusMessage = "Check the screen for a summary of the question";
             StateHasChanged();
         });
+
+        hubConnection.On<Game>("GameOver", (game) => {
+            StatusMessage = "Game Over. Score is " + game.Players.FirstOrDefault(x => x.Id == Player.Id)?.Score;
+            StateHasChanged();
+        }); 
 
         // start hub
         await hubConnection.StartAsync();
@@ -131,7 +136,7 @@ else
         StateHasChanged();
     }
 
-    public async Task SubmitQuestionCompleteAnswer(List<AnsweredQuestions> CurrentPlayerAnswers)
+    public async Task SubmitQuestionCompleteAnswer(List<AnsweredQuestion> CurrentPlayerAnswers)
     {
         QuestionCompleteAnswerSubmitted = true;
         ShowQuestionCompletePhase = false;

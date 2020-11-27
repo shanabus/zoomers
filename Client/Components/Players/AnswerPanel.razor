@@ -48,19 +48,19 @@
     public List<Player> Players { get; set; }
 
     public Player SelectedPlayer { get; set; }
-    public AnsweredQuestions SelectedAnswer { get; set; }
+    public AnsweredQuestion SelectedAnswer { get; set; }
 
     [Parameter]
     public bool Enabled { get; set; }
     public bool Valid => CurrentPlayerAnswers.All(x => !string.IsNullOrEmpty(x.Answer));
 
     [Parameter]
-    public List<AnsweredQuestions> Answers { get; set; }
+    public List<AnsweredQuestion> Answers { get; set; }
     
-    public List<AnsweredQuestions> CurrentPlayerAnswers { get; set; }
+    public List<AnsweredQuestion> CurrentPlayerAnswers { get; set; }
         
     [Parameter]
-    public EventCallback<List<AnsweredQuestions>> SubmitAnswers { get; set; }
+    public EventCallback<List<AnsweredQuestion>> SubmitAnswers { get; set; }
 
     [Parameter]
     public Player CurrentPlayer { get; set; }
@@ -70,7 +70,7 @@
     protected override async Task OnInitializedAsync()
     {        
 
-        CurrentPlayerAnswers = new List<AnsweredQuestions>();
+        CurrentPlayerAnswers = new List<AnsweredQuestion>();
 
         if (answerTimerRef != null)
         {
@@ -88,7 +88,7 @@
         base.OnInitialized();
 
         CurrentPlayerAnswers = Answers.Where(x => x.Player.Id != CurrentPlayer.Id)
-            .Select(x => new AnsweredQuestions() { Question = x.Question, Answer = "", Player = x.Player })
+            .Select(x => new AnsweredQuestion() { Question = x.Question, Answer = "", Player = x.Player })
             .ToList();   
     }
 
@@ -98,7 +98,7 @@
         CheckAnswer();
     }
 
-    public void OnClickSelectAnswer(MouseEventArgs eventArgs, AnsweredQuestions answer){
+    public void OnClickSelectAnswer(MouseEventArgs eventArgs, AnsweredQuestion answer){
         SelectedAnswer = answer;
         CheckAnswer();
     }

@@ -38,7 +38,7 @@
         </div>
     </div>    
     
-    @if(State == GameState.Playing)
+    @if(State == GameState.Playing && false)
     {
         <Timer @ref="timerRef" Class="slide-in-blurred-bottom" TimeEllapsed="AnswersFinished"></Timer>
     }  
@@ -109,11 +109,12 @@
             CurrentPlayerAnswers = new List<AnsweredQuestion>();
             PlayersAnswered = new List<Player>();
             State = GameState.Playing;
+            CurrentPlayerScore = 0;
             ScoreShown = 0;
 
-            timerRef.ResetTimer();
+            // timerRef.ResetTimer();
 
-            timerRef.StartTimer(30);
+            // timerRef.StartTimer(30);
 
             StateHasChanged();
 
@@ -193,7 +194,7 @@
 
     public async Task AnswersFinished()
     {        
-        timerRef.ResetTimer();
+        // timerRef.ResetTimer();
         State = GameState.PlayerChoosing;
         Console.WriteLine("Something told me to fire AnswersFinished");
         await hubConnection.SendAsync("AnswersFinished", Game.Id, CurrentPlayer.Username);

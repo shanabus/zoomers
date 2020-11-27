@@ -22,8 +22,10 @@
         base.OnInitialized();
     }
 
-    public void StartTimer()
+    public void StartTimer(int seconds)
     {
+        counter = seconds;
+
         if(!aTimer.Enabled)
         {            
             aTimer.Elapsed += CountDownTimer;
@@ -31,12 +33,13 @@
         }        
     }
 
-    public void StopTimer()
+    public void ResetTimer()
     {
         if(aTimer.Enabled)
         {
             aTimer.Elapsed -= CountDownTimer;
             aTimer.Enabled = false;
+            // aTimer.Disposed();
         }
     }
 
@@ -48,10 +51,14 @@
         }
         else
         {
-            aTimer.Enabled = false;
+            ResetTimer();
             TimeEllapsed.InvokeAsync(counter);
         }
         StateHasChanged();
     }
-
+    
+    public void Dispose()
+    {
+        aTimer.Dispose();
+    }  
 }

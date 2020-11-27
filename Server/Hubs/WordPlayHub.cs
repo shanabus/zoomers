@@ -112,11 +112,14 @@ namespace ZoomersClient.Server.Hubs
             // todo: should calculate Game scores and Answers here
             Console.WriteLine("Received player answers");
 
+            var rand = new Random();
+            var randomList = currentPlayerAnswers.OrderBy(x => rand.Next()).ToList();
+
             // needs to be different!
             if (!timeExpired)
             {
                 Console.WriteLine("with time on the clock");
-                await Clients.All.SendAsync("QuestionSummaryStarted", timeExpired, currentPlayerAnswers);
+                await Clients.All.SendAsync("QuestionSummaryStarted", timeExpired, randomList);
             }            
             else {
                 Console.WriteLine("Time expired for current player?");
@@ -127,7 +130,5 @@ namespace ZoomersClient.Server.Hubs
         {
             await base.OnConnectedAsync();
         }
-
-        
     }
 }

@@ -87,7 +87,7 @@ namespace ZoomersClient.Shared.Models
 
             if (q != null)
             {
-                Players[Questions.Count].Score += score;
+                Players[Questions.Count - 1].Score += score;
             }
         }
 
@@ -96,7 +96,7 @@ namespace ZoomersClient.Shared.Models
             try
             {
                 // this assumes the question was asked first...
-                CurrentPlayer = Players[Questions.Count];
+                CurrentPlayer = Players[(Questions.Count - 1) % Players.Count];
                 return CurrentPlayer;
             }
             catch(Exception e) 

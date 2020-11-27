@@ -69,14 +69,17 @@
 
     protected override async Task OnInitializedAsync()
     {        
+
+        CurrentPlayerAnswers = new List<AnsweredQuestions>();
+
         if (answerTimerRef != null)
         {
-            // answerTimerRef.StartTimer();
+            answerTimerRef.StartTimer();
         }        
         else
         {
             await Task.Delay(1000);
-            // answerTimerRef.StartTimer();            
+            answerTimerRef.StartTimer();            
         }
     }
 

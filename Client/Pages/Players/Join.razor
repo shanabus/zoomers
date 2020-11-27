@@ -1,16 +1,15 @@
 @page "/join"
+@inject HttpClient Http
 @using Microsoft.AspNetCore.SignalR.Client
-@using ZoomersClient.Client.Components
 @using ZoomersClient.Client.Components.Shared
 @using ZoomersClient.Shared.Models
 @using ZoomersClient.Shared.Models.Enums
-@using Blazored.LocalStorage;
 @inject Blazored.LocalStorage.ILocalStorageService localStore
 @inject NavigationManager NavigationManager
 @inject ZoomersClient.Shared.Services.GameService GameService
 @implements IAsyncDisposable
 
-@if(!ShowPartyConnect)
+@if(State == LobbyState.CreatingPlayer)
 {
     <div class="row mb-4">
         <div class="col-7">
@@ -120,7 +119,7 @@
 }
 
 
-@if(ShowPartyConnect)
+@if(State == LobbyState.SelectingParty)
 {
     <div class="row">
         <div class="col-4">
@@ -136,41 +135,39 @@
 
     <hr class="my-3" />
 
-    @if(ShowPartyIcons) {
-        <div class="row">
-            <div class="col-4">                  
-                <PartyButton Icon="PartyIcon.Girl" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Girl))"></PartyButton>
-            </div>
-            <div class="col-4">
-                <PartyButton Icon="PartyIcon.Boy" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Boy))"></PartyButton>         
-            </div>
-            <div class="col-4">
-                <PartyButton Icon="PartyIcon.Grandma" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Grandma))"></PartyButton>
-            </div>
+    <div class="row">
+        <div class="col-4">                  
+            <PartyButton Icon="PartyIcon.Girl" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Girl))"></PartyButton>
         </div>
-        <div class="row mt-2">
-            <div class="col-4">
-                <PartyButton Icon="PartyIcon.Scientist" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Scientist))"></PartyButton>            
-            </div>
-            <div class="col-4">
-                <PartyButton Icon="PartyIcon.Cat" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Cat))"></PartyButton>          
-            </div>
-            <div class="col-4">
-                <PartyButton Icon="PartyIcon.Grandpa" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Grandpa))"></PartyButton>          
-            </div>
+        <div class="col-4">
+            <PartyButton Icon="PartyIcon.Boy" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Boy))"></PartyButton>         
         </div>
-        <div class="row mt-2">
-            <div class="col-4">
-                <PartyButton Icon="PartyIcon.Dog" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Dog))"></PartyButton>         
-            </div>
-            <div class="col-4">
-                <PartyButton Icon="PartyIcon.Zombie" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Zombie))"></PartyButton>
-            </div>
-            <div class="col-4">
-                <PartyButton Icon="PartyIcon.Family" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Family))"></PartyButton>
-            </div>
+        <div class="col-4">
+            <PartyButton Icon="PartyIcon.Grandma" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Grandma))"></PartyButton>
         </div>
-    }
+    </div>
+    <div class="row mt-2">
+        <div class="col-4">
+            <PartyButton Icon="PartyIcon.Scientist" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Scientist))"></PartyButton>            
+        </div>
+        <div class="col-4">
+            <PartyButton Icon="PartyIcon.Cat" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Cat))"></PartyButton>          
+        </div>
+        <div class="col-4">
+            <PartyButton Icon="PartyIcon.Grandpa" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Grandpa))"></PartyButton>          
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-4">
+            <PartyButton Icon="PartyIcon.Dog" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Dog))"></PartyButton>         
+        </div>
+        <div class="col-4">
+            <PartyButton Icon="PartyIcon.Zombie" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Zombie))"></PartyButton>
+        </div>
+        <div class="col-4">
+            <PartyButton Icon="PartyIcon.Family" OnClickCallback="@(e => ClickPartyIcon(e, PartyIcon.Family))"></PartyButton>
+        </div>
+    </div>
 
     @if(Game == null || Player == null)
     {
@@ -180,16 +177,31 @@
             </div>
         </div>
     } 
+}
+
+@if(State == LobbyState.ConnectedToGame)
+{
+    <h1>@Game.Name</h1>
+
+    <h3>In game:</h3>
+
+    foreach(var player in Game.Players)
+    {
+        <div class="row">
+            <div class="col">
+                <PlayerBadge Player="@player"></PlayerBadge>            
+            </div>
+        </div>
+    }
 
     @if(ShowStartButton)
     {
         <div class="row mt-3">
             <div class="col">
-                <button class="btn btn-primary w-100" @onclick="(e => StartGame())">START GAME</button>
+                <button class="btn btn-lg btn-primary w-100" @onclick="(e => StartGame())">START GAME</button>
             </div>
         </div>
     }
-    
 }
 
 <div class="row mt-4">
@@ -203,7 +215,7 @@
     private HubConnection hubConnection;
 
     public string Username { get; set;}
-    public bool ShowPartyConnect { get; set;}
+    public LobbyState State { get; set; }
     public PlayerIcon ChosenIcon { get; set; }
     public string BackgroundColor { get; set;}
     public Player Player { get; set; }
@@ -211,7 +223,6 @@
 
     public List<PartyIcon> Party { get; set;}
     public int IconIndex { get; set;}
-    public bool ShowPartyIcons { get; set;}
     public bool PartyIsValid => Party.All(x => x != PartyIcon.None);
     public string[] PlayerColors => new string[] {
         "rgb(0,0,0)", // 42   // 126.5
@@ -238,7 +249,6 @@
     
     public string GameStatus { get; set;}
     public Game Game { get; set; }
-
     public bool ShowStartButton { get; set; }
 
     protected override async Task OnInitializedAsync()
@@ -248,30 +258,31 @@
         Party.Add(PartyIcon.None);
         Party.Add(PartyIcon.None);
 
-        GameStatus = "Build your Player";
-
-        // todo: remove?
-        RandomPlayer();
-
-        ShowPartyIcons = true;
-
         // connect to hub
         hubConnection = new HubConnectionBuilder()
             .WithUrl(NavigationManager.ToAbsoluteUri("/gamehub"))
             .Build();
+
+        GameStatus = "Build your Player";
+
+        await CheckExistingPlayerAndGame();
 
         // subscribe to other things
         hubConnection.On<Game, Player>("PlayerJoined", async (game, player) => {
             Player = player;
             Game = game;
             GameStatus = $"Welcome to {game.Name} - Waiting for others to start...";
-            await SavePlayerToStorage(player);
+            State = LobbyState.ConnectedToGame;
+            await SavePlayerToStorageAsync(player);
+            await SaveGameToStorageAsync(game.Id);
             StateHasChanged();
         });
+
         hubConnection.On<string>("PlayerJoinedError", (message) => {
             GameStatus = $"Error joining - {message}";
             StateHasChanged();
         });
+
         hubConnection.On<Game>("ReadyToStartGame", (game) => {
             Game = game;
             if (game.Players.Count() >= game.MinimumNumberOfPlayers && game.Players.First().Username == Username)
@@ -296,7 +307,7 @@
     private void ConnectToParty()
     {
         GameStatus = "Enter a valid code";
-        ShowPartyConnect = true;
+        State = LobbyState.SelectingParty;
         StateHasChanged();
     }
 
@@ -362,19 +373,93 @@
         StateHasChanged();
     }
 
-    private async Task SavePlayerToStorage(Player player)
+    private async Task CheckExistingPlayerAndGame()
     {
-        // good idea to start fresh?
-        await localStore.ClearAsync();
+        try
+        {
+            Player = await GetPlayerFromStorageAsync();
+        }
+        catch(Exception e)
+        {
+            Console.WriteLine("No player found " + e.Message);
+        }
 
+        if (Player == null)
+        {
+            Console.WriteLine("Generating a random player");
+            RandomPlayer();
+        }        
+        else
+        {
+            Console.WriteLine("Player found, checking for an existing game");
+            try
+            {
+                var gameId = await GetGameFromStorageAsync();
+                Game = await Http.GetFromJsonAsync<Game>($"Games/{gameId}");
+
+                if (Game == null || Game.State == GameState.Ended)
+                {
+                    Console.WriteLine("Game is null or has");
+                    State = LobbyState.SelectingParty;
+                }
+                else
+                {
+                    Console.WriteLine("Game looks valid, trying to connect");
+                    State = LobbyState.ConnectedToGame;
+                }
+            }
+            catch(Exception e)
+            {
+                State = LobbyState.SelectingParty;
+                Console.WriteLine("Exception: " + e.Message);
+            }            
+        }
+        
+        StateHasChanged();
+    }
+
+    private async Task SavePlayerToStorageAsync(Player player)
+    {
+        await localStore.ClearAsync();
         await localStore.SetItemAsync<Player>("player", player);
     }
 
+    private async Task SaveGameToStorageAsync(Guid gameId)
+    {
+        await localStore.SetItemAsync<Guid>("gameId", gameId);
+    }
+
+    public async Task<Player> GetPlayerFromStorageAsync()
+    {
+        var playerExists = await localStore.ContainKeyAsync("player");
+        Console.WriteLine("player exists? " + playerExists);
+        if (playerExists)
+        {
+            var player = await localStore.GetItemAsync<Player>("player");
+
+            return player;
+        }
+        
+        throw new Exception("Player not found!");        
+    }
+
+    public async Task<Guid> GetGameFromStorageAsync()
+    {
+        var gameIdExists = await localStore.ContainKeyAsync("gameId");
+        if (gameIdExists)
+        {
+            var id = await localStore.GetItemAsync<Guid>("gameId");
+            return id;
+        }            
+        
+        throw new Exception("Game Id not found!");   
+    }
+    
     private async Task StartGame() => await hubConnection.SendAsync("StartGame", Game.Id);
 
     public bool IsConnected =>
         hubConnection.State == HubConnectionState.Connected;
-
+    
     
     public async ValueTask DisposeAsync()
     {

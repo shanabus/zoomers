@@ -11,7 +11,7 @@
 
 @if (Game != null)
 {
-    <div class="row">
+    <div class='row @((State != GameState.Ending)? "slide-in-blurred-bottom": "slide-out-fwd-center")'>
         <div class="col">            
             @if(CurrentQuestion != null)
             {
@@ -47,7 +47,7 @@
         <Scorecard @ref="scorecardRef" Score="@CurrentPlayerScore" Class="slide-in-blurred-bottom"></Scorecard>
     }    
 
-    @if(PlayersAnswered.Any())
+    @if(PlayersAnswered.Any() && State != GameState.Ending)
     {
         <div class="row">
         @foreach(var player in PlayersAnswered)
@@ -63,6 +63,23 @@
                     <PlayerAnswerResult PlayerAnswer="@playerAnswer" CurrentPlayer="CurrentPlayer" CurrentPlayerAnswer="@currentPlayerAnswer" Show="@(ScoreShown > PlayersAnswered.IndexOf(player))"></PlayerAnswerResult>
                 }
     
+            </div>
+        }
+        </div>
+    }
+
+    @if(State == GameState.Ending)
+    {
+        <div class="row">
+        @foreach(var player in Game.Players)
+        {
+            <div class="col my-2">
+                <PlayerBadge Player="player">
+                    @if(ScoreShown > Game.Players.IndexOf(player))
+                    {
+                        <span style="color: orange;">@player.Score</span>
+                    }
+                </PlayerBadge>                
             </div>
         }
         </div>
@@ -175,12 +192,37 @@
             await hubConnection.SendAsync("AskQuestion", Game.Id);
         });
 
-        hubConnection.On<Game>("GameOver", (game) => {
+        hubConnection.On<Game>("GameOver", async (game) => {
             Game = game;
             StatusMessage = "Game Over";
             State = GameState.Ending;
             StateHasChanged();
+
+
             SpeakPhrase("That wraps up this game of Word Play. Let's check the scores.");
+
+            foreach(var player in Game.Players)
+            {
+                ScoreShown++;              
+                StateHasChanged();
+
+                await Task.Delay(1000);
+            }
+
+            var winner = Game.Players.OrderByDescending(x => x.Score).FirstOrDefault();
+
+            SpeakPhrase("The winner is " + winner.Username);
+
+            await Task.Delay(2000);
+
+            if (Game.Players.Sum(x => x.Score) == 0)
+            {
+                SpeakPhrase("But you all need to learn more about each other");
+            }
+            if (Game.Players.Count(x => x.Score == winner.Score) > 1)
+            {
+                SpeakPhrase("Although there were others in the running. Congratulations, you are all winners!");
+            }
         }); 
 
         // start hub

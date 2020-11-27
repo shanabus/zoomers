@@ -2,13 +2,10 @@
 @inject HttpClient Http
 @layout PlayerLayout
 @using Microsoft.AspNetCore.SignalR.Client
-@using Plk.Blazor.DragDrop
 @using Toolbelt.Blazor.SpeechSynthesis
-@using ZoomersClient.Client.Components
 @using ZoomersClient.Client.Components.Players
 @using ZoomersClient.Client.Components.Shared
 @using ZoomersClient.Shared.Models
-@using Blazored.LocalStorage;
 @inject Blazored.LocalStorage.ILocalStorageService localStore
 @inject NavigationManager NavigationManager
 @implements IAsyncDisposable
@@ -46,7 +43,7 @@
     @if (AnswerSubmitted || Game.CurrentPlayer.Id == Player.Id && !ShowQuestionCompletePhase)
     {
         <div class="row">
-            <div class="col">
+            <div class="col h4">
                 @StatusMessage
             </div>
         </div>
@@ -64,8 +61,8 @@ else
 }
 
 @code {
-
     private HubConnection hubConnection;
+
     [Parameter]
     public string Id { get; set; }
     public Player Player { get; set; }
@@ -82,10 +79,13 @@ else
         base.OnInitialized();
 
         Game = await Http.GetFromJsonAsync<Game>($"Games/{Id}");
-        // todo: handle null game
-        // todo: handle game in progress
+        if (Game == null)
+        {
+            NavigationManager.NavigateTo("/join");
+        }
 
-        Player = await GetPlayerFromStorage();
+        // todo: handle game in progress
+        Player = await GetPlayerFromStorageAsync();
         
         hubConnection = new HubConnectionBuilder()
             .WithUrl(NavigationManager.ToAbsoluteUri($"/{Game.GameType}hub"))
@@ -148,7 +148,7 @@ else
         StateHasChanged();
     }
 
-    public async Task<Player> GetPlayerFromStorage()
+    public async Task<Player> GetPlayerFromStorageAsync()
     {
         var playerExists = await localStore.ContainKeyAsync("player");
         if (playerExists)

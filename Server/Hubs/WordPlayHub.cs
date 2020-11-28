@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Toolbelt.Blazor.SpeechSynthesis;
 using ZoomersClient.Server.Services;
 using ZoomersClient.Shared.Models;
+using ZoomersClient.Shared.Models.Enums;
 using ZoomersClient.Shared.Services;
 
 namespace ZoomersClient.Server.Hubs
@@ -74,9 +75,22 @@ namespace ZoomersClient.Server.Hubs
             var game = _gameService.FindGame(gameId);
 
             // total scores?  let player whose turn it is answer?
-            game.RecordScore(questionId, score);
+            game = game.RecordScore(questionId, score);
+            
+            var roundEnded = false;
 
             if (game.Questions.Count == game.Players.Count)
+            {
+                roundEnded = true;
+                game = game.NextRound();
+
+                await Clients.All.SendAsync("RoundOver", game);                
+            }
+
+            _logger.LogInformation(roundEnded + " round ended");
+            _logger.LogInformation(game.State + " game state");
+            
+            if (game.State == GameState.Ended)
             {
                 game = _gameService.EndGame(gameId);
 
@@ -84,10 +98,10 @@ namespace ZoomersClient.Server.Hubs
                 
                 await Clients.All.SendAsync("GameOver", game);
             }
-            else
+            else if (!roundEnded)
             {
                 _logger.LogInformation("Proceeding to next question");
-                await Clients.Caller.SendAsync("ProceedToNextQuestion", game);
+                await Clients.Caller.SendAsync("ProceedToNextQuestion", game, roundEnded);                        
             }            
         }
 

@@ -18,7 +18,7 @@
 <div class="row">
 @foreach(var answer in Answers)
 {
-    <div class="col-5 my-1">
+    <div class="col-5 my-1 answer-panel__answer">
         @answer.Answer
     </div>
     <div class="col-1 my-1" @onclick="@((e) => OnClickSelectAnswer(e, answer))">
@@ -75,7 +75,10 @@
     {
         base.OnInitialized();
 
+        var rand = new Random();
+
         CurrentPlayerAnswers = Answers.Where(x => x.Player.Id != CurrentPlayer.Id)
+            .OrderBy(x => rand.Next())
             .Select(x => new AnsweredQuestion() { Question = x.Question, Answer = "", Player = x.Player })
             .ToList();   
     }

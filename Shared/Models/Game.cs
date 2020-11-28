@@ -16,6 +16,8 @@ namespace ZoomersClient.Shared.Models
         public string Voice { get; set; }
         public string GameType = "wordplay";
         public const int MinimumNumberOfPlayers = 2;
+        public const int Rounds = 3;
+        public int CurrentRound { get; set; }
         
         public GameState State { get; set; }
         public List<PartyIcon> Party { get; set; }
@@ -30,6 +32,7 @@ namespace ZoomersClient.Shared.Models
             Players = new List<Player>();
             AnsweredQuestions = new List<AnsweredQuestion>();
             Questions = new List<QuestionBase>();
+            CurrentRound = 1;
         }
 
         public Game(string name, string voice)
@@ -47,6 +50,8 @@ namespace ZoomersClient.Shared.Models
                 RandomEnumValue<PartyIcon>(),
                 RandomEnumValue<PartyIcon>()
             };
+
+            CurrentRound = 1;
         }
         
         public Game StartGame()
@@ -89,7 +94,7 @@ namespace ZoomersClient.Shared.Models
             }
         }
 
-        public void RecordScore(int questionId, int score)
+        public Game RecordScore(int questionId, int score)
         {
             var q = Questions.FirstOrDefault(x => x.Id == questionId);
 
@@ -97,6 +102,8 @@ namespace ZoomersClient.Shared.Models
             {
                 Players[Questions.Count - 1].Score += score;
             }
+
+            return this;
         }
 
         public Player GetNextPlayer()
@@ -126,12 +133,29 @@ namespace ZoomersClient.Shared.Models
             return this;
         }
 
+        public Game ResetQuestions()
+        {
+            Questions = new List<QuestionBase>();
+            return this;
+        }
+
         public Game ShufflePlayerOrder()
         {
             var rand = new Random();
-            var randomList = Players.OrderBy(x => rand.Next()).ToList();
+            Players = Players.OrderBy(x => rand.Next()).ToList();
 
             return this;
+        }
+
+        public Game NextRound()
+        {   
+            if (CurrentRound < Rounds)         
+            {
+                CurrentRound++;
+                return this.ResetAnswers().ResetQuestions().ShufflePlayerOrder();
+            }
+            
+            return this.EndGame();            
         }
 
         #endregion

@@ -8,6 +8,7 @@
 @inject NavigationManager NavigationManager
 @inject ZoomersClient.Shared.Services.GameService GameService
 @implements IAsyncDisposable
+@inject IJSRuntime js
 
 @if(State == LobbyState.CreatingPlayer)
 {
@@ -20,10 +21,8 @@
                 <span class="oi oi-loop-square" aria-hidden="true"></span>
             </button>
         </div>
-        <div class="col-2 offset-2">
-            <div style="background-color: @BackgroundColor;">
-                <PlayerIconButton Icon="@ChosenIcon" />
-            </div>            
+        <div class="col-3 offset-1">            
+            <PlayerIconButton Icon="@ChosenIcon" BackgroundColor="@BackgroundColor" />
         </div>
     </div>
 
@@ -280,6 +279,9 @@
             State = LobbyState.ConnectedToGame;
             await SavePlayerToStorageAsync(player);
             await SaveGameToStorageAsync(game.Id);
+
+            await js.InvokeVoidAsync("PlayAudioFile", $"/sounds/{Player.Sound}.mp3");
+
             StateHasChanged();
         });
 
@@ -294,7 +296,8 @@
         });
 
         hubConnection.On<Guid>("GameStarted", (id) => {
-            NavigationManager.NavigateTo($"play/{id}");
+            NavigationManager.NavigateTo($"play/{id}", true);
+            StateHasChanged();
         });
 
         // start hub
@@ -373,7 +376,11 @@
     {
         GameStatus = "Checking game servers";
 
-        await hubConnection.SendAsync("JoinTheGame", Party, Username, ChosenIcon, BackgroundColor);
+        var sounds = new string[] { "ku_chung", "ooh_wop", "whistle_hilo", "whistle_lohi", "shu_thoo", "ka_ka_ka", "answer_in" };
+        var r = new Random();
+        var Sound = sounds[r.Next(sounds.Length)];
+
+        await hubConnection.SendAsync("JoinTheGame", Party, Username, ChosenIcon, BackgroundColor, Sound);
 
         GameStatus = "Waiting for response...";
         

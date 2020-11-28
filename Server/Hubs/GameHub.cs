@@ -28,7 +28,7 @@ namespace ZoomersClient.Server.Hubs
             _phrases = phrases;
         }
 
-        public async Task JoinTheGame(List<PartyIcon> partyIcons, string username, PlayerIcon icon, string color)
+        public async Task JoinTheGame(List<PartyIcon> partyIcons, string username, PlayerIcon icon, string color, string sound)
         {
             var game = _gameService.FindGame(partyIcons);
             if (game == null)
@@ -42,7 +42,8 @@ namespace ZoomersClient.Server.Hubs
                     ConnectionId = Context.ConnectionId, 
                     Username = username,
                     Icon = icon,
-                    BackgroundColor = color    
+                    BackgroundColor = color,
+                    Sound = sound
                 };
                 _logger.LogInformation(player.Username + " connected as " + player.ConnectionId);
                 

@@ -10,6 +10,7 @@ namespace ZoomersClient.Shared.Models
         public string Username { get; set; }
         public PlayerIcon Icon { get; set; }
         public string BackgroundColor { get; set;}
+        public string Sound { get; set; }
         public int Score { get; set; }
     }
 }

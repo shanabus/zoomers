@@ -3,10 +3,25 @@
 @using ZoomersClient.Client.Components.Players
 @using ZoomersClient.Shared.Models
 @using ZoomersClient.Shared.Models.Enums
+@inject IJSRuntime js
 
 <AnswerPanel Players="PlayerList" Answers="Answers" Enabled="true" CurrentPlayer="PlayerList[0]"></AnswerPanel>
 
+<button class="btn btn-primary" @onclick="PlayAudioFile1">Whoosh</button>
+<span>&nbsp;</span>
+<button class="btn btn-primary" @onclick="PlayWrong">Wrong</button>
+<span>&nbsp;</span>
+<button class="btn btn-primary" @onclick="PlayRight">Right</button>
+<span>&nbsp;</span>
+
+<audio id="player">
+    <source id="playerSource" src="" />
+</audio>
+ 
 @code {
+
+    public int rWrong { get; set; }
+
     public List<Player> PlayerList = new List<Player>() {
         new Player { Id = Guid.NewGuid(), Icon = PlayerIcon.Spider, BackgroundColor = "rgb(12,132,5)", Username = "Hugo Chavez" },
         new Player { Id = Guid.NewGuid(), Icon = PlayerIcon.Ghost, BackgroundColor = "rgb(124,132,5)", Username = "Player Play" },
@@ -33,5 +48,31 @@
     {
         Console.WriteLine("Ok, we made it");
     }
-    
+
+    async Task PlayAudioFile1()
+    {
+        // next question
+        await js.InvokeVoidAsync("PlayAudioFile", "/sounds/whoosh_1.mp3");
+    }
+
+    async Task PlayAudioFile2()
+    {
+        await js.InvokeVoidAsync("PlayAudioFile", "/sounds/ding_ding_ding.mp3");
+    }
+
+    async Task PlayWrong()
+    {
+        var r = new Random();
+        var t = r.Next(1,3);
+
+        await js.InvokeVoidAsync("PlayAudioFile", "/sounds/wrong_" + t + ".mp3");
+    }
+
+    async Task PlayRight()
+    {
+        var r = new Random();
+        var t = r.Next(1,4);
+
+        await js.InvokeVoidAsync("PlayAudioFile", "/sounds/right_" + t + ".mp3");
+    }
 }

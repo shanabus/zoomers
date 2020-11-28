@@ -8,6 +8,7 @@
 @using Toolbelt.Blazor.SpeechSynthesis
 @using ZoomersClient.Shared.Models.Enums
 @inject SpeechSynthesis SpeechSynthesis
+@inject IJSRuntime js
 
 @if (Game != null)
 {
@@ -20,7 +21,7 @@
                 </div>
             }         
                 <div class="game-round text-dark">
-                    Question @Game.Questions.Count
+                    Round @Game.CurrentRound, Question @Game.Questions.Count
                 </div>
 
                 <div class="row">                    
@@ -73,11 +74,11 @@
         <div class="row">
         @foreach(var player in Game.Players)
         {
-            <div class="col my-2">
+            <div class="col-4 my-2">
                 <PlayerBadge Player="player">
                     @if(ScoreShown > Game.Players.IndexOf(player))
                     {
-                        <span style="color: orange;">@player.Score</span>
+                        <span class="summary-score text-pop-up-top">@player.Score</span>
                     }
                 </PlayerBadge>                
             </div>
@@ -117,7 +118,7 @@
             .Build();
 
         // subscribe to game events             
-        hubConnection.On<Game, WordPlayQuestion, Player>("QuestionReady", (game, question, player) =>
+        hubConnection.On<Game, WordPlayQuestion, Player>("QuestionReady", async (game, question, player) =>
         {   
             // reset UI            
             Game = game;
@@ -130,8 +131,10 @@
             ScoreShown = 0;
 
             // timerRef.ResetTimer();
-
             // timerRef.StartTimer(30);
+
+            await js.InvokeVoidAsync("PlayAudioFile", "/sounds/whoosh_1.mp3");
+            await Task.Delay(750);
 
             StateHasChanged();
 
@@ -141,7 +144,12 @@
         hubConnection.On<Game, Player>("QuestionAnswered", async (game, player) => {
             Game = game;
             PlayersAnswered.Add(player);
+
+            await js.InvokeVoidAsync("PlayAudioFile", $"/sounds/{player.Sound}.mp3");
+
             StateHasChanged();
+
+            // await js.InvokeVoidAsync("PlayAudioFile", "/sounds/answer_in.mp3");
 
             if (PlayersAnswered.Count >= Game.Players.Count - 1)
             {
@@ -167,12 +175,17 @@
                 var playerAnswer = Game.AnsweredQuestions.FirstOrDefault(x => x.Player.Id == player.Id)?.Answer;
                 var currentPlayerAnswer = CurrentPlayerAnswers.FirstOrDefault(x => x.Player.Id == player.Id)?.Answer;
 
-                await Task.Delay(1000);
+                await Task.Delay(3000);
                 ScoreShown++;
                 
                 if (playerAnswer == currentPlayerAnswer)
                 {
-                    CurrentPlayerScore += 100;
+                    CurrentPlayerScore = CurrentPlayerScore + (100 * Game.CurrentRound);
+                    await PlayRight();
+                }
+                else
+                {
+                    await PlayWrong();
                 }
                 
                 StateHasChanged();
@@ -183,13 +196,45 @@
             }
 
             // record score?
-            await Task.Delay(3000);            
+            await Task.Delay(5000);            
             await hubConnection.SendAsync("QuestionFinished", Game.Id, CurrentQuestion.Id, CurrentPlayerScore);
         });
 
-        hubConnection.On<Game>("ProceedToNextQuestion", async (game) => {
+        hubConnection.On<Game, bool>("ProceedToNextQuestion", async (game, roundEnded) => {
             Game = game;            
+            StateHasChanged();
+            
             await hubConnection.SendAsync("AskQuestion", Game.Id);
+        });
+
+        hubConnection.On<Game>("RoundOver", async (Game) => {
+            if(Game.State != GameState.Ended)
+            {
+                State = GameState.Ending;
+                StateHasChanged();
+                var leader = Game.Players.OrderByDescending(x => x.Score).FirstOrDefault();
+
+                foreach(var player in Game.Players.OrderBy(x => x.Score))
+                {
+                    ScoreShown++;              
+                    StateHasChanged();
+
+                    await Task.Delay(1500);
+                }
+
+                if(Game.Players.Where(x => x.Score == leader.Score && x.Id != leader.Id).Count() <= 0)
+                {
+                    SpeakPhrase($"So far with {leader.Username} is in the lead with {leader.Score} points");
+                }
+                else
+                {
+                    SpeakPhrase("It is anybody's game so lets begin the next round");
+                }
+                
+                await Task.Delay(5000);
+
+                await hubConnection.SendAsync("AskQuestion", Game.Id);
+            }
         });
 
         hubConnection.On<Game>("GameOver", async (game) => {
@@ -199,29 +244,33 @@
             StateHasChanged();
 
 
-            SpeakPhrase("That wraps up this game of Word Play. Let's check the scores.");
+            SpeakPhrase("That wraps up this round of Word Play. Let's check the scores.");
 
-            foreach(var player in Game.Players)
+            foreach(var player in Game.Players.OrderBy(x => x.Score))
             {
                 ScoreShown++;              
                 StateHasChanged();
 
-                await Task.Delay(1000);
+                await Task.Delay(3000);
             }
 
-            var winner = Game.Players.OrderByDescending(x => x.Score).FirstOrDefault();
-
-            SpeakPhrase("The winner is " + winner.Username);
-
-            await Task.Delay(2000);
-
-            if (Game.Players.Sum(x => x.Score) == 0)
+            if (Game.State == GameState.Ended)            
             {
-                SpeakPhrase("But you all need to learn more about each other");
-            }
-            if (Game.Players.Count(x => x.Score == winner.Score) > 1)
-            {
-                SpeakPhrase("Although there were others in the running. Congratulations, you are all winners!");
+                var winner = Game.Players.OrderByDescending(x => x.Score).FirstOrDefault();
+
+                SpeakPhrase($"With {winner.Score} points, the winner is " + winner.Username);
+
+                await Task.Delay(2000);
+
+                if (Game.Players.Sum(x => x.Score) == 0)
+                {
+                    SpeakPhrase("But you all need to learn more about each other");
+                }
+                if (Game.Players.Count(x => x.Score == winner.Score) > 1)
+                {
+                    var otherWinners = string.Join(", ", Game.Players.Where(x => x.Score == winner.Score && x.Id != winner.Id).Select(x => x.Username).ToArray());
+                    SpeakPhrase($"Although there were others in the running. Congratulations, you are all winners {otherWinners}");
+                }
             }
         }); 
 
@@ -256,6 +305,24 @@
         });
     }
     
+    async Task PlayWrong()
+    {
+        var r = new Random();
+        var sound = r.Next(1,3);
+        StateHasChanged();
+
+        await js.InvokeVoidAsync("PlayAudioFile", "/sounds/wrong_" + sound + ".mp3");
+    }
+
+    async Task PlayRight()
+    {
+        var r = new Random();
+        var sound = r.Next(1,4);
+        StateHasChanged();
+
+        await js.InvokeVoidAsync("PlayAudioFile", "/sounds/right_" + sound + ".mp3");
+    }
+
     public bool IsConnected =>
         hubConnection.State == HubConnectionState.Connected;
 

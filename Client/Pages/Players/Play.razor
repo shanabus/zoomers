@@ -55,11 +55,18 @@
     @if(State == PlayState.CurrentPlayerWaiting)
     {
         <p>Sit tight while others answer the question.</p>
+
+        @foreach(var answer in Game.AnsweredQuestions)
+        {
+            <div class="row my-2 bg-secondary">
+                <div class="col-12">@answer.Answer</div>
+            </div>
+        }
     }
 
     @if (State == PlayState.CurrentPlayerAnswering)
     {
-        <h4>You have 30 seconds to guess who said what:</h4>
+        <h4>@CurrentQuestion.Question</h4>
 
         <AnswerPanel Players="@Game.Players" Answers="@Game.AnsweredQuestions" CurrentPlayer="@Game.CurrentPlayer" SubmitAnswers="@((a) => SubmitQuestionCompleteAnswer(a))" Enabled="@true"></AnswerPanel>        
     }
@@ -101,10 +108,10 @@ else
     {
         var playerAnswer = Game.AnsweredQuestions.FirstOrDefault(x => x.Player.Id == Player.Id);
 
-        Console.WriteLine("Current Q:" + CurrentQuestion != null);
-        Console.WriteLine("Current Player = " + Game.CurrentPlayer?.Username);
-        Console.WriteLine("CurrentPlayer?: " + (PlayerIsCurrentPlayer).ToString() + " / " + Game.CurrentPlayer?.Id + " to " + Player.Id);
-        Console.WriteLine("Answered already? " + (playerAnswer != null).ToString());
+        // Console.WriteLine("Current Q:" + CurrentQuestion != null);
+        // Console.WriteLine("Current Player = " + Game.CurrentPlayer?.Username);
+        // Console.WriteLine("CurrentPlayer?: " + (PlayerIsCurrentPlayer).ToString() + " / " + Game.CurrentPlayer?.Id + " to " + Player.Id);
+        // Console.WriteLine("Answered already? " + (playerAnswer != null).ToString());
 
         //todo: get CurrentQuestion from Game object
         if (CurrentQuestion != null && !PlayerIsCurrentPlayer && playerAnswer == null)

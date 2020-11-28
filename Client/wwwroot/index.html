@@ -11,6 +11,20 @@
     <link href="ZoomersClient.Client.styles.css" rel="stylesheet" />
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Balsamiq+Sans&display=swap" rel="stylesheet">
+
+    <script>
+        window.PlayAudioFile = (src) => {
+            var audio = document.getElementById('player');
+            if (audio != null) {
+                var audioSource = document.getElementById('playerSource');
+                if (audioSource != null) {
+                    audioSource.src = src;
+                    audio.load();
+                    audio.play();
+                }
+            }
+        }
+    </script>
 </head>
 
 <body>
@@ -33,6 +47,11 @@
         <a href="" class="reload">Reload</a>
         <a class="dismiss">🗙</a>
     </div>
+
+    <audio id="player">
+        <source id="playerSource" src="" />
+    </audio>
+
     <script src="_framework/blazor.webassembly.js"></script>
 </body>
 

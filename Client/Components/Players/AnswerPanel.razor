@@ -18,7 +18,7 @@
 <div class="row">
 @foreach(var answer in Answers)
 {
-    <div class="col-5 my-1 answer-panel__answer">
+    <div class="col-5 my-1 answer-panel__answer" @onclick="@((e) => OnClickSelectAnswer(e, answer))">
         @answer.Answer
     </div>
     <div class="col-1 my-1" @onclick="@((e) => OnClickSelectAnswer(e, answer))">

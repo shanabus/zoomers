@@ -25,8 +25,11 @@
 
 
 .player-answer-button .player-badge {
-  flex: 1 0 auto;
+  flex: 1 0 90%;
+  white-space: nowrap;
+  overflow: hidden;
 }
+
 .player-answer-button .player-badge span {
   font-size: 1em;
   padding: .1em .2em;

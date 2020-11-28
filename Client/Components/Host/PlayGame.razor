@@ -37,6 +37,13 @@
                 </div>                
             <hr />
         </div>
+    </div>   
+
+    <div class='row @((State == GameState.Ending)? "slide-in-blurred-bottom": "slide-out-fwd-center")'>
+        <div class="col">            
+            <h2>Round Summary</h2>
+            <hr />
+        </div>
     </div>    
     
     @if(State == GameState.Playing && false)

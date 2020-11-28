@@ -50,18 +50,18 @@
     @if(State == PlayState.AnswerSubmitted)
     {
         <p>Congrats, your answer has been counted!</p>
+
+        @foreach(var answer in Game.AnsweredQuestions)
+        {
+            <div class="row my-2">
+                <div class="col-10 p-2 offset-1 bg-light">@answer.Answer</div>
+            </div>
+        }
     }
 
     @if(State == PlayState.CurrentPlayerWaiting)
     {
         <p>Sit tight while others answer the question.</p>
-
-        @foreach(var answer in Game.AnsweredQuestions)
-        {
-            <div class="row my-2 bg-secondary">
-                <div class="col-12">@answer.Answer</div>
-            </div>
-        }
     }
 
     @if (State == PlayState.CurrentPlayerAnswering)
@@ -122,7 +122,7 @@ else
         else if (CurrentQuestion != null && !PlayerIsCurrentPlayer && playerAnswer != null)
         {
             State = PlayState.AnswerSubmitted;
-            StatusMessage = "Your answer is in.";
+            StatusMessage = ""; // "Your answer is in.";
         }
         else if (PlayerIsCurrentPlayer && EveryoneHasAnswered)
         {

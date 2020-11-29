@@ -7,7 +7,10 @@ namespace ZoomersClient.Shared.Models.Enums
         Started,
         Playing,
         PlayerChoosing,
-        Summary,
+        QuestionSummary,
+        SummaryIsEnding,
+        RoundSummary,
+        RoundEnding,
         Ending,
         Ended
     }

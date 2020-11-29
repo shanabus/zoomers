@@ -69,12 +69,12 @@ namespace ZoomersClient.Shared.Services
             var game = FindGame(id);
 
             if (game != null) {
-                _logger.LogInformation(q.Question + " was just added");
+                // _logger.LogInformation(q.Question + " was just added");
                 
                 game.ResetAnswers()
                     .Questions.Add(q as QuestionBase);
 
-                _logger.LogInformation(game.Questions.Count + " questions total");
+                // _logger.LogInformation(game.Questions.Count + " questions total");
             }
 
             return game;

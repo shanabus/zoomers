@@ -18,5 +18,7 @@ namespace ZoomersClient.Shared.Models
 
         public int LoveReactions { get; set; }
         public int HateReactions { get; set; }
+
+        public int CorrectGuesses { get; set; }
     }
 }

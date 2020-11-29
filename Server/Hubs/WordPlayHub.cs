@@ -47,13 +47,23 @@ namespace ZoomersClient.Server.Hubs
             }
         }
 
+        public void SubmitCorrectGuess(Guid gameId, int questionId, Guid playerId, int guess) {
+            var game = _gameService.FindGame(gameId);
+            
+            _logger.LogInformation($"Recording a guess of {guess} for {playerId}");
+
+            game = game.RecordGuess(questionId, playerId, guess);
+
+            _logger.LogInformation($"Guess recorded - {game.AnsweredQuestions.Where(x => x.Guess > 0).Count()} think more than zero");
+        }
+
         public async Task AskQuestion(Guid gameId)
         {
             var game = _gameService.FindGame(gameId);
 
             var question = _wordPlay.GetRandomQuestion(null);
 
-            _logger.LogInformation("Randomly chose question " + question.Id);
+            // _logger.LogInformation("Randomly chose question " + question.Id);
 
             // todo: double check, it should be handled in QuestionFinished!
             if (game.Questions.Count == game.Players.Count)
@@ -71,9 +81,8 @@ namespace ZoomersClient.Server.Hubs
         public async Task QuestionFinished(Guid gameId, int questionId, int score)
         {
             var game = _gameService.FindGame(gameId);
-
-            // total scores?  let player whose turn it is answer?
-            game = game.RecordScore(questionId, score);
+            
+            game = game.RecordScore(questionId, score).RecordGuesses(questionId).OrderPlayersByScore().ResetCurrentPlayerAnswers();
             
             var roundEnded = false;
 
@@ -97,8 +106,8 @@ namespace ZoomersClient.Server.Hubs
                 await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("GameOver", game);
             }
             else if (!roundEnded)
-            {
-                _logger.LogInformation("Proceeding to next question");
+            {                
+                _logger.LogInformation("Tally guesses (and score?) Proceeding to next question");
                 await Clients.Caller.SendAsync("ProceedToNextQuestion", game);                        
             }            
         }
@@ -129,7 +138,7 @@ namespace ZoomersClient.Server.Hubs
 
             var phrase = _phrases.GetRandomAnswersFinishedPhrase(game.CurrentPlayer.Username, game.Voice) as SpeechSynthesisUtterance;
             
-            _logger.LogInformation("AnswersFinished on WordPlayHub was called");
+            // _logger.LogInformation("AnswersFinished on WordPlayHub was called");
 
             await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("AnswersFinished", game, phrase);
         }
@@ -140,14 +149,13 @@ namespace ZoomersClient.Server.Hubs
             
             var game = _gameService.FindGame(gameId);
 
-            var rand = new Random();
-            var randomList = currentPlayerAnswers.OrderBy(x => rand.Next()).ToList();
-
-            // needs to be different!
+            var rand = new Random();            
+            game.CurrentPlayerAnswers = currentPlayerAnswers.OrderBy(x => rand.Next()).ToList();
+            
             if (!timeExpired)
             {
                 // Console.WriteLine("with time on the clock");
-                await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("QuestionSummaryStarted", timeExpired, randomList);
+                await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("QuestionSummaryStarted", timeExpired, game);
             }            
             else {
                 Console.WriteLine("Time expired for current player?");

@@ -6,5 +6,6 @@ namespace ZoomersClient.Shared.Models
         public QuestionBase Question { get; set; }
 
         public string Answer { get; set; }
+        public int Guess { get; internal set; }
     }
 }

@@ -35,6 +35,7 @@ namespace ZoomersClient.Shared.Models
             AnsweredQuestions = new List<AnsweredQuestion>();
             Questions = new List<QuestionBase>();
             AudienceScore = new List<AudienceScore>();
+            CurrentPlayerAnswers = new List<AnsweredQuestion>();
             CurrentRound = 1;
         }
 
@@ -49,6 +50,7 @@ namespace ZoomersClient.Shared.Models
             AnsweredQuestions = new List<AnsweredQuestion>();
             Questions = new List<QuestionBase>();
             AudienceScore = new List<AudienceScore>();
+            CurrentPlayerAnswers = new List<AnsweredQuestion>();
 
             Party = new List<PartyIcon>() {
                 RandomEnumValue<PartyIcon>(),
@@ -58,7 +60,23 @@ namespace ZoomersClient.Shared.Models
 
             CurrentRound = 1;
         }
-        
+
+        public Game RecordGuess(int questionId, Guid playerId, int guess)
+        {
+            var playerAnswer = AnsweredQuestions.FirstOrDefault(x => x.Question.Id == questionId && x.Player.Id == playerId);
+
+            if (playerAnswer != null)
+            {
+                playerAnswer.Guess = guess;
+            }
+            else
+            {
+                Console.WriteLine("player answer not found to record guess!");
+            }
+
+            return this;
+        }
+
         public Game StartGame()
         {
             State = GameState.Started;
@@ -80,6 +98,29 @@ namespace ZoomersClient.Shared.Models
                 Question = Questions.FirstOrDefault(x => x.Id == questionId),
                 Answer = answer
             });
+        }
+
+        public List<AnsweredQuestion> CorrectAnswers()
+        {
+            var answeredQuestions = new List<AnsweredQuestion>();
+
+            foreach(var answer in CurrentPlayerAnswers)
+            {
+                var playerAnswer = AnsweredQuestions.FirstOrDefault(x => x.Player.Id == answer.Player.Id);
+
+                if (playerAnswer != null && answer.Answer == playerAnswer.Answer)
+                {
+                    answeredQuestions.Add(playerAnswer);
+                }
+            }
+            
+            return answeredQuestions;
+        }
+
+        public Game OrderPlayersByScore()
+        {
+            Players = Players.OrderByDescending(x => x.Score).ThenByDescending(x => x.LoveScore).ThenByDescending(x => x.LoveReactions).ToList();
+            return this;
         }
 
         static Random _R = new Random();    
@@ -106,6 +147,25 @@ namespace ZoomersClient.Shared.Models
             }
 
             return player;
+        }
+
+        public Game RecordGuesses(int questionId)
+        {
+            // need to know correct questions!
+            var answers = AnsweredQuestions.Where(x => x.Question.Id == questionId);
+            var numberCorrect = CorrectAnswers().Count;
+
+            foreach(var answer in answers) {
+                Console.WriteLine($"Checking {answer.Player.Username} answer for guess");
+
+                if (answer.Guess == numberCorrect)
+                {
+                    Console.WriteLine("Got it right!");
+                    var player = Players.FirstOrDefault(x => x.Id == answer.Player.Id);
+                    player.CorrectGuesses++;
+                }
+            }
+            return this;
         }
 
         public Game RecordScore(int questionId, int score)
@@ -166,7 +226,7 @@ namespace ZoomersClient.Shared.Models
                 }
             }
 
-            var playerReacting = Players.FirstOrDefault(x => x.Id == toPlayer.Id);
+            var playerReacting = Players.FirstOrDefault(x => x.Id == fromPlayer.Id);
             
             if (playerReacting != null)
             {

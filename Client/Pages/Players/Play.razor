@@ -43,7 +43,7 @@
 
             <div class="row my-4">
                 <div class="col">
-                    <button class="btn btn-success w-100 text-center" @onclick="SubmitAnswer">SUBMIT ANSWER</button>
+                    <button class="btn btn-success w-100 text-center" @onclick="SubmitAnswer" disabled="@(string.IsNullOrEmpty(Answer))">SUBMIT ANSWER</button>
                 </div>
             </div>
         </div>
@@ -69,7 +69,7 @@
         }
         @if (Game.AnsweredQuestions.Count > 0)
         {
-            <AnswersCorrectPanel MaxCount="@Game.AnsweredQuestions.Count" Username="@Game.CurrentPlayer.Username" OnSubmit="SubmitQuestionGuess"></AnswersCorrectPanel>
+            <AnswersCorrectPanel MaxCount="@Game.AnsweredQuestions.Count" Username="@Game.CurrentPlayer.Username" OnSubmit="SubmitQuestionGuessAsync"></AnswersCorrectPanel>
         }        
     }
 
@@ -85,7 +85,7 @@
         <AnswerPanel Players="@Game.Players" Answers="@Game.AnsweredQuestions" CurrentPlayer="@Game.CurrentPlayer" SubmitAnswers="@((a) => SubmitQuestionCompleteAnswer(a))" Enabled="@true"></AnswerPanel>        
     }
 
-    @if (State == PlayState.QuestionScores)
+    @if (State == PlayState.QuestionScores && Player.Id != Game.CurrentPlayer.Id)
     {
         <p>Answers are in, check the main screen for scores!</p>
 
@@ -94,11 +94,34 @@
         @if (gamePlayer.LoveScore > 0)
         {
             var love = AnswerReaction.Love;
-            <div class="row">
-                <div class="col text-center">
-                    <p>They love you!</p>
-                    <p style="font-size: 4em;">@love.ToEmoji()</p>
+            <div class="row mt-3 text-center h3">                
+                <div class="col-12">
+                    <p>They love you!</p>                    
+                </div>
+                <div class="col-12 h1">
+                    <p>@love.ToEmoji()</p>
                     <p>@gamePlayer.LoveScore</p>
+                </div>
+            </div>
+        }   
+        @if (gamePlayer.HateScore > 0)
+        {
+            var hate = AnswerReaction.Hate;
+            <div class="row mt-3 text-center h3">
+                <div class="col-12">
+                    <p>You have enemies</p>                    
+                </div>
+                <div class="col-12 h1">
+                    <p>@hate.ToEmoji()</p>
+                    <p>@gamePlayer.HateScore</p>
+                </div>
+            </div>
+        }
+        @if (CurrentGuess == Game.CorrectAnswers().Count)
+        {
+            <div class="row mt-3 slide-in-blurred-bottom">
+                <div class="col-12 text-center h3">
+                    You were right, they got @CurrentGuess correct!
                 </div>
             </div>
         }        
@@ -250,11 +273,11 @@ else
         StateHasChanged();
     }
 
-    public void SubmitQuestionGuess(int guess)
+    public async Task SubmitQuestionGuessAsync(int guess)
     {
         // do something
         CurrentGuess = guess;
-        Console.WriteLine("Guess - " + guess);
+        await hubConnection.SendAsync("SubmitCorrectGuess", Game.Id, CurrentQuestion.Id, Player.Id, CurrentGuess);        
     }
 
     public async Task OnAnswerReaction(Player toPlayer, AnswerReaction reaction)

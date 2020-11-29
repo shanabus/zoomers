@@ -12,6 +12,8 @@
 
 @if (Game != null)
 {
+    @if(State != GameState.RoundEnding && State != GameState.RoundSummary)
+    {
     <div class='row @((State != GameState.Ending)? "slide-in-blurred-bottom": "slide-out-fwd-center")'>
         <div class="col">            
             @if(CurrentQuestion != null)
@@ -28,12 +30,13 @@
             
             <div class="row">                    
                 @if(CurrentPlayer != null)
-                {
+                {                    
+                var answerClass = (State == GameState.SummaryIsEnding)? "swing-out-left-bck": "swing-in-left-fwd";
                 <div class="col-4">
-                    <PlayerBadge Player="CurrentPlayer"></PlayerBadge>
+                    <PlayerBadge Player="CurrentPlayer" Class="@answerClass"></PlayerBadge>
                 </div>                     
                 }      
-                <div class="col-8 pt-3">
+                <div class='col-8 pt-3 @((State == GameState.SummaryIsEnding)? "slide-out-right": "slide-in-right")'>
                     <h3>@StatusMessage</h3>
                 </div>
             </div>       
@@ -41,52 +44,57 @@
             <hr />
         </div>
     </div>   
-    
-    @if(Game.Questions.Count > 0)
+
+        @if(State == GameState.QuestionSummary && Game.CurrentPlayerAnswers.Any())
+        {
+            <Scorecard @ref="scorecardRef" Score="@CurrentPlayerScore" Class="slide-in-blurred-bottom"></Scorecard>
+        }    
+    }
+        
+    @if(State == GameState.Playing && false)
     {
-    <div class='row @((State == GameState.Ending)? "slide-in-blurred-bottom": "slide-out-fwd-center")'>
+        <Timer @ref="timerRef" Class="slide-in-blurred-bottom" TimeEllapsed="AnswersFinished"></Timer>
+    }  
+    
+    @if(State == GameState.RoundSummary || State == GameState.RoundEnding)
+    {
+    var answerClass = (State == GameState.RoundEnding)? "swing-out-left-bck": "swing-in-left-fwd";
+    <div class='row @answerClass'>
         <div class="col">            
             <h2>Round Summary</h2>
             <hr />
         </div>
     </div>    
     }
-    
-    @if(State == GameState.Playing && false)
-    {
-        <Timer @ref="timerRef" Class="slide-in-blurred-bottom" TimeEllapsed="AnswersFinished"></Timer>
-    }  
-    @if(State == GameState.Summary && CurrentPlayerAnswers.Any())
-    {
-        <Scorecard @ref="scorecardRef" Score="@CurrentPlayerScore" Class="slide-in-blurred-bottom"></Scorecard>
-    }    
 
-    @if(PlayersAnswered.Any() && State != GameState.Ending)
+    @if(PlayersAnswered.Any() && (State == GameState.Playing || State == GameState.QuestionSummary || State == GameState.PlayerChoosing))
     {
-        <div class="row">
+    <div class="row">
         @foreach(var player in PlayersAnswered)
         {
-            <div class="col-4 my-2">
-                <PlayerBadge Player="@player" Class="slide-in-blurred-bottom">
+            var answerClass = (State == GameState.SummaryIsEnding)? "slide-out-fwd-center": "slide-in-blurred-bottom";
+
+            <div class="col-4 my-2 @answerClass">
+                <PlayerBadge Player="@player" Class="">                        
                     @if(PlayerLove != null && PlayerLove.ContainsKey(player.Id))
                     {
                         <span class="flip-in-hor-bottom" style="color: goldenrod;">+ @PlayerLove[player.Id]</span>
                     } 
                 </PlayerBadge>
                 
-                @if(State == GameState.Summary)
+                @if(State == GameState.QuestionSummary)
                 {
                     var playerAnswer = Game.AnsweredQuestions.FirstOrDefault(x => x.Player.Id == player.Id)?.Answer;
-                    var currentPlayerAnswer = CurrentPlayerAnswers.FirstOrDefault(x => x.Player.Id == player.Id)?.Answer;
+                    var currentPlayerAnswer = Game.CurrentPlayerAnswers.FirstOrDefault(x => x.Player.Id == player.Id)?.Answer;
 
                     <PlayerAnswerResult PlayerAnswer="@playerAnswer" CurrentPlayer="CurrentPlayer" CurrentPlayerAnswer="@currentPlayerAnswer" Show="@(ScoreShown > PlayersAnswered.IndexOf(player))"></PlayerAnswerResult>
                 }    
             </div>
         }
-        </div>
+    </div>
     }
 
-    @if(State == GameState.Ending)
+    @if(State == GameState.RoundSummary || State == GameState.RoundEnding || Game.State == GameState.Ended)
     {
         <div class="row">
         @foreach(var player in Game.Players)
@@ -95,9 +103,42 @@
                 <PlayerBadge Player="player">
                     @if(ScoreShown > Game.Players.IndexOf(player))
                     {
-                        <span class="summary-score text-pop-up-top">@player.Score</span>
+                        <span class="summary-score">@player.Score</span>
                     }
-                </PlayerBadge>                
+                </PlayerBadge>
+                <div class="row m-2">
+                    @if(player.CorrectGuesses > 0)
+                    {
+                        <div class="col-12">
+                            <label class="text-dark">Correct Guesses: </label> @player.CorrectGuesses
+                        </div>                    
+                    }         
+                    @if(player.LoveScore > 0)
+                    {
+                        <div class="col-6">
+                            <label class="text-dark">Love: </label> @player.LoveScore
+                        </div>                    
+                    }         
+                    @if(player.HateScore > 0)
+                    {
+                        <div class="col-6">
+                            <label class="text-dark">Hate: </label> @player.HateScore
+                        </div>                    
+                    }   
+                    @if(player.LoveReactions > 0)
+                    {
+                        <div class="col-6">
+                            <label class="text-dark">Love Given: </label> @player.LoveReactions
+                        </div>                    
+                    }         
+                    @if(player.HateReactions > 0)
+                    {
+                        <div class="col-6">
+                            <label class="text-dark">Hate Given: </label> @player.HateReactions
+                        </div>                    
+                    }   
+                </div>
+                              
             </div>
         }
         </div>
@@ -112,6 +153,7 @@
         }
     }
 }
+
 
 @code {
 
@@ -128,7 +170,6 @@
     public Dictionary<Guid, int> PlayerLove { get; set; }
     private Timer timerRef { get; set; }
 
-    public List<AnsweredQuestion> CurrentPlayerAnswers { get; set; }
     public int CurrentPlayerScore { get; set; }
     private Scorecard scorecardRef { get; set; }
     private int ScoreShown { get; set; }
@@ -157,7 +198,6 @@
             Game = game;
             CurrentQuestion = question;
             CurrentPlayer = player;
-            CurrentPlayerAnswers = new List<AnsweredQuestion>();
             PlayersAnswered = new List<Player>();
             State = GameState.Playing;
             CurrentPlayerScore = 0;
@@ -197,22 +237,27 @@
             SpeakPhrase(phrase.Text);
         });        
         
-        hubConnection.On<bool, List<AnsweredQuestion>>("QuestionSummaryStarted", async (timeExpired, currentPlayerAnswers) => {
-            StatusMessage = $"Time to see how you did";
-            CurrentPlayerAnswers = currentPlayerAnswers;
-            State = GameState.Summary;
+        hubConnection.On<bool, Game>("QuestionSummaryStarted", async (timeExpired, game) => {
+            StatusMessage = "Time to see how you did";
+            Game = game;
+            State = GameState.QuestionSummary;
             StateHasChanged();
+            var correctQuestions = 0;
+
+            await js.InvokeVoidAsync("PlayAudioFile", "/sounds/tada_1.mp3");
 
             foreach(var player in PlayersAnswered)
             {
-                var playerAnswer = Game.AnsweredQuestions.FirstOrDefault(x => x.Player.Id == player.Id)?.Answer;
-                var currentPlayerAnswer = CurrentPlayerAnswers.FirstOrDefault(x => x.Player.Id == player.Id)?.Answer;
+                var playersAnswer = Game.AnsweredQuestions.FirstOrDefault(x => x.Player.Id == player.Id);
+                var playerAnswer = playersAnswer?.Answer;
+                var currentPlayerAnswer = Game.CurrentPlayerAnswers.FirstOrDefault(x => x.Player.Id == player.Id)?.Answer;
 
                 await Task.Delay(3000);
                 ScoreShown++;
-                
+                Console.WriteLine($"{playersAnswer.Player.Username} said you would get {playersAnswer.Guess} correct");
                 if (playerAnswer == currentPlayerAnswer)
                 {
+                    correctQuestions++;
                     CurrentPlayerScore = CurrentPlayerScore + (100 * Game.CurrentRound);
                     await PlayRight();
                 }
@@ -220,20 +265,22 @@
                 {
                     await PlayWrong();
                 }
+                Console.WriteLine("Showed " + player.Username + "'s answer");
                 
                 StateHasChanged();
             }
-
-            if (!currentPlayerAnswers.Any()) {
-                SpeakPhrase("Nobody had an answer? Strange...  Ok we will move onto the next question");
-            }
+            
+            await CheckBanterEngineAsync(CurrentPlayerScore, correctQuestions);
 
             // record score?
-            await Task.Delay(5000);            
+            await Task.Delay(4000);            
             await hubConnection.SendAsync("QuestionFinished", Game.Id, CurrentQuestion.Id, CurrentPlayerScore);
         });
 
         hubConnection.On<Game>("ProceedToNextQuestion", async (game) => {
+            State = GameState.SummaryIsEnding;
+            StateHasChanged();
+            await Task.Delay(700);   
             Game = game;            
             StateHasChanged();
             
@@ -244,11 +291,12 @@
             if(Game.State != GameState.Ended)
             {
                 ScoreShown = 0;
-                State = GameState.Ending;
+                State = GameState.RoundSummary;
                 StateHasChanged();
+
                 var leader = Game.Players.OrderByDescending(x => x.Score).FirstOrDefault();
 
-                foreach(var player in Game.Players.OrderBy(x => x.Score))
+                foreach(var player in Game.Players)
                 {
                     ScoreShown++;              
                     StateHasChanged();
@@ -262,10 +310,16 @@
                 }
                 else
                 {
-                    SpeakPhrase("It is anybody's game so lets begin the next round");
+                    var nextPlayer = Game.Players.Skip(1).First();
+                    var phrase = (leader.LoveScore > nextPlayer.LoveScore)? $"{nextPlayer.Username} I would have said your name but you don't get as much love" : "It is anybody's game so lets begin the next round";
+                    SpeakPhrase(phrase);
                 }
                 
-                await Task.Delay(5000);
+                await Task.Delay(4500);
+                State = GameState.RoundSummary;
+                StateHasChanged();
+
+                await Task.Delay(700);
 
                 await hubConnection.SendAsync("AskQuestion", Game.Id);
             }
@@ -371,6 +425,89 @@
         StateHasChanged();
 
         await js.InvokeVoidAsync("PlayAudioFile", "/sounds/right_" + sound + ".mp3");
+    }
+
+    async Task CheckBanterEngineAsync(int currentPlayerScore, int correctQuestions)
+    {
+        var chanceOfBanter = new Random();
+        var chance = 65;
+        var threshold = 10;
+        var spoken = 0;
+        var delay = 2500;
+
+        if (chanceOfBanter.Next(100) > chance && currentPlayerScore == 0 && Game.AnsweredQuestions.All(x => x.Guess == 0))
+        {
+            spoken++;
+            SpeakPhrase("Its ok, nobody thought you would get it right");
+            await Task.Delay(1500);
+        }
+
+        if (chanceOfBanter.Next(100) > chance && correctQuestions == Game.AnsweredQuestions.Count && !Game.AnsweredQuestions.All(x => x.Guess == correctQuestions))
+        {
+            spoken++;
+            SpeakPhrase("You exceeded their expectations. Good job.");
+            await Task.Delay(1500);
+        }
+
+        if (chanceOfBanter.Next(100) > chance && correctQuestions > 0 && Game.AnsweredQuestions.Any(x => x.Guess == correctQuestions))
+        {
+            spoken++;
+            var correctPlayer = Game.AnsweredQuestions.FirstOrDefault(x => x.Guess == correctQuestions);
+            SpeakPhrase($"{correctPlayer.Player.Username} knew you would get that many correct. Points for them!");
+            await Task.Delay(1500);
+        }
+        
+        if (!Game.CurrentPlayerAnswers.Any()) {
+            SpeakPhrase("Nobody had an answer? Strange...  Ok we will move onto the next question");
+            await Task.Delay(1500);
+        }
+
+        if (chanceOfBanter.Next(100) > chance)
+        {
+            spoken++;
+            var lovelyPlayer = Game.Players.OrderByDescending(x => x.LoveScore).First();
+            if (lovelyPlayer.LoveScore > threshold)
+            {
+                await Task.Delay(delay);  
+                var phrase = (chanceOfBanter.Next(100) > 50)? $"{lovelyPlayer.Username}, they really love you out there" : $"{lovelyPlayer.Username} is feeling the love";
+                SpeakPhrase(phrase);
+            }
+        }
+        
+        if (chanceOfBanter.Next(100) > chance)
+        {
+            spoken++;
+            var hatedPlayer = Game.Players.OrderByDescending(x => x.HateScore).First();
+            if (hatedPlayer.HateScore > threshold)
+            {
+                await Task.Delay(delay);  
+                var phrase = (chanceOfBanter.Next(100) > 50)? $"You guys are giving {hatedPlayer.Username} a lot of crap" : $"{hatedPlayer.Username} may need an umbrella for all that poop";
+                SpeakPhrase(phrase);
+            }
+        }
+
+        if (chanceOfBanter.Next(100) > chance && spoken < 2)
+        {
+            spoken++;
+            var lovingPlayer = Game.Players.OrderByDescending(x => x.LoveReactions).First();
+            if (lovingPlayer.LoveReactions > threshold)
+            {
+                await Task.Delay(delay);  
+                var phrase = (chanceOfBanter.Next(100) > 50)? $"{lovingPlayer.Username} is sharing the love" : $"So much love coming from {lovingPlayer.Username}";
+                SpeakPhrase(phrase);
+            }
+        }
+
+        if (chanceOfBanter.Next(100) > chance && spoken < 2)
+        {
+            var hatingPlayer = Game.Players.OrderByDescending(x => x.HateReactions).First();
+            if (hatingPlayer.HateReactions > threshold)
+            {
+                await Task.Delay(delay);  
+                var phrase = (chanceOfBanter.Next(100) > 50)? $"Why so much hate, {hatingPlayer.Username}?" : $"{hatingPlayer.Username} has a lot of poop to spread.";
+                SpeakPhrase(phrase);
+            }
+        }
     }
 
     public async Task ResetGameAsync()

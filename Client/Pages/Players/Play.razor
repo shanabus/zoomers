@@ -195,8 +195,7 @@ else
         hubConnection.On<Player, Player, AnswerReaction>("ReactionReceived", async (fromPlayer, toPlayer, reaction) => {   
             if (Player.Id == toPlayer.Id)
             {
-                await js.InvokeVoidAsync("FloatItem", reaction.ToString());
-                // StateHasChanged();
+                await js.InvokeVoidAsync("FloatItem", reaction.ToString());                
             }            
         });
 
@@ -241,11 +240,8 @@ else
         if (Player.Id != toPlayer.Id)
         {
             await hubConnection.SendAsync("SendReaction", Game.Id, Player, toPlayer, reaction);
-        }
-        else
-        {
-            await js.InvokeVoidAsync("PlayAudioFile", $"/sounds/{Player.Sound}.mp3");
-        }
+        }        
+        //    await js.InvokeVoidAsync("PlayAudioFile", $"/sounds/{Player.Sound}.mp3");        
     }
 
     public async Task SubmitQuestionCompleteAnswer(List<AnsweredQuestion> CurrentPlayerAnswers)

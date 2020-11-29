@@ -15,12 +15,11 @@
     <script>
         window.FloatItem = (item) => {
             floating({
-                content: "💕",
+                content: item,
                 number: 1,
-                duration: 10,
+                duration: 8,
                 repeat: 1
             });
-            // 💕floating({});
         }
         window.PlayAudioFile = (src) => {
             var audio = document.getElementById('player');

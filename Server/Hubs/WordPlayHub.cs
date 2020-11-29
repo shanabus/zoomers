@@ -149,8 +149,10 @@ namespace ZoomersClient.Server.Hubs
             if (fromPlayer.Id != toPlayer.Id)
             {
                 var game = _gameService.AddAudienceReaction(gameId, fromPlayer, toPlayer, reaction); 
-                _logger.LogInformation("React being processed!");
-                await Clients.Client(toPlayer.ConnectionId).SendAsync("ReactionReceived", fromPlayer, toPlayer, reaction);
+                _logger.LogInformation("Reaction being processed!");
+                
+                // should be Client(toPlayer.ConnectionId)
+                await Clients.All.SendAsync("ReactionReceived", fromPlayer, toPlayer, reaction);
             }            
         }
 

@@ -43,7 +43,7 @@
 
             <div class="row my-4">
                 <div class="col">
-                    <button class="btn btn-success w-100 text-center" @onclick="SubmitAnswer" disabled="@(string.IsNullOrEmpty(Answer))">SUBMIT ANSWER</button>
+                    <button class="btn btn-success w-100 text-center" @onclick="SubmitAnswer">SUBMIT ANSWER</button>
                 </div>
             </div>
         </div>
@@ -265,12 +265,15 @@ else
         await hubConnection.SendAsync("UpdateConnectionId", Game.Id, Player.Id);
     }
 
-    public async Task SubmitAnswer() {
-        State = PlayState.AnswerSubmitted;        
-        await hubConnection.SendAsync("AnswerQuestion", Game.Id, CurrentQuestion?.Id, Player.Id, Answer);   
-        // todo: move this UpdateState? or add a hook to do so though hub
-        StatusMessage = "";     
-        StateHasChanged();
+    public async Task SubmitAnswer() 
+    {
+        if (!string.IsNullOrEmpty(Answer))
+        {
+            State = PlayState.AnswerSubmitted;        
+            await hubConnection.SendAsync("AnswerQuestion", Game.Id, CurrentQuestion?.Id, Player.Id, Answer);   
+            StatusMessage = "";     
+            StateHasChanged();
+        }        
     }
 
     public async Task SubmitQuestionGuessAsync(int guess)

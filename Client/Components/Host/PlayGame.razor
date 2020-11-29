@@ -12,7 +12,7 @@
 
 @if (Game != null)
 {
-    @if(State != GameState.RoundEnding && State != GameState.RoundSummary)
+    @if(State != GameState.RoundEnding && State != GameState.RoundSummary && State != GameState.Ended)
     {
     <div class='row @((State != GameState.Ending)? "slide-in-blurred-bottom": "slide-out-fwd-center")'>
         <div class="col">            

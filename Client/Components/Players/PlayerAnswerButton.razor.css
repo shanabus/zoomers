@@ -5,7 +5,18 @@
     display: flex;
 }
 
+.player-answer-button.selected {
+    border-color: #28a745;
+}
+
 .player-answer-button .player-answer-button__check {
-    align-self: center;
-    flex: 0 0 22px;
+    /* align-self: center;
+    flex: 0 0 22px; */
+    position: absolute;
+    top: 20px;
+    right: 28px;
+}
+
+.player-answer-button__answer {
+    min-height: 24px;
 }

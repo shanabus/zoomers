@@ -1,0 +1,8 @@
+#answers-correct .input-group {
+    justify-content: center;
+}
+
+#answers-correct input.form-control {    
+    flex: 0 1 auto;
+    min-width: 50px;
+}

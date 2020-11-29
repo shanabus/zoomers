@@ -16,25 +16,26 @@
         <div class="col">            
             @if(CurrentQuestion != null)
             {
-                <div class="jumbotron swing-in-top-fwd" id="current-question">
-                    @CurrentQuestion.Question
-                </div>
+            <div class="jumbotron swing-in-top-fwd" id="current-question">
+                @CurrentQuestion.Question
+            </div>
             }         
-                <div class="game-round text-dark">
-                    Round @Game.CurrentRound, Question @Game.Questions.Count
-                </div>
+            <div class="game-round text-dark">
+                Round @Game.CurrentRound, Question @Game.Questions.Count
+            </div>
 
-                <div class="row">                    
+            <div class="row">                    
                 @if(CurrentPlayer != null)
                 {
-                    <div class="col-4">
-                        <PlayerBadge Player="CurrentPlayer"></PlayerBadge>
-                    </div>                     
+                <div class="col-4">
+                    <PlayerBadge Player="CurrentPlayer"></PlayerBadge>
+                </div>                     
                 }      
-                    <div class="col-8 pt-3">
-                        <h3>@StatusMessage</h3>
-                    </div>
-                </div>                
+                <div class="col-8 pt-3">
+                    <h3>@StatusMessage</h3>
+                </div>
+            </div>       
+
             <hr />
         </div>
     </div>   
@@ -61,7 +62,12 @@
         @foreach(var player in PlayersAnswered)
         {
             <div class="col my-2">
-                <PlayerBadge Player="@player" Class="slide-in-blurred-bottom"></PlayerBadge>
+                <PlayerBadge Player="@player" Class="slide-in-blurred-bottom">
+                    @if(PlayerLove != null && PlayerLove.ContainsKey(player.Id))
+                    {
+                        <span class="flip-in-hor-bottom">+ @PlayerLove[player.Id]</span>
+                    }
+                </PlayerBadge>
                 
                 @if(State == GameState.Summary)
                 {
@@ -79,7 +85,7 @@
     @if(State == GameState.Ending)
     {
         <div class="row">
-        @foreach(var player in Game.Players)
+        @foreach(var player in Game.Players.OrderBy(x => x.Score))
         {
             <div class="col-4 my-2">
                 <PlayerBadge Player="player">
@@ -91,6 +97,15 @@
             </div>
         }
         </div>
+
+        @if(Game.State == GameState.Ended)
+        {
+            <div class="row mt-4">
+                <div class="col text-center">
+                    <button class="btn btn-success btn-lg" @onclick="ResetGameAsync">PLAY AGAIN</button>
+                </div>
+            </div>
+        }
     }
 }
 
@@ -98,21 +113,24 @@
 
     [Parameter]
     public Game Game { get; set; }
+    [Parameter]
+    public EventCallback OnGameReset { get; set; }
     [CascadingParameter]
     public GameState State { get; set; }
     public Player CurrentPlayer { get; set; }
     public string StatusMessage { get; set; }
     public WordPlayQuestion CurrentQuestion { get; set; }
     public List<Player> PlayersAnswered { get; set; }
+    public Dictionary<Guid, int> PlayerLove { get; set; }
     private Timer timerRef { get; set; }
 
     public List<AnsweredQuestion> CurrentPlayerAnswers { get; set; }
     public int CurrentPlayerScore { get; set; }
     private Scorecard scorecardRef { get; set; }
     private int ScoreShown { get; set; }
-
+    
     private HubConnection hubConnection;
-
+    
     protected override async Task OnInitializedAsync()
     {
         base.OnInitialized();
@@ -136,6 +154,7 @@
             State = GameState.Playing;
             CurrentPlayerScore = 0;
             ScoreShown = 0;
+            PlayerLove = new Dictionary<Guid, int>();
 
             // timerRef.ResetTimer();
             // timerRef.StartTimer(30);
@@ -155,8 +174,6 @@
             await js.InvokeVoidAsync("PlayAudioFile", $"/sounds/{player.Sound}.mp3");
 
             StateHasChanged();
-
-            // await js.InvokeVoidAsync("PlayAudioFile", "/sounds/answer_in.mp3");
 
             if (PlayersAnswered.Count >= Game.Players.Count - 1)
             {
@@ -207,7 +224,7 @@
             await hubConnection.SendAsync("QuestionFinished", Game.Id, CurrentQuestion.Id, CurrentPlayerScore);
         });
 
-        hubConnection.On<Game, bool>("ProceedToNextQuestion", async (game, roundEnded) => {
+        hubConnection.On<Game>("ProceedToNextQuestion", async (game) => {
             Game = game;            
             StateHasChanged();
             
@@ -217,6 +234,7 @@
         hubConnection.On<Game>("RoundOver", async (Game) => {
             if(Game.State != GameState.Ended)
             {
+                ScoreShown = 0;
                 State = GameState.Ending;
                 StateHasChanged();
                 var leader = Game.Players.OrderByDescending(x => x.Score).FirstOrDefault();
@@ -246,6 +264,7 @@
 
         hubConnection.On<Game>("GameOver", async (game) => {
             Game = game;
+            ScoreShown = 0;
             StatusMessage = "Game Over";
             State = GameState.Ending;
             StateHasChanged();
@@ -258,7 +277,7 @@
                 ScoreShown++;              
                 StateHasChanged();
 
-                await Task.Delay(3000);
+                await Task.Delay(2000);
             }
 
             if (Game.State == GameState.Ended)            
@@ -280,6 +299,17 @@
                 }
             }
         }); 
+        
+        hubConnection.On<Game>("ResetGame", async (game) => {
+            await OnGameReset.InvokeAsync();
+        }); 
+
+        // process the love
+        hubConnection.On<Player, Player>("SendLove", (fromPlayer, toPlayer) => {
+            if (State == GameState.Summary) {
+                PlayerLove[toPlayer.Id] += 1;
+            }
+        });
 
         // start hub
         await hubConnection.StartAsync();
@@ -294,8 +324,8 @@
     {        
         // timerRef.ResetTimer();
         State = GameState.PlayerChoosing;
-        Console.WriteLine("Something told me to fire AnswersFinished");
-        await hubConnection.SendAsync("AnswersFinished", Game.Id, CurrentPlayer.Username);
+        // Console.WriteLine("Something told me to fire AnswersFinished");
+        await hubConnection.SendAsync("AnswersFinished", Game.Id);
         StateHasChanged();
     }
 
@@ -328,6 +358,11 @@
         StateHasChanged();
 
         await js.InvokeVoidAsync("PlayAudioFile", "/sounds/right_" + sound + ".mp3");
+    }
+
+    public async Task ResetGameAsync()
+    {
+        await hubConnection.SendAsync("ResetGame", Game.Id);
     }
 
     public bool IsConnected =>

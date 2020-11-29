@@ -11,8 +11,17 @@
     <link href="ZoomersClient.Client.styles.css" rel="stylesheet" />
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Balsamiq+Sans&display=swap" rel="stylesheet">
-
+    <script src="https://unpkg.com/floating.js"></script>
     <script>
+        window.FloatItem = (item) => {
+            floating({
+                content: "💕",
+                number: 1,
+                duration: 10,
+                repeat: 1
+            });
+            // 💕floating({});
+        }
         window.PlayAudioFile = (src) => {
             var audio = document.getElementById('player');
             if (audio != null) {

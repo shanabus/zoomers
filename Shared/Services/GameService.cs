@@ -17,11 +17,20 @@ namespace ZoomersClient.Shared.Services
         {
             _logger = logger;
             
-            Games = new List<Game>();
+            Games = new List<Game>();            
+            
+            ResetDefaultGame();
+        }
 
-            var defaultGame = new Game("Default Game", "en-US");
+        public Game ResetDefaultGame()
+        {
+            Games = new List<Game>();
+            
+            var defaultGame = new Game("Sievers Game", "en-GB");
             defaultGame.Id = Guid.Parse("5b05a3a6-7665-47dd-b515-03372211a95e");
             Games.Add(defaultGame);
+
+            return defaultGame;
         }
 
         public Game FindGame(Guid id)
@@ -114,6 +123,18 @@ namespace ZoomersClient.Shared.Services
                 game.StartGame();
             }
 
+            return game;
+        }
+
+        public Game AddAudienceLove(Guid gameId, Player fromPlayer, Player toPlayer)
+        {
+            var game = Games.FirstOrDefault(x => x.Id == gameId);
+
+            if (game != null)
+            {
+                game.AddLove(fromPlayer, toPlayer);
+            }
+            
             return game;
         }
     }

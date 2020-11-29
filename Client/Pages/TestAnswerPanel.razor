@@ -7,12 +7,14 @@
 
 <AnswerPanel Players="PlayerList" Answers="Answers" Enabled="true" CurrentPlayer="PlayerList[0]"></AnswerPanel>
 
-<button class="btn btn-primary" @onclick="PlayAudioFile1">Whoosh</button>
+<AnswersCorrectPanel MaxCount="@Answers.Count" Username="Shane S" OnSubmit="SubmitQuestionGuess"></AnswersCorrectPanel>
+
+@* <button class="btn btn-primary" @onclick="PlayAudioFile1">Whoosh</button>
 <span>&nbsp;</span>
 <button class="btn btn-primary" @onclick="PlayWrong">Wrong</button>
 <span>&nbsp;</span>
 <button class="btn btn-primary" @onclick="PlayRight">Right</button>
-<span>&nbsp;</span>
+<span>&nbsp;</span> *@
 
 <audio id="player">
     <source id="playerSource" src="" />
@@ -43,6 +45,13 @@
             new AnsweredQuestion() { Player = PlayerList[4], Question = new QuestionBase() { Question = "Hey, are you listening?"}, Answer = "Do it again?" },
         };
     }    
+
+    public async Task SubmitQuestionGuess(int guess)
+    {
+        // do somethign
+        await js.InvokeVoidAsync("FloatItem", "hey");
+        Console.WriteLine("Guess - " + guess);
+    }
 
     public void Submit()
     {

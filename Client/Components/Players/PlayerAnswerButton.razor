@@ -1,7 +1,7 @@
 @using ZoomersClient.Client.Components.Shared
 @using ZoomersClient.Shared.Models
 
-<div class="player-answer-button my-1 @Class" @onclick="ClickToggleActive">
+<div class='player-answer-button my-1 @Class @(Selected? "selected" : "")' @onclick="ClickToggleActive">
     <PlayerBadge Player="Player"></PlayerBadge>
     <div class="player-answer-button__check">
         @if(!string.IsNullOrEmpty(Answer.Answer))
@@ -14,12 +14,9 @@
         
     </div>
 </div>
-    @if (ChildContent != null)
-    {
-        <div class="player-answer-button__answer">
-            @ChildContent
-        </div>
-    }
+<div class="player-answer-button__answer">
+    @ChildContent
+</div>
 
 @code {
     [Parameter]

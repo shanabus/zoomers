@@ -16,7 +16,7 @@ namespace ZoomersClient.Shared.Models
         public string Voice { get; set; }
         public string GameType = "wordplay";
         public const int MinimumNumberOfPlayers = 2;
-        public const int Rounds = 3;
+        public const int Rounds = 2;
         public int CurrentRound { get; set; }
         
         public GameState State { get; set; }
@@ -25,6 +25,7 @@ namespace ZoomersClient.Shared.Models
         public Player CurrentPlayer { get; set; }
         public List<AnsweredQuestion> AnsweredQuestions { get; set; }
         public List<QuestionBase> Questions { get; set; }
+        public List<AudienceScore> AudienceScore { get; set; }
 
         public Game()
         {
@@ -32,6 +33,7 @@ namespace ZoomersClient.Shared.Models
             Players = new List<Player>();
             AnsweredQuestions = new List<AnsweredQuestion>();
             Questions = new List<QuestionBase>();
+            AudienceScore = new List<AudienceScore>();
             CurrentRound = 1;
         }
 
@@ -44,6 +46,7 @@ namespace ZoomersClient.Shared.Models
             Players = new List<Player>();
             AnsweredQuestions = new List<AnsweredQuestion>();
             Questions = new List<QuestionBase>();
+            AudienceScore = new List<AudienceScore>();
 
             Party = new List<PartyIcon>() {
                 RandomEnumValue<PartyIcon>(),
@@ -64,6 +67,7 @@ namespace ZoomersClient.Shared.Models
         public Game EndGame()
         {
             State = GameState.Ended;
+            Players = Players.OrderByDescending(x => x.Score).ToList();
             return this;
         }
 
@@ -118,6 +122,34 @@ namespace ZoomersClient.Shared.Models
             {
                 throw new PlayerQuestionMismatchException(e.Message);
             }
+        }
+
+        internal Game AddLove(Player fromPlayer, Player toPlayer)
+        {
+            var existingScore = AudienceScore.FirstOrDefault(x => x.Round == CurrentRound && x.FromPlayerId == fromPlayer.Id && x.ToPlayerId == toPlayer.Id);
+
+            if (existingScore == null)
+            {
+                AudienceScore.Add(new Models.AudienceScore {
+                    Round = CurrentRound,
+                    FromPlayerId = fromPlayer.Id,
+                    ToPlayerId = toPlayer.Id,
+                    Score = 1
+                });
+            }
+            else
+            {
+                existingScore.Score = existingScore.Score + 1;
+            }
+            return this;
+        }
+
+        public Game ShuffleAnswers()
+        {
+            var r = new Random();
+            AnsweredQuestions.OrderBy(x => r.Next());
+            
+            return this;
         }
 
         public bool HasEnoughPlayers()

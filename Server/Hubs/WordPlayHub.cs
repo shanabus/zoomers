@@ -101,7 +101,7 @@ namespace ZoomersClient.Server.Hubs
             else if (!roundEnded)
             {
                 _logger.LogInformation("Proceeding to next question");
-                await Clients.Caller.SendAsync("ProceedToNextQuestion", game, roundEnded);                        
+                await Clients.Caller.SendAsync("ProceedToNextQuestion", game);                        
             }            
         }
 
@@ -114,11 +114,11 @@ namespace ZoomersClient.Server.Hubs
             game.UpdatePlayerConnection(playerId, Context.ConnectionId);
         }
 
-        public async Task AnswersFinished(Guid gameId, string username)
+        public async Task AnswersFinished(Guid gameId)
         {
-            var game = _gameService.FindGame(gameId);
+            var game = _gameService.FindGame(gameId).ShuffleAnswers();
 
-            var phrase = _phrases.GetRandomAnswersFinishedPhrase(username, game.Voice) as SpeechSynthesisUtterance;
+            var phrase = _phrases.GetRandomAnswersFinishedPhrase(game.CurrentPlayer.Username, game.Voice) as SpeechSynthesisUtterance;
             
             _logger.LogInformation("AnswersFinished on WordPlayHub was called");
 
@@ -142,6 +142,22 @@ namespace ZoomersClient.Server.Hubs
             else {
                 Console.WriteLine("Time expired for current player?");
             }
+        }
+
+        public async Task SendLove(Guid gameId, Player fromPlayer, Player toPlayer)
+        {   
+            if (fromPlayer.Id != toPlayer.Id)
+            {
+                var game = _gameService.AddAudienceLove(gameId, fromPlayer, toPlayer); 
+                await Clients.All.SendAsync("SendLove", fromPlayer, toPlayer);
+            }            
+        }
+
+        public async Task ResetDefaultGame(Guid gameId)
+        {
+            _gameService.ResetDefaultGame();
+
+            await Clients.All.SendAsync("GameReset");
         }
 
         public override async Task OnConnectedAsync()

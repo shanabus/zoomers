@@ -13,23 +13,27 @@
     </div>
 }
 </div>
-<hr class="my-4">
+<hr class="my-2">
 
 <div class="row">
 @foreach(var answer in Answers)
 {
-    <div class="col-5 my-1 answer-panel__answer" @onclick="@((e) => OnClickSelectAnswer(e, answer))">
-        @answer.Answer
-    </div>
-    <div class="col-1 my-1" @onclick="@((e) => OnClickSelectAnswer(e, answer))">
-        @if(CurrentPlayerAnswers.Any(x => x.Answer == answer.Answer))
-        {
-            <span class='oi oi-check text-info' aria-hidden="true"></span>
-        }
-        else
-        {
-            <span class='oi oi-circle-check @((SelectedAnswer == answer)? "text-success" : "text-secondary")' aria-hidden="true"></span>
-        }
+    var answerIsUsed = CurrentPlayerAnswers.Any(x => x.Answer == answer.Answer);
+
+    <div class='col-6 my-1 answer-panel__answer @(answerIsUsed? "text-secondary" : "text-dark")' @onclick="@((e) => OnClickSelectAnswer(e, answer))">
+        <div class="bg-light p-2">
+            @answer.Answer
+            <div class="answer-panel__answer-icon">
+                @if(answerIsUsed)
+                {
+                    <span class='oi oi-check text-info'></span>
+                }
+                else
+                {
+                    <span class='oi oi-circle-check @((SelectedAnswer == answer)? "text-success" : "text-secondary")'></span>
+                }            
+            </div>
+        </div>
         
     </div>
 }

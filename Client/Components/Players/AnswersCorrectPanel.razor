@@ -1,0 +1,63 @@
+@if(!Submitted)
+{
+    <div class="row my-3">
+        <div class="col-12 text-center">
+            <p>How many Answers will @Username get right?</p>
+        </div>
+        <div class="col-12 text-center" id="answers-correct">        
+            <div class="input-group input-group-lg px-4">
+                <div class="input-group-prepend" @onclick="Lower">
+                    <span class="input-group-text"> <span class="oi oi-chevron-left"></span></span>
+                </div>
+                <input type="text" class="form-control text-center" @bind="CorrectCount" max="@MaxCount" min="0" style="width: 30px!important;" />
+                <div class="input-group-append" @onclick="Higher">
+                    <span class="input-group-text"> <span class="oi oi-chevron-right"></span></span>
+                </div>
+            </div>
+            <br />
+            <button class="btn btn-success" @onclick="SubmitGuess">SUBMIT GUESS</button>
+        </div>
+    </div>
+} 
+else{
+    <div class="row my-2">
+        <div class="col text-center">
+            You guessed @Username will get <b>@CorrectCount</b> correct
+        </div>
+    </div>
+}
+
+
+@code {
+    public int CorrectCount { get; set; }
+    public bool Submitted { get; set; }
+
+    [Parameter]
+    public string Username { get; set; }
+    [Parameter]
+    public int MaxCount { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnSubmit { get; set; }
+
+    void Lower(MouseEventArgs e)
+    {
+        if (CorrectCount > 0){
+            CorrectCount--;
+        }
+    }
+
+    void Higher(MouseEventArgs e)
+    {
+        if (CorrectCount < MaxCount)
+        {
+            CorrectCount++;
+        }
+    }
+
+    public void SubmitGuess()
+    {
+        Submitted = true;
+        OnSubmit.InvokeAsync(CorrectCount);
+    }
+}

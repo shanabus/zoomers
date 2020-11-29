@@ -9,12 +9,13 @@
 @using ZoomersClient.Shared.Models.Enums
 @inject Blazored.LocalStorage.ILocalStorageService localStore
 @inject NavigationManager NavigationManager
+@inject IJSRuntime js
 @implements IAsyncDisposable
 
 @if(Game != null && Player != null && Game.CurrentPlayer != null)
 {
     <div class="row">
-        <div class="col-10">
+        <div class="col-10 pt-2">
             <h1>@Game.Name</h1>
         </div>
         <div class="col-2 justify-content-end">
@@ -31,7 +32,7 @@
     {        
         <div class="swing-in-top-fwd">
             
-            <p>@CurrentQuestion.Question</p>
+            <p class="h3">@CurrentQuestion.Question</p>
 
             <div class="row my-4">
                 <div class="col">
@@ -50,18 +51,30 @@
     @if(State == PlayState.AnswerSubmitted)
     {
         <p>Congrats, your answer has been counted!</p>
-
+        
         @foreach(var answer in Game.AnsweredQuestions)
         {
             <div class="row my-2">
-                <div class="col-10 p-2 offset-1 bg-light">@answer.Answer</div>
+                <div class="col-10 p-2 offset-1 bg-light">
+                    @answer.Answer
+                    @if(answer.Player.Id != Player.Id)
+                    {
+                        <span class="answer-send-hate" @onclick="@((e) => OnAnswerReaction(answer.Player, AnswerReaction.Hate))">💩</span>
+
+                        <span class="answer-send-love" @onclick="@((e) => OnAnswerReaction(answer.Player, AnswerReaction.Love))">💕</span>
+                    }
+                </div>
             </div>
         }
+        @if (Game.AnsweredQuestions.Count > 0)
+        {
+            <AnswersCorrectPanel MaxCount="@Game.AnsweredQuestions.Count" Username="@Game.CurrentPlayer.Username" OnSubmit="SubmitQuestionGuess"></AnswersCorrectPanel>
+        }        
     }
 
     @if(State == PlayState.CurrentPlayerWaiting)
     {
-        <p>Sit tight while others answer the question.</p>
+        <p>Sit tight while others answer this question:</p>
     }
 
     @if (State == PlayState.CurrentPlayerAnswering)
@@ -95,7 +108,7 @@ else
     public Player Player { get; set; }
     public string Answer { get; set; }
     public string StatusMessage { get; set; }
-
+    public int CurrentGuess { get; set; }
     public PlayState State { get; set; }
 
     public Game Game { get; set;}
@@ -116,25 +129,27 @@ else
         //todo: get CurrentQuestion from Game object
         if (CurrentQuestion != null && !PlayerIsCurrentPlayer && playerAnswer == null)
         {
+            Answer = "";
+            CurrentGuess = 0;
             State = PlayState.AnsweringQuestion;
-            StatusMessage = "What are you thinking?";
+            StatusMessage = "Type your answer and hit Submit";
         }
         else if (CurrentQuestion != null && !PlayerIsCurrentPlayer && playerAnswer != null)
         {
             State = PlayState.AnswerSubmitted;
-            StatusMessage = ""; // "Your answer is in.";
+            StatusMessage = "";
         }
         else if (PlayerIsCurrentPlayer && EveryoneHasAnswered)
         {
             State = PlayState.CurrentPlayerWaiting;
-            StatusMessage = "Your up, but wait for others to answer.";
+            StatusMessage = "Match the players to their answers"; 
         }
         else if (PlayerIsCurrentPlayer)
         {
             State = PlayState.CurrentPlayerAnswering;
             StatusMessage = "You are on the spot, what ya got?";
         }
-        Console.WriteLine("State - " + State.ToString());
+        // Console.WriteLine("State - " + State.ToString());
         StateHasChanged();
     }
 
@@ -163,14 +178,9 @@ else
         // subscribe to other things
         hubConnection.On<Game, WordPlayQuestion, Player>("QuestionReady", (game, question, player) => {               
             // reset UI
-            Console.WriteLine("~ QuestionReady ~");            
-            Console.WriteLine("...q = " + question.Question);
-
             Game = game;
-            Answer = "";
+            
             UpdatePlayState();
-
-            StatusMessage = "Hang tight while others submit their answers...";
 
             StateHasChanged();
         });
@@ -179,7 +189,6 @@ else
             StatusMessage = phrase.Text;
             Game = game;
             
-            Console.WriteLine("~ AnswersFinished ~");
             UpdatePlayState();
 
             if (game.CurrentPlayer.Id == Player.Id)
@@ -189,14 +198,27 @@ else
             StateHasChanged();
         });  
         
-        hubConnection.On<bool, List<AnsweredQuestion>>("QuestionSummaryStarted", (timeExpired, currentPlayerAnswers) => {            
-            StatusMessage = "Check the screen for a summary of the question";
+        hubConnection.On<Player, Player>("SendLove", async (fromPlayer, toPlayer) => {   
+            if (Player.Id == toPlayer.Id)
+            {
+                await js.InvokeVoidAsync("FloatItem", "");
+                // StateHasChanged();
+            }            
+        });
+
+        hubConnection.On<bool, List<AnsweredQuestion>>("QuestionSummaryStarted", (timeExpired, currentPlayerAnswers) => {                        
+            StatusMessage = "";
+            State = PlayState.QuestionScores;
             StateHasChanged();
         });
 
         hubConnection.On<Game>("GameOver", (game) => {
             StatusMessage = "Game Over. Score is " + game.Players.FirstOrDefault(x => x.Id == Player.Id)?.Score;
             StateHasChanged();
+        }); 
+
+        hubConnection.On<Game>("ResetGame", (game) => {
+            NavigationManager.NavigateTo("join");
         }); 
 
         // start hub
@@ -209,6 +231,25 @@ else
         State = PlayState.AnswerSubmitted;
         await hubConnection.SendAsync("AnswerQuestion", Game.Id, CurrentQuestion?.Id, Player.Id, Answer);
         StateHasChanged();
+    }
+
+    public void SubmitQuestionGuess(int guess)
+    {
+        // do something
+        CurrentGuess = guess;
+        Console.WriteLine("Guess - " + guess);
+    }
+
+    public async Task OnAnswerReaction(Player toPlayer, AnswerReaction reaction)
+    {
+        if (Player.Id != toPlayer.Id)
+        {
+            await hubConnection.SendAsync("SendLove", Game.Id, Player, toPlayer, reaction);
+        }
+        else
+        {
+            await js.InvokeVoidAsync("PlayAudioFile", $"/sounds/{Player.Sound}.mp3");
+        }
     }
 
     public async Task SubmitQuestionCompleteAnswer(List<AnsweredQuestion> CurrentPlayerAnswers)

@@ -4,6 +4,8 @@ namespace ZoomersClient.Shared.Models.DTOs
     {
         public string Name { get; set; }
 
+        public int Rounds { get; set; }
+        
         public string Voice { get; set; }
     }
 }

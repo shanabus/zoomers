@@ -29,19 +29,17 @@ namespace ZoomersClient.Server.Hubs
 
         public async Task AnswerQuestion(Guid gameId, int questionId, Guid playerId, string answer)
         {
-            _logger.LogInformation("Processing an Answer! " + answer);
-
             var game = _gameService.FindGame(gameId);
 
             var player = game.Players.ToList().FirstOrDefault(x => x.Id == playerId);
 
             if (player != null)
             {
-                _logger.LogInformation("Player with ConnId of " + playerId + " was found.  Marking question answered.");
+                _logger.LogInformation("Player with a Player Id of " + playerId + " was found.  Marking question answered.");
 
                 game.AnswerQuestion(player, questionId, answer);
 
-                await Clients.All.SendAsync("QuestionAnswered", game, player);
+                await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("QuestionAnswered", game, player);
             }
             else
             {
@@ -60,14 +58,14 @@ namespace ZoomersClient.Server.Hubs
             // todo: double check, it should be handled in QuestionFinished!
             if (game.Questions.Count == game.Players.Count)
             {
-                await Clients.All.SendAsync("GameOver", game);
+                await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("GameOver", game);
             }
             
             game = _gameService.AddQuestion(gameId, question);
 
             var player = game.GetNextPlayer();
             
-            await Clients.All.SendAsync("QuestionReady", game, question, player);
+            await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("QuestionReady", game, question, player);
         }
 
         public async Task QuestionFinished(Guid gameId, int questionId, int score)
@@ -84,7 +82,7 @@ namespace ZoomersClient.Server.Hubs
                 roundEnded = true;
                 game = game.NextRound();
 
-                await Clients.All.SendAsync("RoundOver", game);                
+                await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("RoundOver", game);                
             }
 
             _logger.LogInformation(roundEnded + " round ended");
@@ -96,7 +94,7 @@ namespace ZoomersClient.Server.Hubs
 
                 _logger.LogInformation("Hey, its Game Over!");
                 
-                await Clients.All.SendAsync("GameOver", game);
+                await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("GameOver", game);
             }
             else if (!roundEnded)
             {
@@ -105,13 +103,24 @@ namespace ZoomersClient.Server.Hubs
             }            
         }
 
-        public void UpdateConnectionId(Guid gameId, Guid playerId)
+        public async Task UpdateConnectionId(Guid gameId, Guid playerId)
         {
             var game = _gameService.FindGame(gameId);
 
-            _logger.LogInformation($"Setting player connection id {Context.ConnectionId}");
+            var player = game.UpdatePlayerConnection(playerId, Context.ConnectionId);
+            
+            await Clients.Client(Context.ConnectionId).SendAsync("PlayerUpdated", player);
+        }
 
-            game.UpdatePlayerConnection(playerId, Context.ConnectionId);
+        public async Task UpdateGameConnectionId(Guid gameId)
+        {
+            var game = _gameService.FindGame(gameId);
+
+            _logger.LogInformation($"Setting game connection id {Context.ConnectionId}");
+
+            game = game.UpdateGameConnection(gameId, Context.ConnectionId);
+
+            await Clients.Client(Context.ConnectionId).SendAsync("GameConnected", game);
         }
 
         public async Task AnswersFinished(Guid gameId)
@@ -122,13 +131,14 @@ namespace ZoomersClient.Server.Hubs
             
             _logger.LogInformation("AnswersFinished on WordPlayHub was called");
 
-            await Clients.All.SendAsync("AnswersFinished", game, phrase);
+            await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("AnswersFinished", game, phrase);
         }
 
         public async Task QuestionCompletedAnswer(Guid gameId, bool timeExpired, List<AnsweredQuestion> currentPlayerAnswers)
         {
             // todo: should calculate Game scores and Answers here
-            // Console.WriteLine("Received player answers");
+            
+            var game = _gameService.FindGame(gameId);
 
             var rand = new Random();
             var randomList = currentPlayerAnswers.OrderBy(x => rand.Next()).ToList();
@@ -137,10 +147,10 @@ namespace ZoomersClient.Server.Hubs
             if (!timeExpired)
             {
                 // Console.WriteLine("with time on the clock");
-                await Clients.All.SendAsync("QuestionSummaryStarted", timeExpired, randomList);
+                await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("QuestionSummaryStarted", timeExpired, randomList);
             }            
             else {
-                // Console.WriteLine("Time expired for current player?");
+                Console.WriteLine("Time expired for current player?");
             }
         }
 
@@ -149,18 +159,16 @@ namespace ZoomersClient.Server.Hubs
             if (fromPlayer.Id != toPlayer.Id)
             {
                 var game = _gameService.AddAudienceReaction(gameId, fromPlayer, toPlayer, reaction); 
-                _logger.LogInformation("Reaction being processed!");
                 
-                // should be Client(toPlayer.ConnectionId)
-                await Clients.All.SendAsync("ReactionReceived", fromPlayer, toPlayer, reaction);
+                await Clients.Clients(game.GameAndPlayerConnections(toPlayer)).SendAsync("ReactionReceived", fromPlayer, toPlayer, reaction);
             }            
         }
 
         public async Task ResetDefaultGame(Guid gameId)
         {
-            _gameService.ResetDefaultGame();
+            var game = _gameService.ResetDefaultGame();
 
-            await Clients.All.SendAsync("GameReset");
+            await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("GameReset");
         }
 
         public override async Task OnConnectedAsync()

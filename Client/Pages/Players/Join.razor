@@ -253,7 +253,7 @@
     public string GameStatus { get; set;}
     public Game Game { get; set; }
     
-    public bool ShowStartButton => Game != null && Game.HasEnoughPlayers();
+    public bool ShowStartButton => Game != null && Game.HasEnoughPlayers() && Game.Players.First().Id == Player.Id;
 
     protected override async Task OnInitializedAsync()
     {

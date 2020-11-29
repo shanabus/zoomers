@@ -11,6 +11,14 @@
   width: 100%;
 }
 
+span.player-badge__username {
+  max-width: 80%;
+}
+span.player-badge__content {
+  max-width: 33%;
+  text-align: right;
+}
+
 .players-to-answer .player-badge,
 .players-to-answer span.player-badge__username,
 .players-to-answer span.player-badge__content {
@@ -22,7 +30,6 @@
   width: auto;
   text-align: left;
 }
-
 
 .player-answer-button .player-badge {
   flex: 1 0 90%;

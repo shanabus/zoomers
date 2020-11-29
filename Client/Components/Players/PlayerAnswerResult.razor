@@ -1,13 +1,14 @@
 @using ZoomersClient.Shared.Models
+@using ZoomersClient.Client.Components.Shared
 
 @if(Show)
 {
     <div class="row player-answer-result m-2 p-2">
-        <div class="col-9 swing-in-top-fwd">
-            <div>Answer: @PlayerAnswer</div>
-            <div>@CurrentPlayer.Username chose: @CurrentPlayerAnswer</div>
+        <div class="col-10 swing-in-top-fwd">
+            <div><span class="text-secondary">Answer:</span> @PlayerAnswer</div>
+            <div><span class="text-secondary"><PlayerIconButton Icon="@CurrentPlayer.Icon" BackgroundColor="@CurrentPlayer.BackgroundColor"></PlayerIconButton> chose:</span> @CurrentPlayerAnswer</div>
         </div>
-        <div class="col-3 text-right player-answer-result__icon">
+        <div class="col-2 text-right player-answer-result__icon">
             @if(PlayerAnswer == CurrentPlayerAnswer)
             {
                 <span class='oi oi-thumb-up text-success flip-in-hor-bottom' aria-hidden="true"></span>

@@ -16,7 +16,7 @@ namespace ZoomersClient.Shared.Models
         public string Voice { get; set; }
         public string GameType = "wordplay";
         public const int MinimumNumberOfPlayers = 2;
-        public const int Rounds = 2;
+        public int Rounds { get; set; }
         public int CurrentRound { get; set; }
         
         public GameState State { get; set; }
@@ -37,11 +37,12 @@ namespace ZoomersClient.Shared.Models
             CurrentRound = 1;
         }
 
-        public Game(string name, string voice)
+        public Game(string name, string voice, int rounds)
         {
             Id = Guid.NewGuid();
             Name = name;
             Voice = voice;
+            Rounds = rounds;
 
             Players = new List<Player>();
             AnsweredQuestions = new List<AnsweredQuestion>();
@@ -88,7 +89,14 @@ namespace ZoomersClient.Shared.Models
             return (T) v.GetValue (_R.Next(1,v.Length));
         }
 
-        public void UpdatePlayerConnection(Guid playerId, string connectionId)
+        public Game UpdateGameConnection(Guid gameId, string connectionId)
+        {
+            ConnectionId = connectionId;
+
+            return this;
+        }
+
+        public Player UpdatePlayerConnection(Guid playerId, string connectionId)
         {
             var player = Players.FirstOrDefault(x => x.Id == playerId);
 
@@ -96,6 +104,8 @@ namespace ZoomersClient.Shared.Models
             {
                 player.ConnectionId = connectionId;
             }
+
+            return player;
         }
 
         public Game RecordScore(int questionId, int score)
@@ -180,6 +190,26 @@ namespace ZoomersClient.Shared.Models
             AnsweredQuestions.OrderBy(x => r.Next());
             
             return this;
+        }
+        
+        public string[] GameAndCurrentPlayerConnections()
+        {
+            var conns = new string[] { CurrentPlayer.ConnectionId, ConnectionId };
+            return conns;
+        }
+
+        public string[] GameAndPlayerConnections(Player player)
+        {
+            var conns = new string[] { player.ConnectionId, ConnectionId };
+            return conns;
+        }
+
+        public string[] GameAndAllPlayerConnections()
+        {
+            var conns = Players.Select(x => x.ConnectionId).ToList();
+            conns.Add(ConnectionId);
+
+            return conns.ToArray();
         }
 
         public bool HasEnoughPlayers()

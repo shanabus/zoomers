@@ -4,7 +4,7 @@ namespace ZoomersClient.Shared
 {
     public static class Extensions
     {
-        public static string ToString(this AnswerReaction reaction)
+        public static string ToEmoji(this AnswerReaction reaction)
         {
             switch (reaction)
             {

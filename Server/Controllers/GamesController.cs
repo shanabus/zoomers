@@ -54,7 +54,7 @@ namespace ZoomersClient.Server.Controllers
         [HttpPost]
         public Game Post([FromBody] CreateGameDto dto)
         {
-            var game = new Game(dto.Name, dto.Voice);
+            var game = new Game(dto.Name, dto.Voice, dto.Rounds);
             _gameService.CreateGame(game);
             return game;
         }

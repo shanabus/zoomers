@@ -16,3 +16,10 @@
     width: 32px;
     font-size: 1em;
 }
+
+.player-answer-result .player-icon {
+    font-size: .75em;
+    display: inline;
+    height: 30px;
+    width: 30px;
+}

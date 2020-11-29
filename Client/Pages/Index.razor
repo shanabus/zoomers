@@ -10,14 +10,20 @@
     <div class="col-sm-12 col-md-6">
         <div class="form-group">
             <label>
-                Game Name:
+                Name:
                 <input @bind="Name" class="form-control mx-2" />                
             </label>
              <button class="btn btn-outline-dark mr-4" @onclick="RandomLobby">
                 <span class="oi oi-loop-square" aria-hidden="true"></span>
-            </button>
-            <button class="btn btn-success" @onclick="StartGame">Start Game</button>
+            </button>        
+            <label>
+                Rounds:
+                <input type="number" min="1" max="5" @bind="Rounds" class="form-control mx-2" />
+            </label>                
         </div>
+    </div>
+    <div class="">
+
     </div>
     <div class="col-md-6">
         @if(Voices != null)
@@ -33,7 +39,8 @@
                     }
                     </select>
                 </label>
-                <button class="btn btn-info" @onclick="PreviewVoice">Preview</button>
+                <button class="btn btn-info mx-2" @onclick="PreviewVoice">Preview</button>
+                <button class="btn btn-success" @onclick="CreateGame">Create Game</button>
             </div>            
         }
         
@@ -50,7 +57,8 @@
 </ul>
 
 @code {
-    private string Name;
+    private string Name { get; set; }
+    private int Rounds { get; set; }
 
     private IEnumerable<Game> Games = new List<Game>();
     IEnumerable<SpeechSynthesisVoice> Voices;
@@ -58,6 +66,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        Rounds = 2;
         var result = await Http.GetFromJsonAsync<Game[]>("Games");
         
         if (result.Any())
@@ -66,9 +75,9 @@
         }
     }
 
-    private async Task StartGame()
+    private async Task CreateGame()
     {
-        var response = await Http.PostAsJsonAsync<CreateGameDto>("Games", new CreateGameDto { Name = Name, Voice = SelectedVoice });
+        var response = await Http.PostAsJsonAsync<CreateGameDto>("Games", new CreateGameDto { Name = Name, Voice = SelectedVoice, Rounds = Rounds });
 
         var game = await response.Content.ReadFromJsonAsync<Game>();
 

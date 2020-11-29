@@ -20,10 +20,12 @@
                 @CurrentQuestion.Question
             </div>
             }         
-            <div class="game-round text-dark">
-                Round @Game.CurrentRound, Question @Game.Questions.Count
-            </div>
-
+            @if(Game.CurrentRound > 0 && Game.Questions.Count > 0){
+                <div class="game-round text-dark">
+                    Round @Game.CurrentRound, Question @Game.Questions.Count
+                </div>
+            }
+            
             <div class="row">                    
                 @if(CurrentPlayer != null)
                 {
@@ -39,13 +41,16 @@
             <hr />
         </div>
     </div>   
-
+    
+    @if(Game.Questions.Count > 0)
+    {
     <div class='row @((State == GameState.Ending)? "slide-in-blurred-bottom": "slide-out-fwd-center")'>
         <div class="col">            
             <h2>Round Summary</h2>
             <hr />
         </div>
     </div>    
+    }
     
     @if(State == GameState.Playing && false)
     {
@@ -61,12 +66,12 @@
         <div class="row">
         @foreach(var player in PlayersAnswered)
         {
-            <div class="col my-2">
+            <div class="col-4 my-2">
                 <PlayerBadge Player="@player" Class="slide-in-blurred-bottom">
                     @if(PlayerLove != null && PlayerLove.ContainsKey(player.Id))
                     {
-                        <span class="flip-in-hor-bottom">+ @PlayerLove[player.Id]</span>
-                    }
+                        <span class="flip-in-hor-bottom" style="color: goldenrod;">+ @PlayerLove[player.Id]</span>
+                    } 
                 </PlayerBadge>
                 
                 @if(State == GameState.Summary)
@@ -75,8 +80,7 @@
                     var currentPlayerAnswer = CurrentPlayerAnswers.FirstOrDefault(x => x.Player.Id == player.Id)?.Answer;
 
                     <PlayerAnswerResult PlayerAnswer="@playerAnswer" CurrentPlayer="CurrentPlayer" CurrentPlayerAnswer="@currentPlayerAnswer" Show="@(ScoreShown > PlayersAnswered.IndexOf(player))"></PlayerAnswerResult>
-                }
-    
+                }    
             </div>
         }
         </div>
@@ -85,7 +89,7 @@
     @if(State == GameState.Ending)
     {
         <div class="row">
-        @foreach(var player in Game.Players.OrderBy(x => x.Score))
+        @foreach(var player in Game.Players)
         {
             <div class="col-4 my-2">
                 <PlayerBadge Player="player">
@@ -143,8 +147,12 @@
             .Build();
 
         // subscribe to game events             
-        hubConnection.On<Game, WordPlayQuestion, Player>("QuestionReady", async (game, question, player) =>
-        {   
+        hubConnection.On<Game>("GameConnected", async (Game) => {
+            // get player on deck, ask first question
+            await hubConnection.SendAsync("AskQuestion", Game.Id);
+        });
+
+        hubConnection.On<Game, WordPlayQuestion, Player>("QuestionReady", async (game, question, player) => {   
             // reset UI            
             Game = game;
             CurrentQuestion = question;
@@ -154,6 +162,7 @@
             State = GameState.Playing;
             CurrentPlayerScore = 0;
             ScoreShown = 0;
+            StatusMessage = "";
             PlayerLove = new Dictionary<Guid, int>();
 
             // timerRef.ResetTimer();
@@ -305,19 +314,23 @@
         }); 
 
         // process the love
-        hubConnection.On<Player, Player, AnswerReaction>("ReactionReceived", (fromPlayer, toPlayer, reaction) => {
-            if (State == GameState.Summary) {
+        hubConnection.On<Player, Player, AnswerReaction>("ReactionReceived", (fromPlayer, toPlayer, reaction) => {           
+            if (PlayerLove.ContainsKey(toPlayer.Id))
+            {
                 PlayerLove[toPlayer.Id] += 1;
             }
+            else
+            {
+                PlayerLove.Add(toPlayer.Id, 1);
+            }
+            StateHasChanged();
         });
 
         // start hub
         await hubConnection.StartAsync();
         
-        // get player on deck, ask first question
-        await hubConnection.SendAsync("AskQuestion", Game.Id);
-
-        // await hubConnection.SendAsync("Subscribe", Id);
+        // update connection and begin!
+        await hubConnection.SendAsync("UpdateGameConnectionId", Game.Id);
     }
 
     public async Task AnswersFinished()

@@ -14,6 +14,8 @@ namespace ZoomersClient.Server.Hubs
 
         Task QuestionFinished(Guid gameId, int questionId, int score);
         
-        void UpdateConnectionId(Guid gameId, Guid playerId);
+        Task UpdateConnectionId(Guid gameId, Guid playerId);
+        
+        Task UpdateGameConnectionId(Guid gameId);
     }
 }

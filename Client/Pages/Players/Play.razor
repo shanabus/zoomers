@@ -7,6 +7,7 @@
 @using ZoomersClient.Client.Components.Shared
 @using ZoomersClient.Shared.Models
 @using ZoomersClient.Shared.Models.Enums
+@using ZoomersClient.Shared
 @inject Blazored.LocalStorage.ILocalStorageService localStore
 @inject NavigationManager NavigationManager
 @inject IJSRuntime js
@@ -113,7 +114,7 @@ else
 
     public Game Game { get; set;}
     public bool PlayerIsCurrentPlayer => Game.CurrentPlayer?.Id == Player.Id;
-    public bool EveryoneHasAnswered => Game.AnsweredQuestions.Count() != Game.Players.Count();
+    public bool EveryoneHasAnswered => Game.AnsweredQuestions.Count() == Game.Players.Count();
     public QuestionBase CurrentQuestion => Game.Questions.LastOrDefault();
     
 
@@ -133,12 +134,12 @@ else
             State = PlayState.AnswerSubmitted;
             StatusMessage = "";
         }
-        else if (PlayerIsCurrentPlayer && EveryoneHasAnswered)
+        else if (PlayerIsCurrentPlayer && !EveryoneHasAnswered)
         {
             State = PlayState.CurrentPlayerWaiting;
-            StatusMessage = "Match the players to their answers"; 
+            StatusMessage = CurrentQuestion.Question; 
         }
-        else if (PlayerIsCurrentPlayer)
+        else if (PlayerIsCurrentPlayer && EveryoneHasAnswered)
         {
             State = PlayState.CurrentPlayerAnswering;
             StatusMessage = "You are on the spot, what ya got?";
@@ -195,7 +196,7 @@ else
         hubConnection.On<Player, Player, AnswerReaction>("ReactionReceived", async (fromPlayer, toPlayer, reaction) => {   
             if (Player.Id == toPlayer.Id)
             {
-                await js.InvokeVoidAsync("FloatItem", reaction.ToString());                
+                await js.InvokeVoidAsync("FloatItem", reaction.ToEmoji());                
             }            
         });
 
@@ -212,12 +213,18 @@ else
 
         hubConnection.On<Game>("ResetGame", (game) => {
             NavigationManager.NavigateTo("join");
-        }); 
+        });
+        
+        hubConnection.On<Player>("PlayerUpdated", async (player) => {
+            Player = player;
+            await SavePlayerToStorageAsync(player);
+            Console.WriteLine(player.ConnectionId + " was updated");
+        });
 
         // start hub
         await hubConnection.StartAsync();
         
-        await hubConnection.SendAsync("UpdateConnectionId", Player.Id);
+        await hubConnection.SendAsync("UpdateConnectionId", Game.Id, Player.Id);
     }
 
     public async Task SubmitAnswer() {
@@ -241,7 +248,6 @@ else
         {
             await hubConnection.SendAsync("SendReaction", Game.Id, Player, toPlayer, reaction);
         }        
-        //    await js.InvokeVoidAsync("PlayAudioFile", $"/sounds/{Player.Sound}.mp3");        
     }
 
     public async Task SubmitQuestionCompleteAnswer(List<AnsweredQuestion> CurrentPlayerAnswers)
@@ -254,6 +260,11 @@ else
         
         Console.WriteLine("Question Complete Submitted");
         StateHasChanged();
+    }
+
+    private async Task SavePlayerToStorageAsync(Player player)
+    {
+        await localStore.SetItemAsync<Player>("player", player);
     }
 
     public async Task<Player> GetPlayerFromStorageAsync()

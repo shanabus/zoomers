@@ -11,6 +11,12 @@ namespace ZoomersClient.Shared.Models
         public PlayerIcon Icon { get; set; }
         public string BackgroundColor { get; set;}
         public string Sound { get; set; }
+        
         public int Score { get; set; }
+        public int LoveScore { get; set; }
+        public int HateScore { get; set; }
+
+        public int LoveReactions { get; set; }
+        public int HateReactions { get; set; }
     }
 }

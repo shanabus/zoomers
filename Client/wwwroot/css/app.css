@@ -159,10 +159,12 @@ a, .btn-link {
 }
 .answer-send-hate {
   position: absolute;
-  right: 20px;
+  cursor: pointer;
+  right: 26px;
 }
 .answer-send-love {
   position: absolute;
+  cursor: pointer;
   right: 8px;
 }
 

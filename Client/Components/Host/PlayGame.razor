@@ -305,7 +305,7 @@
         }); 
 
         // process the love
-        hubConnection.On<Player, Player>("SendLove", (fromPlayer, toPlayer) => {
+        hubConnection.On<Player, Player, AnswerReaction>("ReactionReceived", (fromPlayer, toPlayer, reaction) => {
             if (State == GameState.Summary) {
                 PlayerLove[toPlayer.Id] += 1;
             }

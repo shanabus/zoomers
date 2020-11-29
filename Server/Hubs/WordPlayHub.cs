@@ -128,7 +128,7 @@ namespace ZoomersClient.Server.Hubs
         public async Task QuestionCompletedAnswer(Guid gameId, bool timeExpired, List<AnsweredQuestion> currentPlayerAnswers)
         {
             // todo: should calculate Game scores and Answers here
-            Console.WriteLine("Received player answers");
+            // Console.WriteLine("Received player answers");
 
             var rand = new Random();
             var randomList = currentPlayerAnswers.OrderBy(x => rand.Next()).ToList();
@@ -136,20 +136,21 @@ namespace ZoomersClient.Server.Hubs
             // needs to be different!
             if (!timeExpired)
             {
-                Console.WriteLine("with time on the clock");
+                // Console.WriteLine("with time on the clock");
                 await Clients.All.SendAsync("QuestionSummaryStarted", timeExpired, randomList);
             }            
             else {
-                Console.WriteLine("Time expired for current player?");
+                // Console.WriteLine("Time expired for current player?");
             }
         }
 
-        public async Task SendLove(Guid gameId, Player fromPlayer, Player toPlayer)
+        public async Task SendReaction(Guid gameId, Player fromPlayer, Player toPlayer, AnswerReaction reaction)
         {   
             if (fromPlayer.Id != toPlayer.Id)
             {
-                var game = _gameService.AddAudienceLove(gameId, fromPlayer, toPlayer); 
-                await Clients.All.SendAsync("SendLove", fromPlayer, toPlayer);
+                var game = _gameService.AddAudienceReaction(gameId, fromPlayer, toPlayer, reaction); 
+                _logger.LogInformation("React being processed!");
+                await Clients.Client(toPlayer.ConnectionId).SendAsync("ReactionReceived", fromPlayer, toPlayer, reaction);
             }            
         }
 

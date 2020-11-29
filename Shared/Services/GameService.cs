@@ -126,13 +126,13 @@ namespace ZoomersClient.Shared.Services
             return game;
         }
 
-        public Game AddAudienceLove(Guid gameId, Player fromPlayer, Player toPlayer)
+        public Game AddAudienceReaction(Guid gameId, Player fromPlayer, Player toPlayer, AnswerReaction reaction)
         {
             var game = Games.FirstOrDefault(x => x.Id == gameId);
 
             if (game != null)
             {
-                game.AddLove(fromPlayer, toPlayer);
+                game.AddReaction(fromPlayer, toPlayer, reaction);
             }
             
             return game;

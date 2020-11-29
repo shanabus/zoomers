@@ -121,12 +121,6 @@ else
     {
         var playerAnswer = Game.AnsweredQuestions.FirstOrDefault(x => x.Player.Id == Player.Id);
 
-        // Console.WriteLine("Current Q:" + CurrentQuestion != null);
-        // Console.WriteLine("Current Player = " + Game.CurrentPlayer?.Username);
-        // Console.WriteLine("CurrentPlayer?: " + (PlayerIsCurrentPlayer).ToString() + " / " + Game.CurrentPlayer?.Id + " to " + Player.Id);
-        // Console.WriteLine("Answered already? " + (playerAnswer != null).ToString());
-
-        //todo: get CurrentQuestion from Game object
         if (CurrentQuestion != null && !PlayerIsCurrentPlayer && playerAnswer == null)
         {
             Answer = "";
@@ -198,10 +192,10 @@ else
             StateHasChanged();
         });  
         
-        hubConnection.On<Player, Player>("SendLove", async (fromPlayer, toPlayer) => {   
+        hubConnection.On<Player, Player, AnswerReaction>("ReactionReceived", async (fromPlayer, toPlayer, reaction) => {   
             if (Player.Id == toPlayer.Id)
             {
-                await js.InvokeVoidAsync("FloatItem", "");
+                await js.InvokeVoidAsync("FloatItem", reaction.ToString());
                 // StateHasChanged();
             }            
         });
@@ -228,8 +222,10 @@ else
     }
 
     public async Task SubmitAnswer() {
-        State = PlayState.AnswerSubmitted;
-        await hubConnection.SendAsync("AnswerQuestion", Game.Id, CurrentQuestion?.Id, Player.Id, Answer);
+        State = PlayState.AnswerSubmitted;        
+        await hubConnection.SendAsync("AnswerQuestion", Game.Id, CurrentQuestion?.Id, Player.Id, Answer);   
+        // todo: move this UpdateState? or add a hook to do so though hub
+        StatusMessage = "";     
         StateHasChanged();
     }
 
@@ -244,7 +240,7 @@ else
     {
         if (Player.Id != toPlayer.Id)
         {
-            await hubConnection.SendAsync("SendLove", Game.Id, Player, toPlayer, reaction);
+            await hubConnection.SendAsync("SendReaction", Game.Id, Player, toPlayer, reaction);
         }
         else
         {

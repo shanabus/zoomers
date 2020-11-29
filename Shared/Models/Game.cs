@@ -60,8 +60,8 @@ namespace ZoomersClient.Shared.Models
         public Game StartGame()
         {
             State = GameState.Started;
-
-            return this;
+            
+            return this.ShufflePlayerOrder();
         }
 
         public Game EndGame()
@@ -124,23 +124,53 @@ namespace ZoomersClient.Shared.Models
             }
         }
 
-        internal Game AddLove(Player fromPlayer, Player toPlayer)
+        internal Game AddReaction(Player fromPlayer, Player toPlayer, AnswerReaction reaction)
         {
-            var existingScore = AudienceScore.FirstOrDefault(x => x.Round == CurrentRound && x.FromPlayerId == fromPlayer.Id && x.ToPlayerId == toPlayer.Id);
+            // var existingScore = AudienceScore.FirstOrDefault(x => x.Round == CurrentRound && x.FromPlayerId == fromPlayer.Id && x.ToPlayerId == toPlayer.Id);
 
-            if (existingScore == null)
+            // if (existingScore == null)
+            // {
+            //     AudienceScore.Add(new Models.AudienceScore {
+            //         Round = CurrentRound,
+            //         FromPlayerId = fromPlayer.Id,
+            //         ToPlayerId = toPlayer.Id,
+            //         Score = reaction == AnswerReaction.Love? 1 : 0
+            //     });
+            // }
+            // else
+            // {
+            //     existingScore.Score = existingScore.Score + 1;
+            // }
+            var player = Players.FirstOrDefault(x => x.Id == toPlayer.Id);
+            
+            if (player != null)
             {
-                AudienceScore.Add(new Models.AudienceScore {
-                    Round = CurrentRound,
-                    FromPlayerId = fromPlayer.Id,
-                    ToPlayerId = toPlayer.Id,
-                    Score = 1
-                });
+                if (reaction == AnswerReaction.Hate)
+                {
+                    player.HateScore++;
+                }
+
+                if (reaction == AnswerReaction.Love)
+                {
+                    player.LoveScore++;
+                }
             }
-            else
+
+            var playerReacting = Players.FirstOrDefault(x => x.Id == toPlayer.Id);
+            
+            if (playerReacting != null)
             {
-                existingScore.Score = existingScore.Score + 1;
+                if (reaction == AnswerReaction.Hate)
+                {
+                    playerReacting.HateReactions++;
+                }
+
+                if (reaction == AnswerReaction.Love)
+                {
+                    playerReacting.LoveReactions++;
+                }
             }
+
             return this;
         }
 

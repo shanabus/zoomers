@@ -88,6 +88,20 @@
     @if (State == PlayState.QuestionScores)
     {
         <p>Answers are in, check the main screen for scores!</p>
+
+        var gamePlayer = Game.Players.First(x => x.Id == Player.Id);
+
+        @if (gamePlayer.LoveScore > 0)
+        {
+            var love = AnswerReaction.Love;
+            <div class="row">
+                <div class="col text-center">
+                    <p>They love you!</p>
+                    <p style="font-size: 4em;">@love.ToEmoji()</p>
+                    <p>@gamePlayer.LoveScore</p>
+                </div>
+            </div>
+        }        
     }
     
     <div class="row">
@@ -200,7 +214,8 @@ else
             }            
         });
 
-        hubConnection.On<bool, List<AnsweredQuestion>>("QuestionSummaryStarted", (timeExpired, currentPlayerAnswers) => {                        
+        hubConnection.On<bool, Game>("QuestionSummaryStarted", (timeExpired, game) => {                        
+            Game = game;
             StatusMessage = "";
             State = PlayState.QuestionScores;
             StateHasChanged();

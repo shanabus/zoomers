@@ -26,6 +26,7 @@ namespace ZoomersClient.Shared.Models
         public List<AnsweredQuestion> AnsweredQuestions { get; set; }
         public List<QuestionBase> Questions { get; set; }
         public List<AudienceScore> AudienceScore { get; set; }
+        public List<AnsweredQuestion> CurrentPlayerAnswers { get; set; }
 
         public Game()
         {
@@ -81,8 +82,7 @@ namespace ZoomersClient.Shared.Models
             });
         }
 
-        static Random _R = new Random();
-    
+        static Random _R = new Random();    
         static T RandomEnumValue<T> ()
         {
             var v = Enum.GetValues (typeof (T));
@@ -217,8 +217,6 @@ namespace ZoomersClient.Shared.Models
             return Players.Count() >= MinimumNumberOfPlayers;
         }
 
-        #region Game method chaining
-
         public Game ResetAnswers()
         {
             AnsweredQuestions = new List<AnsweredQuestion>();
@@ -228,6 +226,12 @@ namespace ZoomersClient.Shared.Models
         public Game ResetQuestions()
         {
             Questions = new List<QuestionBase>();
+            return this;
+        }
+
+        public Game ResetCurrentPlayerAnswers()
+        {            
+            CurrentPlayerAnswers = new List<AnsweredQuestion>();
             return this;
         }
 
@@ -244,12 +248,10 @@ namespace ZoomersClient.Shared.Models
             if (CurrentRound < Rounds)         
             {
                 CurrentRound++;
-                return this.ResetAnswers().ResetQuestions().ShufflePlayerOrder();
+                return this.ResetAnswers().ResetQuestions().ResetCurrentPlayerAnswers().ShufflePlayerOrder();
             }
             
             return this.EndGame();            
         }
-
-        #endregion
     }
 }

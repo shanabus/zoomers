@@ -13,8 +13,8 @@ namespace ZoomersClient.Server.Hubs
             _logger = logger;
         }
 
-        public async Task DrawImage(double prev_x, double prev_y, double x, double y, string clr){
-            await Clients.All.SendAsync("UpdateImage", prev_x, prev_y, x, y, clr);
+        public async Task DrawImage(double prev_x, double prev_y, double x, double y, string color, float size){
+            await Clients.AllExcept(Context.ConnectionId).SendAsync("UpdateImage", prev_x, prev_y, x, y, color, size);
         }
     }
 }

@@ -8,14 +8,26 @@
 @inject IJSRuntime js
 
 <div class="row my-4">
-    <div class="col text-center">
-        <button @onclick="ToggleColorAsync" style="color:@clr" class="btn btn-secondary">Toggle color between black and red</button>
+    @foreach(var c in _colors)
+    {
+    <div class="col-2 text-center">
+        <button @onclick='@(e => SetColor(c))' style="background-color: @c;" class="btn btn-lg"></button>
     </div>
+    }    
 </div>
 
-<div style="width: 360px; margin: 10px auto;border: 2px solid grey;" @ref="container" @ontouchmove="TouchMoveCanvasAsync" @ontouchend="TouchEndCanvasAsync" @ontouchstart="TouchStartCanvasAsync"
+<div style="width: 340px; margin: 10px auto;" @ref="container" @ontouchmove="TouchMoveCanvasAsync" @ontouchend="TouchEndCanvasAsync" @ontouchstart="TouchStartCanvasAsync"
   @onmousemove="MouseMoveCanvasAsync" @onmouseup="MouseUpCanvas" @onmousedown="MouseDownCanvas">
-    <BECanvas Width="360" Height="460" @ref="_canvasReference" ></BECanvas>
+    <BECanvas Width="340" Height="420" style="border: 2px solid #666;" @ref="_canvasReference" ></BECanvas>
+</div>
+
+<div class="row my-4">
+    @foreach(var s in _sizes)
+    {
+    <div class="col-3 text-center">
+        <button @onclick='@(e => SetSize(s))' class="btn btn-lg"><span class="dot" style="width: @(s * 5)px; height: @(s * 5)px;"></span></button>
+    </div>
+    }    
 </div>
 
 <style>
@@ -23,10 +35,17 @@
     body {
         overscroll-behavior-y: contain;
     }
+    .dot {
+        background-color: #bbb;
+        border-radius: 50%;
+        display: inline-block;
+    }
 </style>
 
 @code {
     private Canvas2DContext _context;
+    private string[] _colors = new string[] {"black","blue","green","yellow","orange","red"};
+    private int[] _sizes = new int[] { 1, 3, 5, 8};
 
     protected BECanvasComponent _canvasReference;
     
@@ -39,6 +58,7 @@
     private double mousey;
     private bool mousedown = false;
     private string clr = "black";
+    private float penSize = 3;
     
     private HubConnection hubConnection;
     
@@ -47,10 +67,14 @@
         public double Left { get; set; }
         public double Top { get; set; }
     }
-    private async Task ToggleColorAsync()
+    private void SetColor(string color)
     {
-        clr = clr == "black" ? "red" : "black";
-        await _context.SetStrokeStyleAsync(clr); // _context.StrokeStyleAsync(clr);
+        clr = color;
+    }
+
+    private void SetSize(float size)
+    {        
+        penSize = size;
     }
 
     protected override async Task OnInitializedAsync()
@@ -62,8 +86,8 @@
             .WithUrl(NavigationManager.ToAbsoluteUri($"/drawhub"))
             .Build();
 
-        hubConnection.On<double, double, double, double, string>("UpdateImage", async (p_x, p_y, xX, yY, color) => {
-            await DrawCanvasAsync(p_x, p_y, xX, yY, color);
+        hubConnection.On<double, double, double, double, string, float>("UpdateImage", async (p_x, p_y, xX, yY, color, size) => {
+            await DrawCanvasAsync(p_x, p_y, xX, yY, color, size);
         });
             
         // start hub
@@ -78,7 +102,6 @@
             // initialize settings
             // await _context.GlobalCompositeOperationAsync(CompositeOperation.Source_Over);
             
-            await _context.SetLineWidthAsync(3);
             await _context.SetLineJoinAsync(LineJoin.Round);
             await _context.SetLineCapAsync(LineCap.Round);
             // this retrieves the top left corner of the canvas container (which is equivalent to the top left corner of the canvas, as we don't have any margins / padding)
@@ -110,11 +133,12 @@
         }
         mousex = e.ClientX - canvasx;
         mousey = e.ClientY - canvasy;
-        await DrawCanvasAsync(mousex, mousey, last_mousex, last_mousey, clr);
+        await DrawCanvasAsync(mousex, mousey, last_mousex, last_mousey, clr, penSize);
+        
+        await hubConnection.SendAsync("DrawImage", mousex, mousey, last_mousex, last_mousey, clr, penSize);
+
         last_mousex = mousex;
         last_mousey = mousey;
-
-        await hubConnection.SendAsync("DrawImage", mousex, mousey, last_mousex, last_mousey, clr);
     }
 
     private void TouchStartCanvasAsync(TouchEventArgs e)
@@ -140,20 +164,22 @@
         }
         mousex = e.Touches.First().ClientX - canvasx;
         mousey = e.Touches.First().ClientY - canvasy;
-        await DrawCanvasAsync(mousex, mousey, last_mousex, last_mousey, clr);
+        await DrawCanvasAsync(mousex, mousey, last_mousex, last_mousey, clr, penSize);
+        
+        await hubConnection.SendAsync("DrawImage", mousex, mousey, last_mousex, last_mousey, clr, penSize);
+
         last_mousex = mousex;
         last_mousey = mousey;
-
-        await hubConnection.SendAsync("DrawImage", mousex, mousey, last_mousex, last_mousey, clr);
     }
 
-    async Task DrawCanvasAsync(double prev_x, double prev_y, double x, double y, string clr)
+    async Task DrawCanvasAsync(double prev_x, double prev_y, double x, double y, string clr, float size)
     {
         //await using (var ctx2 = await _context.CreateBatchAsync())
         //{
             await _context.BeginBatchAsync();
 
             await _context.SetStrokeStyleAsync(clr);
+            await _context.SetLineWidthAsync(size);
             await _context.BeginPathAsync();
             await _context.MoveToAsync(prev_x, prev_y);
             await _context.LineToAsync(x, y);

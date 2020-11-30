@@ -1,0 +1,67 @@
+@page "/flip"
+
+<div class="col-md-4 card-container" @onclick="FlipMe">
+    <div class="card-flip @flipCss">
+        <!-- Card 2 Front -->
+        <div class="card front">
+            <img src="https://nikonrumors.com/wp-content/uploads/2014/03/Nikon-1-V3-sample-photo.jpg" class="card-img-top img-fluid">
+            <div class="card-block">
+                <h4 class="card-title">Front Card Title</h4>
+                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+            </div>
+        </div>
+        <!-- End Card 2 Front -->
+        <!-- Card 2 Back -->
+        <div class="card back">
+            <div class="card-header">
+                Featured
+            </div>
+            <div class="card-block">
+                <h4 class="card-title">Special title treatment</h4>
+                <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                <a href="#" class="btn btn-primary">Go somewhere</a>
+            </div>
+        </div>
+        <!-- End Card 2 Back -->
+    </div>
+</div>
+<style>
+.card-container {
+    display: grid;
+    perspective: 700px;
+}
+
+.card-flip {
+    display: grid;
+    grid-template: 1fr / 1fr;
+    grid-template-areas: "frontAndBack";
+    transform-style: preserve-3d;
+    transition: all 0.7s ease;
+}
+
+.front {
+    grid-area: frontAndBack;
+}
+
+.back {
+    grid-area: frontAndBack;
+    transform: rotateY(-180deg);
+}
+
+/*.card-container:hover .card-flip {
+    transform: rotateY(180deg);
+}
+*/
+.im-flipped {
+    transform: rotateY(180deg);
+}
+</style>
+@code {
+    bool flipped;
+    void FlipMe()
+    {
+        flipped = !flipped;
+    }
+    string flipCss => flipped ? "im-flipped" : "";
+}

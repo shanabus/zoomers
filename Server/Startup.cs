@@ -70,6 +70,7 @@ namespace ZoomersClient.Server
                 endpoints.MapControllers();
                 endpoints.MapHub<ChatHub>("/chathub");
                 endpoints.MapHub<GameHub>("/gamehub");
+                endpoints.MapHub<DrawHub>("/drawhub");
                 endpoints.MapHub<WordPlayHub>("/wordplayhub");
                 endpoints.MapFallbackToFile("index.html");
             });

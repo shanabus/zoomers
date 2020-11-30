@@ -1,0 +1,176 @@
+@page "/draw"
+@layout PlayerLayout
+@using Blazor.Extensions
+@using Blazor.Extensions.Canvas
+@using Blazor.Extensions.Canvas.Canvas2D
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NavigationManager
+@inject IJSRuntime js
+
+<div class="row my-4">
+    <div class="col text-center">
+        <button @onclick="ToggleColorAsync" style="color:@clr" class="btn btn-secondary">Toggle color between black and red</button>
+    </div>
+</div>
+
+<div style="width: 360px; margin: 10px auto;border: 2px solid grey;" @ref="container" @ontouchmove="TouchMoveCanvasAsync" @ontouchend="TouchEndCanvasAsync" @ontouchstart="TouchStartCanvasAsync"
+  @onmousemove="MouseMoveCanvasAsync" @onmouseup="MouseUpCanvas" @onmousedown="MouseDownCanvas">
+    <BECanvas Width="360" Height="460" @ref="_canvasReference" ></BECanvas>
+</div>
+
+<style>
+    html,
+    body {
+        overscroll-behavior-y: contain;
+    }
+</style>
+
+@code {
+    private Canvas2DContext _context;
+
+    protected BECanvasComponent _canvasReference;
+    
+    private ElementReference container;
+    private double canvasx;
+    private double canvasy;
+    private double last_mousex;
+    private double last_mousey;
+    private double mousex;
+    private double mousey;
+    private bool mousedown = false;
+    private string clr = "black";
+    
+    private HubConnection hubConnection;
+    
+    private class Position
+    {
+        public double Left { get; set; }
+        public double Top { get; set; }
+    }
+    private async Task ToggleColorAsync()
+    {
+        clr = clr == "black" ? "red" : "black";
+        await _context.SetStrokeStyleAsync(clr); // _context.StrokeStyleAsync(clr);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        // connect to hub
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri($"/drawhub"))
+            .Build();
+
+        hubConnection.On<double, double, double, double, string>("UpdateImage", async (p_x, p_y, xX, yY, color) => {
+            await DrawCanvasAsync(p_x, p_y, xX, yY, color);
+        });
+            
+        // start hub
+        await hubConnection.StartAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _context = await _canvasReference.CreateCanvas2DAsync();
+            // initialize settings
+            // await _context.GlobalCompositeOperationAsync(CompositeOperation.Source_Over);
+            
+            await _context.SetLineWidthAsync(3);
+            await _context.SetLineJoinAsync(LineJoin.Round);
+            await _context.SetLineCapAsync(LineCap.Round);
+            // this retrieves the top left corner of the canvas container (which is equivalent to the top left corner of the canvas, as we don't have any margins / padding)
+            var p = await js.InvokeAsync<Position>("eval", $"let e = document.querySelector('[_bl_{container.Id}=\"\"]'); e = e.getBoundingClientRect(); e = {{ 'Left': e.x, 'Top': e.y }}; e");
+            (canvasx, canvasy) = (p.Left, p.Top);
+        }
+    }
+
+    private void MouseDownCanvas(MouseEventArgs e)
+    {
+        render_required = false;
+        this.last_mousex = mousex = e.ClientX - canvasx;
+        this.last_mousey = mousey = e.ClientY - canvasy;
+        this.mousedown = true;
+    }
+
+    private void MouseUpCanvas(MouseEventArgs e)
+    {
+        render_required = false;
+        mousedown = false;
+    }
+
+    async Task MouseMoveCanvasAsync(MouseEventArgs e)
+    {
+        render_required = false;
+        if (!mousedown)
+        {
+            return;
+        }
+        mousex = e.ClientX - canvasx;
+        mousey = e.ClientY - canvasy;
+        await DrawCanvasAsync(mousex, mousey, last_mousex, last_mousey, clr);
+        last_mousex = mousex;
+        last_mousey = mousey;
+
+        await hubConnection.SendAsync("DrawImage", mousex, mousey, last_mousex, last_mousey, clr);
+    }
+
+    private void TouchStartCanvasAsync(TouchEventArgs e)
+    {
+        render_required = false;
+        this.last_mousex = mousex = e.Touches.First().ClientX - canvasx;
+        this.last_mousey = mousey = e.Touches.First().ClientY - canvasy;
+        this.mousedown = true;
+    }
+
+    private void TouchEndCanvasAsync(TouchEventArgs e)
+    {
+        render_required = false;
+        mousedown = false;
+    }
+
+    private async Task TouchMoveCanvasAsync(TouchEventArgs e)
+    {
+        render_required = false;
+        if (!mousedown)
+        {
+            return;
+        }
+        mousex = e.Touches.First().ClientX - canvasx;
+        mousey = e.Touches.First().ClientY - canvasy;
+        await DrawCanvasAsync(mousex, mousey, last_mousex, last_mousey, clr);
+        last_mousex = mousex;
+        last_mousey = mousey;
+
+        await hubConnection.SendAsync("DrawImage", mousex, mousey, last_mousex, last_mousey, clr);
+    }
+
+    async Task DrawCanvasAsync(double prev_x, double prev_y, double x, double y, string clr)
+    {
+        //await using (var ctx2 = await _context.CreateBatchAsync())
+        //{
+            await _context.BeginBatchAsync();
+
+            await _context.SetStrokeStyleAsync(clr);
+            await _context.BeginPathAsync();
+            await _context.MoveToAsync(prev_x, prev_y);
+            await _context.LineToAsync(x, y);
+            await _context.StrokeAsync();
+
+            await _context.EndBatchAsync();
+        //}
+
+    }
+    private bool render_required = true;
+    protected override bool ShouldRender()
+    {
+        if (!render_required)
+        {
+            render_required = true;
+            return false;
+        }
+        return base.ShouldRender();
+    }
+}

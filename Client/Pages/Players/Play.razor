@@ -305,7 +305,7 @@ else
 
     private async Task SavePlayerToStorageAsync(Player player)
     {
-        await localStore.SetItemAsync<Player>("player", player);
+        await localStore.SetItemAsync<Player>("player", player); 
     }
 
     public async Task<Player> GetPlayerFromStorageAsync()

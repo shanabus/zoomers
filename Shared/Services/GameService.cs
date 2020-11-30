@@ -58,7 +58,16 @@ namespace ZoomersClient.Shared.Services
 
             if (game != null)
             {
-                game.Players.Add(player);                
+                var existingPlayer = game.Players.Where(x => x.Id == player.Id);
+                if (existingPlayer.Any())
+                {
+                    _logger.LogInformation("Found an existing player with same Id.");                    
+                }
+                else
+                {
+                    game.Players.Add(player);                
+                }
+                
             }
 
             return game;

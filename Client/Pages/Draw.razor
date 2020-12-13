@@ -4,6 +4,8 @@
 @using Blazor.Extensions.Canvas
 @using Blazor.Extensions.Canvas.Canvas2D
 @using Microsoft.AspNetCore.SignalR.Client
+@using System.Text.RegularExpressions
+@inject HttpClient Http
 @inject NavigationManager NavigationManager
 @inject IJSRuntime js
 
@@ -18,7 +20,7 @@
 
 <div style="width: 340px; margin: 10px auto;" @ref="container" @ontouchmove="TouchMoveCanvasAsync" @ontouchend="TouchEndCanvasAsync" @ontouchstart="TouchStartCanvasAsync"
   @onmousemove="MouseMoveCanvasAsync" @onmouseup="MouseUpCanvas" @onmousedown="MouseDownCanvas">
-    <BECanvas Width="340" Height="420" style="border: 2px solid #666;" @ref="_canvasReference" ></BECanvas>
+    <BECanvas Width="340" Height="420" @ref="_canvasReference" ></BECanvas>
 </div>
 
 <div class="row my-4">
@@ -29,7 +31,12 @@
     </div>
     }    
 </div>
-
+<div class="row">
+    <div class="col">
+        <button @onclick="ToImage" class="btn btn-info">Export</button>
+        <img src="@Src" />
+    </div>
+</div>
 <style>
     html,
     body {
@@ -39,6 +46,9 @@
         background-color: #bbb;
         border-radius: 50%;
         display: inline-block;
+    }
+    canvas {
+        border: 2px solid #666;
     }
 </style>
 
@@ -59,7 +69,8 @@
     private bool mousedown = false;
     private string clr = "black";
     private float penSize = 3;
-    
+    private string Src = "";
+
     private HubConnection hubConnection;
     
     private class Position
@@ -199,4 +210,46 @@
         }
         return base.ShouldRender();
     }
+
+    private async Task ToImage()
+    {        
+        var p = await js.InvokeAsync<string>("eval", $"let e = document.querySelector('canvas'); e = e.toDataURL() + ''; e");
+        Src = p;
+        //var file = await js.InvokeAsync<object>("DataURLtoBlob", p);
+        
+        var chunks = p.Split(',');        
+        Console.WriteLine("chunks zero - " + chunks[0]);
+
+        var regex = new Regex(@"data:(.*?);base64"); // didn't work - "/:(.*?);/"
+        var match = regex.Match(chunks[0]);
+        if (match.Success)
+        {
+            Console.WriteLine(match.Groups.Count);
+            var mime = match.Groups[1].Value;
+            Console.WriteLine("mime - " + mime);        
+        }
+        else {
+            Console.WriteLine("no match on mime");
+        }
+
+        string base64Decoded;
+        byte[] data = System.Convert.FromBase64String(chunks[1]);
+        base64Decoded = System.Text.ASCIIEncoding.ASCII.GetString(data);
+
+        var content = new FormUrlEncodedContent(new[]
+        {
+            new KeyValuePair<string, string>("dataUrl", base64Decoded)
+        });
+        await Http.PostAsync("Draw", content);
+
+        // Console.WriteLine(base64Decoded);
+
+        // await hubConnection.SendAsync("UploadImage", base64Decoded);
+    }
+
+    //var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+    //           bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+    //       while(n--){
+    //           u8arr[n] = bstr.charCodeAt(n);
+     
 }

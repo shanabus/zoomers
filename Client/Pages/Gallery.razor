@@ -1,0 +1,89 @@
+@page "/gallery"
+@layout PlayerLayout
+@using Blazor.Extensions
+@using Blazor.Extensions.Canvas
+@using Blazor.Extensions.Canvas.Canvas2D
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NavigationManager
+@inject IJSRuntime js
+
+<div class="row">
+    <div class="col-12">
+        @foreach(var i in Images)
+        {
+            <img src="@i" />
+        }
+    </div>
+</div>
+
+<div style="width: 340px; margin: 10px auto;" @ref="container">
+    <BECanvas Width="340" Height="420" @ref="_canvasReference" ></BECanvas>
+</div>
+
+<style>
+    html,
+    body {
+        overscroll-behavior-y: contain;
+    }
+    .dot {
+        background-color: #bbb;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    canvas {
+        border: 2px solid #666;
+    }
+</style>
+
+@code {
+    private Canvas2DContext _context;
+    protected BECanvasComponent _canvasReference;    
+    private ElementReference container;
+
+    private HubConnection hubConnection;
+    
+    private class Position
+    {
+        public double Left { get; set; }
+        public double Top { get; set; }
+    }
+    private List<string> Images { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        Images = new List<string>();
+
+        // connect to hub
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri($"/drawhub"))
+            .Build();
+
+
+        hubConnection.On<string>("AddImage", (data) => {
+            Console.WriteLine("adding an image");
+            Images.Add(data);
+            StateHasChanged();
+        });
+            
+        // start hub
+        await hubConnection.StartAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _context = await _canvasReference.CreateCanvas2DAsync();
+            // initialize settings
+            // await _context.GlobalCompositeOperationAsync(CompositeOperation.Source_Over);
+            
+            await _context.SetLineJoinAsync(LineJoin.Round);
+            await _context.SetLineCapAsync(LineCap.Round);
+            // this retrieves the top left corner of the canvas container (which is equivalent to the top left corner of the canvas, as we don't have any margins / padding)
+            //var p = await js.InvokeAsync<Position>("eval", $"let e = document.querySelector('[_bl_{container.Id}=\"\"]'); e = e.getBoundingClientRect(); e = {{ 'Left': e.x, 'Top': e.y }}; e");
+            //(canvasx, canvasy) = (p.Left, p.Top);
+        }
+    }
+}

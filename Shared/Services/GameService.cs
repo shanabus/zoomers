@@ -26,7 +26,7 @@ namespace ZoomersClient.Shared.Services
         {
             Games = new List<Game>();
             
-            var defaultGame = new Game("Sievers Game", "en-GB", 2);
+            var defaultGame = new Game("SWB Game", "en-GB", 2);
             defaultGame.Id = Guid.Parse("5b05a3a6-7665-47dd-b515-03372211a95e");
             Games.Add(defaultGame);
 

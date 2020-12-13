@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <None Update="Data/Games/word-play.csv" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Data/Games/charles-game.csv" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Data/player-joined-phrases.csv" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Data/answers-finished-phrases.csv" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

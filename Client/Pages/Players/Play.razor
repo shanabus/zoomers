@@ -60,9 +60,9 @@
                     @answer.Answer
                     @if(answer.Player.Id != Player.Id)
                     {
-                        <span class="answer-send-hate" @onclick="@((e) => OnAnswerReaction(answer.Player, AnswerReaction.Hate))">💩</span>
+                        <span class="answer-send-hate answer-reaction" @onclick="@((e) => OnAnswerReaction(answer.Player, AnswerReaction.Hate))">💩</span>
 
-                        <span class="answer-send-love" @onclick="@((e) => OnAnswerReaction(answer.Player, AnswerReaction.Love))">💕</span>
+                        <span class="answer-send-love answer-reaction" @onclick="@((e) => OnAnswerReaction(answer.Player, AnswerReaction.Love))">💕</span>
                     }
                 </div>
             </div>
@@ -80,52 +80,60 @@
 
     @if (State == PlayState.CurrentPlayerAnswering)
     {
-        <h4>@CurrentQuestion.Question</h4>
+        <h4>Click on a player then the answer they gave</h4>
 
         <AnswerPanel Players="@Game.Players" Answers="@Game.AnsweredQuestions" CurrentPlayer="@Game.CurrentPlayer" SubmitAnswers="@((a) => SubmitQuestionCompleteAnswer(a))" Enabled="@true"></AnswerPanel>        
     }
 
-    @if (State == PlayState.QuestionScores && Player.Id != Game.CurrentPlayer.Id)
+    @if (State == PlayState.QuestionScores)
     {
-        <p>Answers are in, check the main screen for scores!</p>
-
-        var gamePlayer = Game.Players.First(x => x.Id == Player.Id);
-
-        @if (gamePlayer.LoveScore > 0)
+        if (Player.Id != Game.CurrentPlayer.Id)
         {
-            var love = AnswerReaction.Love;
-            <div class="row mt-3 text-center h3">                
-                <div class="col-12">
-                    <p>They love you!</p>                    
+            <p>Answers are in, check the main screen for scores!</p>    
+
+            var gamePlayer = Game.Players.First(x => x.Id == Player.Id);
+
+            @if (gamePlayer.LoveScore > 0)
+            {
+                var love = AnswerReaction.Love;
+                <div class="row mt-3 text-center h3">                
+                    <div class="col-12">
+                        <p>They love you!</p>                    
+                    </div>
+                    <div class="col-12 h1">
+                        <p>@love.ToEmoji()</p>
+                        <p>@gamePlayer.LoveScore</p>
+                    </div>
                 </div>
-                <div class="col-12 h1">
-                    <p>@love.ToEmoji()</p>
-                    <p>@gamePlayer.LoveScore</p>
+            }   
+            @if (gamePlayer.HateScore > 0)
+            {
+                var hate = AnswerReaction.Hate;
+                <div class="row mt-3 text-center h3">
+                    <div class="col-12">
+                        <p>You have enemies</p>                    
+                    </div>
+                    <div class="col-12 h1">
+                        <p>@hate.ToEmoji()</p>
+                        <p>@gamePlayer.HateScore</p>
+                    </div>
                 </div>
-            </div>
-        }   
-        @if (gamePlayer.HateScore > 0)
-        {
-            var hate = AnswerReaction.Hate;
-            <div class="row mt-3 text-center h3">
-                <div class="col-12">
-                    <p>You have enemies</p>                    
+            }
+            @if (CurrentGuess == Game.CorrectAnswers().Count)
+            {
+                <div class="row mt-3 slide-in-blurred-bottom">
+                    <div class="col-12 text-center h3">
+                        You were right, they got @CurrentGuess correct!
+                    </div>
                 </div>
-                <div class="col-12 h1">
-                    <p>@hate.ToEmoji()</p>
-                    <p>@gamePlayer.HateScore</p>
-                </div>
-            </div>
+            }   
         }
-        @if (CurrentGuess == Game.CorrectAnswers().Count)
+        else // you are the current player and just submitted scores
         {
-            <div class="row mt-3 slide-in-blurred-bottom">
-                <div class="col-12 text-center h3">
-                    You were right, they got @CurrentGuess correct!
-                </div>
-            </div>
-        }        
+            <h4>Check the scoreboard to see how you did</h4>
+        }
     }
+    
     
     <div class="row">
         <div class="col h4">

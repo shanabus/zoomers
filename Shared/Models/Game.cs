@@ -184,8 +184,13 @@ namespace ZoomersClient.Shared.Models
         {
             try
             {
+                var mod = (Questions.Count - 1) % Players.Count;
+
                 // this assumes the question was asked first...
-                CurrentPlayer = Players[(Questions.Count - 1) % Players.Count];
+                Console.WriteLine("Question count = " + Questions.Count);
+                Console.WriteLine("Player count = " + Players.Count);
+                Console.WriteLine("Mod result = " + mod);
+                CurrentPlayer = Players[mod];
                 return CurrentPlayer;
             }
             catch(Exception e) 
@@ -297,8 +302,13 @@ namespace ZoomersClient.Shared.Models
 
         public Game ShufflePlayerOrder()
         {
+            Console.WriteLine("Shuffling Players...");
+
             var rand = new Random();
             Players = Players.OrderBy(x => rand.Next()).ToList();
+
+            Console.WriteLine("Until we shuffle again...");
+            Players.ForEach(x => Console.WriteLine(x.Username));
 
             return this;
         }

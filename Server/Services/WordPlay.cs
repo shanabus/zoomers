@@ -23,7 +23,8 @@ namespace ZoomersClient.Server.Services
             CsvWordPlayMapping csvMapper = new CsvWordPlayMapping();
             CsvParser<WordPlayQuestion> csvParser = new CsvParser<WordPlayQuestion>(csvParserOptions, csvMapper);
            
-            var filePath = ToApplicationPath("Data/Games","word-play.csv");
+            var filePath = ToApplicationPath("Data/Games","charles-game.csv");
+            //var filePath = ToApplicationPath("Data/Games","word-play.csv");
 
             Questions = csvParser           
                         .ReadFromFile(filePath, Encoding.ASCII)

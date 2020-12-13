@@ -18,7 +18,7 @@
         <div class="col">            
             @if(CurrentQuestion != null)
             {
-            <div class="jumbotron swing-in-top-fwd" id="current-question">
+            <div class="jumbotron swing-in-top-fwd pr-4" id="current-question">
                 @CurrentQuestion.Question
             </div>
             }         
@@ -33,9 +33,10 @@
                 {                    
                 var answerClass = (State == GameState.SummaryIsEnding)? "swing-out-left-bck": "swing-in-left-fwd";
                 <div class="col-4">
+                    <span>On Deck:</span>
                     <PlayerBadge Player="CurrentPlayer" Class="@answerClass"></PlayerBadge>
                 </div>                     
-                }      
+                }
                 <div class='col-8 pt-3 @((State == GameState.SummaryIsEnding)? "slide-out-right": "slide-in-right")'>
                     <h3>@StatusMessage</h3>
                 </div>

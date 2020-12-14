@@ -1,3 +1,7 @@
+body {
+    overflow: hidden;
+}
+
 #game-layout {
     overflow-y: hidden;
 }
@@ -11,7 +15,6 @@
     position: absolute;
     top: -18px;
 }
-
 
 .roundending .player-badge, .roundsummary .player-badge {
     min-height: 133px;

@@ -16,6 +16,7 @@ namespace ZoomersClient.Shared.Models
         public string Voice { get; set; }
         public string GameType = "wordplay";
         public const int MinimumNumberOfPlayers = 2;
+        public const int MaximumNumberOfPlayers = 2;
         public int Rounds { get; set; }
         public int CurrentRound { get; set; }
         

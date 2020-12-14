@@ -21,7 +21,8 @@
             <div class="jumbotron swing-in-top-fwd" id="current-question">
                 @CurrentQuestion.Question
             </div>
-            }         
+            }  
+            
             @if(Game.CurrentRound > 0 && Game.Questions.Count > 0){
                 <div class="game-round text-dark">
                     Round @Game.CurrentRound, Question @Game.Questions.Count
@@ -50,9 +51,21 @@
         {
             <Scorecard @ref="scorecardRef" Score="@CurrentPlayerScore" Class="slide-in-blurred-bottom"></Scorecard>
         }    
+    }           
+    else if (State == GameState.Ended)
+    {
+        <div class="jumbotron swing-in-top-fwd" id="current-question">
+            Thanks for playing!
+        </div>
+        <div class='row swing-in-left-fwd'>
+            <div class="col">            
+                <h2>Game Summary</h2>
+                <hr />
+            </div>
+        </div>
     }
         
-    @if(State == GameState.Playing && false)
+    @if(false)
     {
         <Timer @ref="timerRef" Class="slide-in-blurred-bottom" TimeEllapsed="AnswersFinished"></Timer>
     }  
@@ -101,45 +114,46 @@
         @foreach(var player in Game.Players)
         {
             <div class="col-4 my-2">
-                <PlayerBadge Player="player">
-                    @if(ScoreShown > Game.Players.IndexOf(player))
-                    {
-                        <span class="summary-score">@player.Score</span>
-                    }
-                </PlayerBadge>
-                <div class="row m-2">
-                    @if(player.CorrectGuesses > 0)
-                    {
-                        <div class="col-12">
-                            <label class="text-dark">Correct Guesses: </label> @player.CorrectGuesses
-                        </div>                    
-                    }         
-                    @if(player.LoveScore > 0)
-                    {
-                        <div class="col-6">
-                            <label class="text-dark">Love: </label> @player.LoveScore
-                        </div>                    
-                    }         
-                    @if(player.HateScore > 0)
-                    {
-                        <div class="col-6">
-                            <label class="text-dark">Hate: </label> @player.HateScore
-                        </div>                    
-                    }   
-                    @if(player.LoveReactions > 0)
-                    {
-                        <div class="col-6">
-                            <label class="text-dark">Love Given: </label> @player.LoveReactions
-                        </div>                    
-                    }         
-                    @if(player.HateReactions > 0)
-                    {
-                        <div class="col-6">
-                            <label class="text-dark">Hate Given: </label> @player.HateReactions
-                        </div>                    
-                    }   
-                </div>
-                              
+                <div class='player-score @((Game.Players.IndexOf(player) == 0)? "winning-player" : "")'>
+                    <PlayerBadge Player="player">
+                        @if(ScoreShown > Game.Players.IndexOf(player))
+                        {
+                            <span class="summary-score">@player.Score</span>
+                        }
+                    </PlayerBadge>
+                    <div class="row m-2">
+                        @if(player.CorrectGuesses > 0)
+                        {
+                            <div class="col-12">
+                                <label class="text-dark">Correct Guesses: </label> @player.CorrectGuesses
+                            </div>                    
+                        }         
+                        @if(player.LoveScore > 0)
+                        {
+                            <div class="col-6">
+                                <label class="text-dark">Love gained: </label> @player.LoveScore
+                            </div>                    
+                        }         
+                        @if(player.HateScore > 0)
+                        {
+                            <div class="col-6">
+                                <label class="text-dark">Hate gained: </label> @player.HateScore
+                            </div>                    
+                        }   
+                        @if(player.LoveReactions > 0)
+                        {
+                            <div class="col-6">
+                                <label class="text-dark">Love given: </label> @player.LoveReactions
+                            </div>                    
+                        }         
+                        @if(player.HateReactions > 0)
+                        {
+                            <div class="col-6">
+                                <label class="text-dark">Hate given: </label> @player.HateReactions
+                            </div>                    
+                        }   
+                    </div>
+                </div>                              
             </div>
         }
         </div>
@@ -334,9 +348,8 @@
             State = GameState.Ending;
             StateHasChanged();
 
-
             SpeakPhrase("That wraps up this round of Word Play. Let's check the scores.");
-
+                        
             foreach(var player in Game.Players.OrderBy(x => x.Score))
             {
                 ScoreShown++;              
@@ -347,6 +360,10 @@
 
             if (Game.State == GameState.Ended)            
             {
+                await Task.Delay(500);            
+                State = GameState.Ended;
+                StateHasChanged();
+                
                 var winner = Game.Players.OrderByDescending(x => x.Score).FirstOrDefault();
 
                 SpeakPhrase($"With {winner.Score} points, the winner is " + winner.Username);
@@ -362,6 +379,9 @@
                     var otherWinners = string.Join(", ", Game.Players.Where(x => x.Score == winner.Score && x.Id != winner.Id).Select(x => x.Username).ToArray());
                     SpeakPhrase($"Although there were others in the running. Congratulations, you are all winners {otherWinners}");
                 }
+                
+                await Task.Delay(2500);            
+                SpeakPhrase("Wait, who am I kidding, with Charles around we are all winners.  Happy Birthday Charles!");
             }
         }); 
         
@@ -444,7 +464,7 @@
             await Task.Delay(1500);
         }
 
-        if (chanceOfBanter.Next(100) > chance && correctQuestions == Game.AnsweredQuestions.Count && !Game.AnsweredQuestions.All(x => x.Guess == correctQuestions))
+        if (chanceOfBanter.Next(100) > chance && correctQuestions == Game.AnsweredQuestions.Count && Game.AnsweredQuestions.Max(x => x.Guess) < correctQuestions)
         {
             spoken++;
             SpeakPhrase("You exceeded their expectations. Good job.");
@@ -514,6 +534,7 @@
 
     public async Task ResetGameAsync()
     {
+        Console.WriteLine("Game restart clicked!");
         await hubConnection.SendAsync("ResetGame", Game.Id);
     }
 

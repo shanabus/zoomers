@@ -1,3 +1,7 @@
 .player-layout h1 {
     margin-top: .5rem;
 }
+
+.player-layout {
+    overflow-x: hidden;
+}

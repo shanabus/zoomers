@@ -25,8 +25,8 @@ namespace ZoomersClient.Shared.Services
         public Game ResetDefaultGame()
         {
             Games = new List<Game>();
-            
-            var defaultGame = new Game("SWB Game", "en-GB", 2);
+            // https://postimg.cc/gallery/hxv1nzD/4752bea0
+            var defaultGame = new Game("SWB Game", "en-GB", 1);
             defaultGame.Id = Guid.Parse("5b05a3a6-7665-47dd-b515-03372211a95e");
             Games.Add(defaultGame);
 

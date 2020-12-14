@@ -88,7 +88,8 @@
 
     @if(State == PlayState.CurrentPlayerWaiting)
     {
-        <h4 class="my-4">Sit tight while others answer this question:</h4>
+        <h4 class="my-4">You are on deck.</h4>
+        <p>Sit tight while others try to answer this question:</p>
 
         @if(!string.IsNullOrEmpty(CurrentQuestion.ImageUrl))
         {
@@ -109,56 +110,22 @@
 
     @if (State == PlayState.QuestionScores)
     {
-        if (Player.Id != Game.CurrentPlayer.Id)
+        if (Player.Id != Game.CurrentPlayer.Id || Game.State == GameState.Ended)
         {
-            @* <h4 class="mt-4">Answers in, check the main screen for scores!</h4>     *@
-
             var gamePlayer = Game.Players.First(x => x.Id == Player.Id);
 
-            @if (gamePlayer.LoveScore > 0)
-            {
-                var love = AnswerReaction.Love;
-                <div class="row mt-3 text-center h3">                
-                    <div class="col-12">
-                        <p>They love you!</p>                    
-                    </div>
-                    <div class="col-12 h1">
-                        <p>@love.ToEmoji()</p>
-                        <p>@gamePlayer.LoveScore</p>
-                    </div>
-                </div>
-            }   
-            @if (gamePlayer.HateScore > 0)
-            {
-                var hate = AnswerReaction.Hate;
-                <div class="row mt-3 text-center h3">
-                    <div class="col-12">
-                        <p>You have enemies</p>                    
-                    </div>
-                    <div class="col-12 h1">
-                        <p>@hate.ToEmoji()</p>
-                        <p>@gamePlayer.HateScore</p>
-                    </div>
-                </div>
-            }
-            @if (CurrentGuess == Game.CorrectAnswers().Count && Game.State != GameState.Ended && Game.State != GameState.Ending)
-            {
-                <div class="row mt-3 slide-in-blurred-bottom">
-                    <div class="col-12 text-center h3">
-                        You were right, they got @CurrentGuess correct!
-                    </div>
-                </div>
-            }   
+            <ReactionResults Game="Game" Player="gamePlayer" Guess="CurrentGuess"></ReactionResults>   
             
             @if(Game.State == GameState.Ended || Game.State == GameState.Ending)
             {
+                var score = Game.Players.FirstOrDefault(x => x.Id == Player.Id)?.Score ?? 0;
+
                 <div class="row my-4 slide-in-blurred-bottom">
                     <div class="col text-center">
-                        <h4>
-                            Game Over
-                            <br />
-                            Score is @Game.Players.FirstOrDefault(x => x.Id == Player.Id)?.Score
+                        <h4 class="my-2">
+                            Game Over                
                         </h4>
+                        <Scorecard Score="@score" Class="slide-in-blurred-bottom"></Scorecard>   
                     </div>
                 </div>
             }
@@ -188,7 +155,7 @@ else
     public Player Player { get; set; }
     public string Answer { get; set; }
     public string StatusMessage { get; set; }
-    public int CurrentGuess { get; set; }
+    public int? CurrentGuess { get; set; }
     public PlayState State { get; set; }
 
     public Game Game { get; set;}
@@ -204,7 +171,7 @@ else
         if (CurrentQuestion != null && !PlayerIsCurrentPlayer && playerAnswer == null)
         {
             Answer = "";
-            CurrentGuess = 0;
+            CurrentGuess = null;
             State = PlayState.AnsweringQuestion;
             StatusMessage = "Type your answer and hit Submit";
         }
@@ -328,7 +295,7 @@ else
     {
         // do something
         CurrentGuess = guess;
-        await hubConnection.SendAsync("SubmitCorrectGuess", Game.Id, CurrentQuestion.Id, Player.Id, CurrentGuess);        
+        await hubConnection.SendAsync("SubmitCorrectGuess", Game.Id, CurrentQuestion.Id, Player.Id, CurrentGuess.Value);        
     }
 
     public async Task OnAnswerReaction(ReactionDto reaction) // Player toPlayer, AnswerReaction reaction

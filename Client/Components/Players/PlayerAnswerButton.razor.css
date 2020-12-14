@@ -7,11 +7,10 @@
 
 .player-answer-button.selected {
     border-color: #28a745;
+    background-color: rgba(51, 161, 66, 0.5);
 }
 
 .player-answer-button .player-answer-button__check {
-    /* align-self: center;
-    flex: 0 0 22px; */
     position: absolute;
     top: 20px;
     right: 28px;

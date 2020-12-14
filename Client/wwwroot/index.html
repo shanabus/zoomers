@@ -33,6 +33,18 @@
                 }
             }
         }
+        window.PlayMusic = (src) => {
+            var audio = document.getElementById('music');
+            if (audio != null) {
+                audio.volume = 0.3;
+                var audioSource = document.getElementById('musicSource');
+                if (audioSource != null) {
+                    audioSource.src = src;
+                    audio.load();
+                    audio.play();
+                }
+            }
+        }
         //https://damienbod.com/2018/05/13/uploading-and-sending-image-messages-with-asp-net-core-signalr/
         // https://stackoverflow.com/questions/45078471/turning-canvas-todataurl-domstring-url-into-a-blob
         window.DataURLtoBlob = (dataurl) => {
@@ -72,6 +84,10 @@
 
     <audio id="player">
         <source id="playerSource" src="" />
+    </audio>
+
+    <audio id="music" volume="0.3">
+        <source id="musicSource" src="" />
     </audio>
 
     <script src="_framework/blazor.webassembly.js"></script>

@@ -86,7 +86,7 @@ namespace ZoomersClient.Server.Hubs
             
             var roundEnded = false;
 
-            if (game.HasMoreRounds())
+            if (game.AskedEnoughQuestionsForRound())
             {
                 roundEnded = true;
                 game = game.NextRound();

@@ -52,6 +52,8 @@ namespace ZoomersClient.Shared.Models
             Questions = new List<QuestionBase>();
             AudienceScore = new List<AudienceScore>();
             CurrentPlayerAnswers = new List<AnsweredQuestion>();
+            
+            State = GameState.Lobby;
 
             Party = new List<PartyIcon>() {
                 RandomEnumValue<PartyIcon>(),
@@ -101,7 +103,7 @@ namespace ZoomersClient.Shared.Models
             });
         }
 
-        public bool HasMoreRounds()
+        public bool AskedEnoughQuestionsForRound()
         {
             return Questions.Count == Players.Count;
         }
@@ -131,7 +133,7 @@ namespace ZoomersClient.Shared.Models
 
         public Game ResetGame()
         {
-            Id = Guid.NewGuid();
+            // Id = Guid.NewGuid();
 
             Players = new List<Player>();
             AnsweredQuestions = new List<AnsweredQuestion>();

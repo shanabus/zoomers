@@ -117,9 +117,10 @@ else
         Console.WriteLine("Reset game!");
         Game = game;
         StateHasChanged();
-        ///await this.OnInitializedAsync();
-        
-        NavigationManager.NavigateTo($"game/{game.Id}");
+                
+        NavigationManager.NavigateTo($"/");
+
+        // await this.OnInitializedAsync();
     }
 
     public bool IsConnected =>

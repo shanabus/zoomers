@@ -11,7 +11,7 @@ Id,Phrase
 10,"Hang tight while __USER__ picks who said what",0.8,1
 11,"In a few seconds and we will know how this round ends",0.9,1.1
 12,"Players have done their part. Now lets see if __USER__ can do theirs",0.9,1
-13,"That ends the question part of the round.  Time to see if __USER__ can figure who said what",0.6,1
+13,"Answers locked.  Time to see if __USER__ can figure who said what",0.6,1
 14,"Thirty seconds on the clock.  __USER__ is up. Lets go!",1.2,1.2
 15,"Excellent. It is up to __USER__ to unravel the responses.",0.7,1.3
 16,"Sweet, now __USER__ can figure out the next part",1,1
@@ -19,3 +19,5 @@ Id,Phrase
 18,"The answers are in for that question.",0.9,1
 19,"Here we go.  Time for the player on deck to do their part.",1.1,0.8
 20,"Huzah! That ends the first part of this question.",1,1
+21,"Players have made their choices. __USER__ is on deck.",0.9,1
+22,"Now the player on deck must do their part. Up to you __USER__.",1,1.1

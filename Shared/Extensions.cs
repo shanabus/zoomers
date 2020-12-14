@@ -12,6 +12,8 @@ namespace ZoomersClient.Shared
                     return "💩";
                 case AnswerReaction.Love:
                     return "💕";
+                case AnswerReaction.Trophy:
+                    return "🏆";
                 default:
                     return "";
             }

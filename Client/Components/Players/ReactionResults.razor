@@ -1,0 +1,63 @@
+@using ZoomersClient.Shared
+@using ZoomersClient.Shared.Models
+@using ZoomersClient.Shared.Models.Enums
+
+@if (Player.LoveScore > 0)
+{
+    var love = AnswerReaction.Love;
+    <div class="row mt-3 text-center h3">                
+        <div class="col-12">
+            <p>They love you!</p>                    
+        </div>
+        <div class="col-12 h1">
+            <p>@love.ToEmoji()</p>
+            <p>@Player.LoveScore</p>
+        </div>
+    </div>
+}   
+@if (Player.HateScore > 0)
+{
+    var hate = AnswerReaction.Hate;
+    <div class="row mt-3 text-center h3">
+        <div class="col-12">
+            <p>You have enemies</p>                    
+        </div>
+        <div class="col-12 h1">
+            <p>@hate.ToEmoji()</p>
+            <p>@Player.HateScore</p>
+        </div>
+    </div>
+}
+@if ((Player.HateScore + Player.LoveScore) == 0)
+{
+    <div class="row mt-3 text-center h3">
+        <div class="col-12">
+            <p>Nobody is moved by your answers</p>                    
+        </div>
+        <div class="col-12 h1">
+            <p>@AnswerReaction.Trophy.ToEmoji()</p>
+        </div>
+        <div class="col-12">
+            But we'll give you a trophy anyway
+        </div>
+    </div>
+}
+@if (Guess == Game.CorrectAnswers().Count && Game.State != GameState.Ended && Game.State != GameState.Ending)
+{
+    <div class="row mt-3 slide-in-blurred-bottom">
+        <div class="col-12 text-center h3">
+            You were right, they got @Guess correct!
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Player Player { get; set; }
+
+    [Parameter]
+    public Game Game { get; set; }
+
+    [Parameter]
+    public int? Guess { get; set; }
+}

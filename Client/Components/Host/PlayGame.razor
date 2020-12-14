@@ -34,7 +34,7 @@
                 {                    
                 var answerClass = (State == GameState.SummaryIsEnding)? "swing-out-left-bck": "swing-in-left-fwd";
                 <div class="col-4" id="on-deck">
-                    <span class="@answerClass" id="on-deck__label">On Deck:</span>
+                    <span class="@answerClass" id="on-deck__label">On Deck</span>
                     <PlayerBadge Player="CurrentPlayer" Class="@answerClass"></PlayerBadge>
                 </div>                     
                 }
@@ -303,12 +303,14 @@
             await hubConnection.SendAsync("AskQuestion", Game.Id);
         });
 
-        hubConnection.On<Game>("RoundOver", async (Game) => {
+        hubConnection.On<Game>("RoundOver", async (Game) => {            
             if(Game.State != GameState.Ended)
             {
                 ScoreShown = 0;
                 State = GameState.RoundSummary;
                 StateHasChanged();
+                
+                await js.InvokeVoidAsync("PlayMusic", $"/sounds/round_end_music.mp3");
 
                 var leader = Game.Players.OrderByDescending(x => x.Score).FirstOrDefault();
 
@@ -317,16 +319,15 @@
                     ScoreShown++;              
                     StateHasChanged();
 
-                    await Task.Delay(1500);
+                    await Task.Delay(1000);
                 }
+                
+                SpeakPhrase($"So far with {leader.Username} is in the lead with {leader.Score} points");
 
-                if(Game.Players.Where(x => x.Score == leader.Score && x.Id != leader.Id).Count() <= 0)
+                var topPlayers = Game.Players.Where(x => x.Score == leader.Score);
+                if(topPlayers.Where(x => x.Id != leader.Id).Count() > 0)
                 {
-                    SpeakPhrase($"So far with {leader.Username} is in the lead with {leader.Score} points");
-                }
-                else
-                {
-                    var nextPlayer = Game.Players.Skip(1).First();
+                    var nextPlayer = topPlayers.Skip(1).First();
                     var phrase = (leader.LoveScore > nextPlayer.LoveScore)? $"{nextPlayer.Username} I would have said your name but you don't get as much love" : "It is anybody's game so lets begin the next round";
                     SpeakPhrase(phrase);
                 }
@@ -335,7 +336,7 @@
                 State = GameState.RoundSummary;
                 StateHasChanged();
 
-                await Task.Delay(700);
+                await Task.Delay(2000);
 
                 await hubConnection.SendAsync("AskQuestion", Game.Id);
             }
@@ -348,14 +349,16 @@
             State = game.State; // GameState.Ending;
             StateHasChanged();
 
-            SpeakPhrase("That wraps up this round of Word Play. Let's check the scores.");
+            SpeakPhrase("That wraps up this game. Let's check the scores.");
+
+            await js.InvokeVoidAsync("PlayMusic", $"/sounds/game_end_music.mp3");
                         
-            foreach(var player in Game.Players.OrderBy(x => x.Score))
+            foreach(var player in Game.Players.OrderBy(x => x.Score).ThenBy(x => x.LoveScore))
             {
                 ScoreShown++;              
                 StateHasChanged();
 
-                await Task.Delay(2000);
+                await Task.Delay(1000);
             }
 
             if (Game.State == GameState.Ended)            
@@ -368,7 +371,7 @@
 
                 SpeakPhrase($"With {winner.Score} points, the winner is " + winner.Username);
                 
-                await Task.Delay(2300);
+                await Task.Delay(2500);
 
                 if (Game.Players.Sum(x => x.Score) == 0)
                 {

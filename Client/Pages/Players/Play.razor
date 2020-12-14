@@ -6,6 +6,7 @@
 @using ZoomersClient.Client.Components.Players
 @using ZoomersClient.Client.Components.Shared
 @using ZoomersClient.Shared.Models
+@using ZoomersClient.Shared.Models.DTOs
 @using ZoomersClient.Shared.Models.Enums
 @using ZoomersClient.Shared
 @inject Blazored.LocalStorage.ILocalStorageService localStore
@@ -52,6 +53,7 @@
     @if(State == PlayState.AnswerSubmitted)
     {
         <p>Congrats, your answer has been counted!</p>
+        <p>Click emoji buttons to share a reaction.</p>
         
         @foreach(var answer in Game.AnsweredQuestions)
         {
@@ -60,9 +62,7 @@
                     @answer.Answer
                     @if(answer.Player.Id != Player.Id)
                     {
-                        <span class="answer-send-hate answer-reaction" @onclick="@((e) => OnAnswerReaction(answer.Player, AnswerReaction.Hate))">💩</span>
-
-                        <span class="answer-send-love answer-reaction" @onclick="@((e) => OnAnswerReaction(answer.Player, AnswerReaction.Love))">💕</span>
+                        <ReactionButtons Answer="@answer" OnClick="OnAnswerReaction"></ReactionButtons>
                     }
                 </div>
             </div>
@@ -89,7 +89,7 @@
     {
         if (Player.Id != Game.CurrentPlayer.Id)
         {
-            <p>Answers are in, check the main screen for scores!</p>    
+            <h4 class="mt-4">Answers are in, check the main screen for scores!</h4>    
 
             var gamePlayer = Game.Players.First(x => x.Id == Player.Id);
 
@@ -130,7 +130,7 @@
         }
         else // you are the current player and just submitted scores
         {
-            <h4>Check the scoreboard to see how you did</h4>
+            <h4 class="mt-4">Check the scoreboard to see how you did</h4>
         }
     }
     
@@ -291,11 +291,11 @@ else
         await hubConnection.SendAsync("SubmitCorrectGuess", Game.Id, CurrentQuestion.Id, Player.Id, CurrentGuess);        
     }
 
-    public async Task OnAnswerReaction(Player toPlayer, AnswerReaction reaction)
+    public async Task OnAnswerReaction(ReactionDto reaction) // Player toPlayer, AnswerReaction reaction
     {
-        if (Player.Id != toPlayer.Id)
+        if (Player.Id != reaction.Answer.Player.Id)
         {
-            await hubConnection.SendAsync("SendReaction", Game.Id, Player, toPlayer, reaction);
+            await hubConnection.SendAsync("SendReaction", Game.Id, Player, reaction.Answer.Player, reaction.Reaction);
         }        
     }
 

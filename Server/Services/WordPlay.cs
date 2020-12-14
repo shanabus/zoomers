@@ -71,6 +71,7 @@ namespace ZoomersClient.Server.Services
                 MapProperty(0, x => x.Id);
                 MapProperty(1, x => x.Question);
                 MapProperty(2, x => x.CategoriesString);
+                MapProperty(3, x => x.ImageUrl);
             }
     }
     

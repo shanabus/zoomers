@@ -1,0 +1,22 @@
+@using ZoomersClient.Shared.Models
+@using ZoomersClient.Shared.Models.DTOs
+@using ZoomersClient.Shared.Models.Enums
+
+<span class="answer-send-hate answer-reaction" @onclick="@((e) => OnAnswerReaction(AnswerReaction.Hate))">💩</span>
+
+<span class="answer-send-love answer-reaction" @onclick="@((e) => OnAnswerReaction(AnswerReaction.Love))">💕</span>
+
+@code {
+    [Parameter]
+    public AnsweredQuestion Answer { get; set; }
+    
+    [Parameter]
+    public EventCallback<ReactionDto> OnClick { get; set; }
+
+    private async Task OnAnswerReaction(AnswerReaction reaction)
+    {
+        var reactionDto = new ReactionDto(Answer, reaction);
+
+        await OnClick.InvokeAsync(reactionDto);
+    }
+}

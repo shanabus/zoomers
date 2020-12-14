@@ -187,10 +187,10 @@ namespace ZoomersClient.Shared.Models
                 var mod = (Questions.Count - 1) % Players.Count;
 
                 // this assumes the question was asked first...
-                Console.WriteLine("Question count = " + Questions.Count);
-                Console.WriteLine("Player count = " + Players.Count);
+                Players.ForEach(x => Console.WriteLine(x.Username));
                 Console.WriteLine("Mod result = " + mod);
                 CurrentPlayer = Players[mod];
+                
                 return CurrentPlayer;
             }
             catch(Exception e) 

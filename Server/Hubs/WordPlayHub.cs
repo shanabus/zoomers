@@ -35,7 +35,7 @@ namespace ZoomersClient.Server.Hubs
 
             if (player != null)
             {
-                _logger.LogInformation("Player with a Player Id of " + playerId + " was found.  Marking question answered.");
+                //_logger.LogInformation("Player with a Player Id of " + playerId + " was found.  Marking question answered.");
 
                 game.AnswerQuestion(player, questionId, answer);
 
@@ -94,8 +94,8 @@ namespace ZoomersClient.Server.Hubs
                 await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("RoundOver", game);                
             }
 
-            _logger.LogInformation(roundEnded + " round ended");
-            _logger.LogInformation(game.State + " game state");
+            //_logger.LogInformation(roundEnded + " round ended");
+            //_logger.LogInformation(game.State + " game state");
             
             if (game.State == GameState.Ended)
             {
@@ -107,7 +107,7 @@ namespace ZoomersClient.Server.Hubs
             }
             else if (!roundEnded)
             {                
-                _logger.LogInformation("Tally guesses (and score?) Proceeding to next question");
+                //_logger.LogInformation("Tally guesses (and score?) Proceeding to next question");
                 await Clients.Caller.SendAsync("ProceedToNextQuestion", game);                        
             }            
         }

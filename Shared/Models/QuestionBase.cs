@@ -6,6 +6,8 @@ namespace ZoomersClient.Shared.Models
         
         public string Question { get; set; }
 
+        public string ImageUrl { get; set; }
+
         public QuestionBase()
         {
             

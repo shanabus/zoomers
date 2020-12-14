@@ -14,11 +14,11 @@
 {
     @if(State != GameState.RoundEnding && State != GameState.RoundSummary && State != GameState.Ended)
     {
-    <div class='row @((State != GameState.Ending)? "slide-in-blurred-bottom": "slide-out-fwd-center")'>
+    <div class='row @((State != GameState.Ending)? "slide-in-blurred-bottom": "slide-out-fwd-center") @State.ToString().ToLower()'>
         <div class="col">            
             @if(CurrentQuestion != null)
             {
-            <div class="jumbotron swing-in-top-fwd pr-4" id="current-question">
+            <div class="jumbotron swing-in-top-fwd" id="current-question">
                 @CurrentQuestion.Question
             </div>
             }         
@@ -32,8 +32,8 @@
                 @if(CurrentPlayer != null)
                 {                    
                 var answerClass = (State == GameState.SummaryIsEnding)? "swing-out-left-bck": "swing-in-left-fwd";
-                <div class="col-4">
-                    <span>On Deck:</span>
+                <div class="col-4" id="on-deck">
+                    <span class="@answerClass" id="on-deck__label">On Deck:</span>
                     <PlayerBadge Player="CurrentPlayer" Class="@answerClass"></PlayerBadge>
                 </div>                     
                 }

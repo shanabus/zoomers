@@ -89,6 +89,14 @@ else
             });
         });
 
+        hubConnection.On<int, string>("TooManyPlayersWarning", (maxPlayers, user) => {
+            var lobbyFull = new SpeechSynthesisUtterance() {
+                Text = "Sorry " + user + " but this game only allows for " + maxPlayers.ToString() + " players",
+                Lang = Game.Voice
+            };
+            SpeakMessage(lobbyFull);
+        });
+
         // start hub
         await hubConnection.StartAsync();
 

@@ -300,6 +300,11 @@
             StateHasChanged();
         });
 
+        hubConnection.On<string>("LobbyIsFull", (username) => {
+            GameStatus = $"Sorry, {username}.  The lobby is full.";
+            StateHasChanged();
+        });
+
         // start hub
         await hubConnection.StartAsync();
 

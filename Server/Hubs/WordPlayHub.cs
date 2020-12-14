@@ -182,7 +182,7 @@ namespace ZoomersClient.Server.Hubs
 
             await Clients.Clients(previousPlayers).SendAsync("GameReset", game);
         }
-
+        
         public override async Task OnConnectedAsync()
         {
             await base.OnConnectedAsync();

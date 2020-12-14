@@ -1,0 +1,100 @@
+@using ZoomersClient.Client.Components.Shared
+@using ZoomersClient.Shared
+@using ZoomersClient.Shared.Models
+@using ZoomersClient.Shared.Models.Enums
+
+<div class="row">
+    @foreach(var player in Game.Players.OrderByDescending(x => x.Score).ThenBy(x => x.LoveScore))
+    {
+        var isWinner = Game.Players.OrderByDescending(x => x.Score).ThenBy(x => x.LoveScore).ToList().IndexOf(player) == 0;
+
+        <div class="col-4 my-2">
+            <div class='player-score @((isWinner)? "winning-player" : "")'>
+                <PlayerBadge Player="player">
+                    @if(isWinner)
+                    {
+                        <span>@AnswerReaction.Trophy.ToEmoji()</span>
+                    }
+                    <span class="summary-score">@player.Score</span>                    
+                </PlayerBadge>
+                <div class="row">
+                                          
+                    <div class="col-12">
+                        <div class="row px-4">
+                            <div class="col-6">
+                                @if(Game.Players.OrderByDescending(x => x.LoveScore).ToList().IndexOf(player) == 0)
+                                {
+                                    <span>💏 they loved you the most!</span> 
+                                }
+                                else if(Game.Players.OrderByDescending(x => x.LoveReactions).ToList().IndexOf(player) == 0)
+                                {
+                                    <span>💘 you loved the most!</span> 
+                                }
+                            </div>
+
+                            <div class="col-6 text-right">
+                                @if(Game.Players.OrderByDescending(x => x.HateScore).ToList().IndexOf(player) == 0)
+                                {
+                                    <span>🚽 you got dumped on!</span> 
+                                }
+                                else if(Game.Players.OrderByDescending(x => x.HateReactions).ToList().IndexOf(player) == 0)
+                                {
+                                    <span>🧻 you might need toilet paper</span> 
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-6">
+                        <div class="row">
+                            <div class="col-4 text-danger text-center">
+                                gained
+                                <br />
+                                @player.LoveScore
+                            </div>
+                            <div class="col-4 text-center">
+                                <span class="h3">@AnswerReaction.Love.ToEmoji()</span>
+                            </div>
+                            <div class="col-4 text-danger text-center">
+                                given
+                                <br />
+                                @player.LoveReactions
+                            </div>
+                        </div>
+                    </div>       
+
+                    <div class="col-6">
+                        <div class="row">
+                            <div class="col-4 text-poo text-center">
+                                got
+                                <br />
+                                @player.HateScore
+                            </div>
+                            <div class="col-4 text-center">
+                                <span class="h3">@AnswerReaction.Hate.ToEmoji()</span>
+                            </div>
+                            <div class="col-4 text-poo text-center">
+                                gave
+                                <br />
+                                @player.HateReactions
+                            </div>
+                        </div>
+                    </div>       
+
+                    <div class="col-12 text-center">
+                        <span class="text-dark">Correct Guesses: </span> @player.CorrectGuesses
+                        @if(Game.Players.OrderByDescending(x => x.CorrectGuesses).ToList().IndexOf(player) == 0 && Game.Players.Sum(x => x.CorrectGuesses) > 0)
+                        {
+                            <span>✨</span> 
+                        }
+                    </div> 
+                </div>
+            </div>                              
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Game Game { get; set; }
+}

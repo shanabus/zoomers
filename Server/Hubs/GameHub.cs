@@ -36,29 +36,41 @@ namespace ZoomersClient.Server.Hubs
                 await Clients.Caller.SendAsync("PlayerJoinedError", "Could not find game");
             }
             else
-            {                   
-                var player = new Player() { 
-                    Id = Guid.NewGuid(),
-                    ConnectionId = Context.ConnectionId, 
-                    Username = username,
-                    Icon = icon,
-                    BackgroundColor = color,
-                    Sound = sound
-                };
-                _logger.LogInformation(player.Username + " connected as " + player.ConnectionId);
-                
-                var updatedGame = _gameService.JoinGame(game.Id, player);
-
-                // let new player know
-                await Clients.Caller.SendAsync("PlayerJoined", game, player);                
-
-                var phrase = _phrases.GetRandomPlayerJoinedPhrase(username, updatedGame.Voice) as SpeechSynthesisUtterance;
-                await Clients.All.SendAsync("PlayersUpdated", updatedGame, player, phrase);
-
-                if (updatedGame.HasEnoughPlayers())
+            {   
+                if (game.Players.Count < game.MaximumNumberOfPlayers)               
                 {
-                    // send to first player really
-                    await Clients.All.SendAsync("ReadyToStartGame", updatedGame);
+                    var player = new Player() { 
+                        Id = Guid.NewGuid(),
+                        ConnectionId = Context.ConnectionId, 
+                        Username = username,
+                        Icon = icon,
+                        BackgroundColor = color,
+                        Sound = sound
+                    };
+                    // _logger.LogInformation(player.Username + " connected as " + player.ConnectionId);
+                    
+                    var updatedGame = _gameService.JoinGame(game.Id, player);
+
+                    // let new player know
+                    await Clients.Caller.SendAsync("PlayerJoined", game, player);                
+
+                    var phrase = _phrases.GetRandomPlayerJoinedPhrase(username, updatedGame.Voice) as SpeechSynthesisUtterance;
+                    await Clients.All.SendAsync("PlayersUpdated", updatedGame, player, phrase);
+
+                    if (updatedGame.HasEnoughPlayers())
+                    {
+                        // send to first player really
+                        await Clients.All.SendAsync("ReadyToStartGame", updatedGame);
+                    }
+                } 
+                else
+                {
+                    // let new player know
+                    await Clients.Caller.SendAsync("LobbyIsFull", username);
+
+                    // let the lobby know
+                    // let new player know
+                    await Clients.All.SendAsync("TooManyPlayersWarning", game.MaximumNumberOfPlayers, username);
                 }
             }
         }

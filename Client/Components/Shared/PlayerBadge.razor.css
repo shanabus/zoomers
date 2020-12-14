@@ -41,3 +41,8 @@ span.player-badge__content {
   font-size: 1em;
   padding: .1em .2em;
 }
+
+#on-deck .player-badge {
+  padding: 10px;
+  border: 1px solid #333;
+}

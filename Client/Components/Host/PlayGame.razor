@@ -367,8 +367,8 @@
                 var winner = Game.Players.OrderByDescending(x => x.Score).FirstOrDefault();
 
                 SpeakPhrase($"With {winner.Score} points, the winner is " + winner.Username);
-                Console.WriteLine("winner " + winner.Username);
-                await Task.Delay(2000);
+                
+                await Task.Delay(2300);
 
                 if (Game.Players.Sum(x => x.Score) == 0)
                 {

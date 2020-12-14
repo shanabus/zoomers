@@ -103,7 +103,7 @@ namespace ZoomersClient.Shared.Models
 
         public bool HasMoreRounds()
         {
-            return Questions.Count == 1; // Players.Count;
+            return Questions.Count == Players.Count;
         }
 
         public List<AnsweredQuestion> CorrectAnswers()

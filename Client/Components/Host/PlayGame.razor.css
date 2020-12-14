@@ -9,7 +9,7 @@ body {
 #current-question {
     font-size: 4em;
     padding-right: 3em;
-    margin-bottom: 0!important;
+    margin-bottom: 4px!important;
 }
 
 #on-deck__label {
@@ -19,11 +19,6 @@ body {
     z-index: 1000;
     padding: 0 4px;
     background-color: #ddd;    
-}
-
-#on-deck .player-badge {
-    padding: 10px;
-    border: 1px solid #333;
 }
 
 .roundending .player-badge, .roundsummary .player-badge {

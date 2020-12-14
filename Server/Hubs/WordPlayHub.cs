@@ -174,9 +174,13 @@ namespace ZoomersClient.Server.Hubs
 
         public async Task ResetGame(Guid gameId)
         {
-            var game = _gameService.ResetGame(gameId);
+            var game = _gameService.FindGame(gameId);
 
-            await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("GameReset", game);
+            var previousPlayers = game.GameAndAllPlayerConnections();
+
+            game = _gameService.ResetGame(gameId);
+
+            await Clients.Clients(previousPlayers).SendAsync("GameReset", game);
         }
 
         public override async Task OnConnectedAsync()

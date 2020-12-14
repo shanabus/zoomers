@@ -102,7 +102,7 @@
 
     @if (State == PlayState.CurrentPlayerAnswering)
     {
-        <h4 clas="mt-4">Click on a player then the answer they gave</h4>
+        <h4 class="mt-4">Click on a player then the answer they gave</h4>
 
         <AnswerPanel Players="@Game.Players" Answers="@Game.AnsweredQuestions" CurrentPlayer="@Game.CurrentPlayer" SubmitAnswers="@((a) => SubmitQuestionCompleteAnswer(a))" Enabled="@true"></AnswerPanel>        
     }

@@ -57,13 +57,14 @@ namespace ZoomersClient.Server.Hubs
             // _logger.LogInformation($"Guess recorded - {game.AnsweredQuestions.Where(x => x.Guess > 0).Count()} think more than zero");
         }
 
-        public async Task AskQuestion(Guid gameId)
+        public async Task AskQuestion(Guid gameId, string category)
         {
             var game = _gameService.FindGame(gameId);
 
-            var question = _wordPlay.GetRandomQuestion(null);
-
-            // _logger.LogInformation("Randomly chose question " + question.Id);
+            var question = _wordPlay.GetRandomQuestion(category);
+            
+            //_logger.LogInformation("Using category " + category);
+            //_logger.LogInformation("Randomly chose question " + question.Id);
 
             // todo: double check, it should be handled in QuestionFinished!
             if (game.Questions.Count == game.Players.Count)

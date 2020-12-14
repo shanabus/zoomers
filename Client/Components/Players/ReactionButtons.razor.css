@@ -12,6 +12,7 @@
     position: absolute;
     top: 6px;
     padding: 2px;
+    background: #eee;
     border-radius: 2px;
     -webkit-transition-duration: 0.4s; /* Safari */
     transition-duration: 0.4s;

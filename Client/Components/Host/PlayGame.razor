@@ -161,9 +161,12 @@
             .Build();
 
         // subscribe to game events             
-        hubConnection.On<Game>("GameConnected", async (Game) => {
+        hubConnection.On<Game>("GameConnected", async (game) => {
+            Game = game;
             // get player on deck, ask first question
-            await hubConnection.SendAsync("AskQuestion", Game.Id);
+            var category = (Game.CurrentRound == 1 && Game.Questions.Count <= 2) ? "First" : null;
+
+            await hubConnection.SendAsync("AskQuestion", Game.Id, category);
         });
 
         hubConnection.On<Game, WordPlayQuestion, Player>("QuestionReady", async (game, question, player) => {   
@@ -258,10 +261,12 @@
             Game = game;            
             StateHasChanged();
             
-            await hubConnection.SendAsync("AskQuestion", Game.Id);
+            await hubConnection.SendAsync("AskQuestion", Game.Id, null);
         });
 
-        hubConnection.On<Game>("RoundOver", async (Game) => {            
+        hubConnection.On<Game>("RoundOver", async (game) => {            
+            Game = game;
+            
             if(Game.State != GameState.Ended)
             {
                 ScoreShown = 0;
@@ -291,7 +296,7 @@
 
                 await Task.Delay(2000);
 
-                await hubConnection.SendAsync("AskQuestion", Game.Id);
+                await hubConnection.SendAsync("AskQuestion", Game.Id, null);
             }
         });
 

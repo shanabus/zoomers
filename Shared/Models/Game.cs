@@ -16,7 +16,7 @@ namespace ZoomersClient.Shared.Models
         public string Voice { get; set; }
         public string GameType = "wordplay";
         public const int MinimumNumberOfPlayers = 2;
-        public int MaximumNumberOfPlayers = 2;
+        public int MaximumNumberOfPlayers = 8;
         public int Rounds { get; set; }
         public int CurrentRound { get; set; }
         
@@ -179,11 +179,11 @@ namespace ZoomersClient.Shared.Models
             var numberCorrect = CorrectAnswers().Count;
 
             foreach(var answer in answers) {
-                Console.WriteLine($"Checking {answer.Player.Username} answer for guess");
+                // Console.WriteLine($"Checking {answer.Player.Username} answer for guess");
 
                 if (answer.Guess == numberCorrect)
                 {
-                    Console.WriteLine("Got it right!");
+                    // Console.WriteLine("Got it right!");
                     var player = Players.FirstOrDefault(x => x.Id == answer.Player.Id);
                     player.CorrectGuesses++;
                 }
@@ -210,8 +210,8 @@ namespace ZoomersClient.Shared.Models
                 var mod = (Questions.Count - 1) % Players.Count;
 
                 // this assumes the question was asked first...
-                Players.ForEach(x => Console.WriteLine(x.Username));
-                Console.WriteLine("Mod result = " + mod);
+                // Players.ForEach(x => Console.WriteLine(x.Username));
+                // Console.WriteLine("Mod result = " + mod);
                 CurrentPlayer = Players[mod];
                 
                 return CurrentPlayer;

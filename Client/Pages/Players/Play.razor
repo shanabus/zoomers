@@ -17,10 +17,10 @@
 @if(Game != null && Player != null && Game.CurrentPlayer != null)
 {
     <div class="row" id="game-banner">
-        <div class="col-10 pt-2">
+        <div class="col-9 pt-2">
             <h1>@Game.Name</h1>
         </div>
-        <div class="col-2 justify-content-end">
+        <div class="col-3 d-flex justify-content-end align-self-start">
             <PlayerIconButton Icon="@Player.Icon" BackgroundColor="@Player.BackgroundColor" Class="rotate-in-center mt-2"></PlayerIconButton>
         </div>
     </div>    

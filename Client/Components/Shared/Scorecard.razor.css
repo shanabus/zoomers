@@ -17,3 +17,11 @@
     line-height: 1em;
     padding-top: .25em;
 }
+
+.player-layout #scorecard {
+    position: relative;
+    top: 0;
+    right: 0;
+    width: 50%;
+    margin: 0 auto;    
+}

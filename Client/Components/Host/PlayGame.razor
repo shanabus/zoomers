@@ -111,10 +111,10 @@
     @if(State == GameState.RoundSummary || State == GameState.RoundEnding || Game.State == GameState.Ended)
     {
         <div class="row">
-        @foreach(var player in Game.Players)
+        @foreach(var player in Game.Players.OrderByDescending(x => x.Score).ThenBy(x => x.LoveScore))
         {
             <div class="col-4 my-2">
-                <div class='player-score @((Game.Players.IndexOf(player) == 0)? "winning-player" : "")'>
+                <div class='player-score @((Game.Players.OrderByDescending(x => x.Score).ThenBy(x => x.LoveScore).ToList().IndexOf(player) == 0)? "winning-player" : "")'>
                     <PlayerBadge Player="player">
                         @if(ScoreShown > Game.Players.IndexOf(player))
                         {
@@ -312,7 +312,7 @@
                 
                 await js.InvokeVoidAsync("PlayMusic", $"/sounds/round_end_music.mp3");
 
-                var leader = Game.Players.OrderByDescending(x => x.Score).FirstOrDefault();
+                var leader = Game.Players.OrderByDescending(x => x.Score).ThenBy(x => x.LoveScore).FirstOrDefault();
 
                 foreach(var player in Game.Players)
                 {
@@ -330,6 +330,7 @@
                     var nextPlayer = topPlayers.Skip(1).First();
                     var phrase = (leader.LoveScore > nextPlayer.LoveScore)? $"{nextPlayer.Username} I would have said your name but you don't get as much love" : "It is anybody's game so lets begin the next round";
                     SpeakPhrase(phrase);
+                    await Task.Delay(2000);
                 }
                 
                 await Task.Delay(4500);

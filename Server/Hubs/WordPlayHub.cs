@@ -138,7 +138,7 @@ namespace ZoomersClient.Server.Hubs
 
             var phrase = _phrases.GetRandomAnswersFinishedPhrase(game.CurrentPlayer.Username, game.Voice) as SpeechSynthesisUtterance;
             
-            // _logger.LogInformation("AnswersFinished on WordPlayHub was called");
+            _logger.LogInformation("AnswersFinished, grabbed phrase for " + game.CurrentPlayer.Username);
 
             await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("AnswersFinished", game, phrase);
         }

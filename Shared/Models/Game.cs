@@ -101,6 +101,11 @@ namespace ZoomersClient.Shared.Models
             });
         }
 
+        public bool HasMoreRounds()
+        {
+            return Questions.Count == 1; // Players.Count;
+        }
+
         public List<AnsweredQuestion> CorrectAnswers()
         {
             var answeredQuestions = new List<AnsweredQuestion>();
@@ -121,6 +126,27 @@ namespace ZoomersClient.Shared.Models
         public Game OrderPlayersByScore()
         {
             Players = Players.OrderByDescending(x => x.Score).ThenByDescending(x => x.LoveScore).ThenByDescending(x => x.LoveReactions).ToList();
+            return this;
+        }
+
+        public Game ResetGame()
+        {
+            Id = Guid.NewGuid();
+
+            Players = new List<Player>();
+            AnsweredQuestions = new List<AnsweredQuestion>();
+            Questions = new List<QuestionBase>();
+            AudienceScore = new List<AudienceScore>();
+            CurrentPlayerAnswers = new List<AnsweredQuestion>();
+
+            Party = new List<PartyIcon>() {
+                RandomEnumValue<PartyIcon>(),
+                RandomEnumValue<PartyIcon>(),
+                RandomEnumValue<PartyIcon>()
+            };
+
+            CurrentRound = 1;
+
             return this;
         }
 

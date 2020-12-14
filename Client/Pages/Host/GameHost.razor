@@ -112,9 +112,14 @@ else
         return message;
     }
 
-    public async Task OnGameResetAsync()
+    public async Task OnGameResetAsync(Game game)
     {
-        await this.OnInitializedAsync();
+        Console.WriteLine("Reset game!");
+        Game = game;
+        StateHasChanged();
+        ///await this.OnInitializedAsync();
+        
+        NavigationManager.NavigateTo($"game/{game.Id}");
     }
 
     public bool IsConnected =>

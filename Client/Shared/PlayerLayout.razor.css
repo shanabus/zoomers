@@ -5,3 +5,7 @@
 .player-layout {
     overflow-x: hidden;
 }
+
+#game-banner {
+    background-color: #ddd;
+}

@@ -175,7 +175,7 @@
     [Parameter]
     public Game Game { get; set; }
     [Parameter]
-    public EventCallback OnGameReset { get; set; }
+    public EventCallback<Game> OnGameReset { get; set; }
     [CascadingParameter]
     public GameState State { get; set; }
     public Player CurrentPlayer { get; set; }
@@ -345,7 +345,7 @@
             Game = game;
             ScoreShown = 0;
             StatusMessage = "Game Over";
-            State = GameState.Ending;
+            State = game.State; // GameState.Ending;
             StateHasChanged();
 
             SpeakPhrase("That wraps up this round of Word Play. Let's check the scores.");
@@ -360,14 +360,14 @@
 
             if (Game.State == GameState.Ended)            
             {
-                await Task.Delay(500);            
-                State = GameState.Ended;
-                StateHasChanged();
+                //await Task.Delay(500);            
+                //State = GameState.Ended;
+                //StateHasChanged();
                 
                 var winner = Game.Players.OrderByDescending(x => x.Score).FirstOrDefault();
 
                 SpeakPhrase($"With {winner.Score} points, the winner is " + winner.Username);
-
+                Console.WriteLine("winner " + winner.Username);
                 await Task.Delay(2000);
 
                 if (Game.Players.Sum(x => x.Score) == 0)
@@ -385,8 +385,9 @@
             }
         }); 
         
-        hubConnection.On<Game>("ResetGame", async (game) => {
-            await OnGameReset.InvokeAsync();
+        hubConnection.On<Game>("GameReset", async (game) => {
+            Game = game;
+            await OnGameReset.InvokeAsync(game);
         }); 
 
         // process the love

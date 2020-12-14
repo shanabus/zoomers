@@ -16,7 +16,7 @@
 
 @if(Game != null && Player != null && Game.CurrentPlayer != null)
 {
-    <div class="row">
+    <div class="row" id="game-banner">
         <div class="col-10 pt-2">
             <h1>@Game.Name</h1>
         </div>
@@ -45,8 +45,8 @@
             @if(!string.IsNullOrEmpty(CurrentQuestion.ImageUrl))
             {
                 <div class="row">
-                    <div class="col">
-                        <img src="@CurrentQuestion.ImageUrl" class="img-fluid" />
+                    <div class="col text-center">
+                        <img src="@CurrentQuestion.ImageUrl" class="img-fluid img-question" />
                     </div>
                 </div>
             }
@@ -93,8 +93,8 @@
         @if(!string.IsNullOrEmpty(CurrentQuestion.ImageUrl))
         {
             <div class="row">
-                <div class="col">
-                    <img src="@CurrentQuestion.ImageUrl" class="img-fluid" />
+                <div class="col text-center">
+                    <img src="@CurrentQuestion.ImageUrl" class="img-fluid img-question" />
                 </div>
             </div>
         }
@@ -111,7 +111,7 @@
     {
         if (Player.Id != Game.CurrentPlayer.Id)
         {
-            <h4 class="mt-4">Answers in, check the main screen for scores!</h4>    
+            @* <h4 class="mt-4">Answers in, check the main screen for scores!</h4>     *@
 
             var gamePlayer = Game.Players.First(x => x.Id == Player.Id);
 
@@ -292,10 +292,11 @@ else
 
         hubConnection.On<Game>("GameOver", (game) => {
             Game = game;            
+            Console.WriteLine("Game over and...");
             StateHasChanged();
         }); 
 
-        hubConnection.On<Game>("ResetGame", (game) => {
+        hubConnection.On<Game>("GameReset", (game) => {
             Console.WriteLine("Reset game?");
             NavigationManager.NavigateTo("join");
         });

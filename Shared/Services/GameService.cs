@@ -19,10 +19,10 @@ namespace ZoomersClient.Shared.Services
             
             Games = new List<Game>();            
             
-            ResetDefaultGame();
+            SeedDefaultGame();
         }
 
-        public Game ResetDefaultGame()
+        public Game SeedDefaultGame()
         {
             Games = new List<Game>();
             // https://postimg.cc/gallery/hxv1nzD/4752bea0
@@ -142,6 +142,18 @@ namespace ZoomersClient.Shared.Services
             if (game != null)
             {
                 game.AddReaction(fromPlayer, toPlayer, reaction);
+            }
+            
+            return game;
+        }
+
+        public Game ResetGame(Guid gameId)
+        {
+            var game = Games.FirstOrDefault(x => x.Id == gameId);
+
+            if (game != null)
+            {
+                game.ResetGame();
             }
             
             return game;

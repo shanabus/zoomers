@@ -86,7 +86,7 @@ namespace ZoomersClient.Server.Hubs
             
             var roundEnded = false;
 
-            if (game.Questions.Count == game.Players.Count)
+            if (game.HasMoreRounds())
             {
                 roundEnded = true;
                 game = game.NextRound();
@@ -172,11 +172,11 @@ namespace ZoomersClient.Server.Hubs
             }            
         }
 
-        public async Task ResetDefaultGame(Guid gameId)
+        public async Task ResetGame(Guid gameId)
         {
-            var game = _gameService.ResetDefaultGame();
+            var game = _gameService.ResetGame(gameId);
 
-            await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("GameReset");
+            await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("GameReset", game);
         }
 
         public override async Task OnConnectedAsync()

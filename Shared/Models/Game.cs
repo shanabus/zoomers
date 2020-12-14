@@ -124,13 +124,7 @@ namespace ZoomersClient.Shared.Models
             
             return answeredQuestions;
         }
-
-        public Game OrderPlayersByScore()
-        {
-            Players = Players.OrderByDescending(x => x.Score).ThenByDescending(x => x.LoveScore).ThenByDescending(x => x.LoveReactions).ToList();
-            return this;
-        }
-
+        
         public Game ResetGame()
         {
             // Id = Guid.NewGuid();
@@ -331,14 +325,11 @@ namespace ZoomersClient.Shared.Models
 
         public Game ShufflePlayerOrder()
         {
-            Console.WriteLine("Shuffling Players...");
-
             var rand = new Random();
             Players = Players.OrderBy(x => rand.Next()).ToList();
 
-            Console.WriteLine("Until we shuffle again...");
             Players.ForEach(x => Console.WriteLine(x.Username));
-
+            Console.WriteLine("^ Shuffled Players ^");
             return this;
         }
 

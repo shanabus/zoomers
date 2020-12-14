@@ -1,6 +1,7 @@
 @inject HttpClient Http
 @using ZoomersClient.Client.Components.Players
 @using ZoomersClient.Client.Components.Shared
+@using ZoomersClient.Shared
 @using ZoomersClient.Shared.Models
 @using Microsoft.AspNetCore.SignalR.Client
 @inject NavigationManager NavigationManager
@@ -54,12 +55,14 @@
     }           
     else if (State == GameState.Ended)
     {
-        <div class="jumbotron swing-in-top-fwd" id="current-question">
-            Thanks for playing!
+        <div class="row mb-4">
+            <div class="col text-center">
+                <h1 class="game-name swing-in-top-fwd">@Game.Name</h1>            
+            </div>
         </div>
         <div class='row swing-in-left-fwd'>
             <div class="col">            
-                <h2>Game Summary</h2>
+                <h2>Game Summary - Thanks for playing!</h2>
                 <hr />
             </div>
         </div>
@@ -113,45 +116,62 @@
         <div class="row">
         @foreach(var player in Game.Players.OrderByDescending(x => x.Score).ThenBy(x => x.LoveScore))
         {
+            var isWinner = Game.Players.OrderByDescending(x => x.Score).ThenBy(x => x.LoveScore).ToList().IndexOf(player) == 0;
+
             <div class="col-4 my-2">
-                <div class='player-score @((Game.Players.OrderByDescending(x => x.Score).ThenBy(x => x.LoveScore).ToList().IndexOf(player) == 0)? "winning-player" : "")'>
+                <div class='player-score @((isWinner)? "winning-player" : "")'>
                     <PlayerBadge Player="player">
+                        @if(isWinner)
+                        {
+                            <span>@AnswerReaction.Trophy.ToEmoji()</span>
+                        }
                         @if(ScoreShown > Game.Players.IndexOf(player))
                         {
                             <span class="summary-score">@player.Score</span>
                         }
                     </PlayerBadge>
                     <div class="row m-2">
-                        @if(player.CorrectGuesses > 0)
-                        {
-                            <div class="col-12">
-                                <label class="text-dark">Correct Guesses: </label> @player.CorrectGuesses
-                            </div>                    
-                        }         
-                        @if(player.LoveScore > 0)
-                        {
-                            <div class="col-6">
-                                <label class="text-dark">Love gained: </label> @player.LoveScore
-                            </div>                    
-                        }         
-                        @if(player.HateScore > 0)
-                        {
-                            <div class="col-6">
-                                <label class="text-dark">Hate gained: </label> @player.HateScore
-                            </div>                    
-                        }   
-                        @if(player.LoveReactions > 0)
-                        {
-                            <div class="col-6">
-                                <label class="text-dark">Love given: </label> @player.LoveReactions
-                            </div>                    
-                        }         
-                        @if(player.HateReactions > 0)
-                        {
-                            <div class="col-6">
-                                <label class="text-dark">Hate given: </label> @player.HateReactions
-                            </div>                    
-                        }   
+                        
+                        <div class="col-12">
+                            <label class="text-dark">Correct Guesses: </label> @player.CorrectGuesses
+                        </div>   
+                        
+                        <div class="col-6">
+                            <div class="row">
+                                <div class="col-4 text-danger text-center">
+                                    gained
+                                    <br />
+                                    @player.LoveScore
+                                </div>
+                                <div class="col-4 text-center">
+                                    <span class="h3">@AnswerReaction.Love.ToEmoji()</span>
+                                </div>
+                                <div class="col-4 text-danger text-center">
+                                    given
+                                    <br />
+                                    @player.LoveReactions
+                                </div>
+                            </div>
+                        </div>       
+
+                        <div class="col-6">
+                            <div class="row">
+                                <div class="col-4 text-warning text-center">
+                                    gained
+                                    <br />
+                                    @player.HateScore
+                                </div>
+                                <div class="col-4 text-center">
+                                    <span class="h3">@AnswerReaction.Hate.ToEmoji()</span>
+                                </div>
+                                <div class="col-4 text-warning text-center">
+                                    given
+                                    <br />
+                                    @player.HateReactions
+                                </div>
+                            </div>
+                        </div>       
+
                     </div>
                 </div>                              
             </div>

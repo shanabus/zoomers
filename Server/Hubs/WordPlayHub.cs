@@ -50,11 +50,11 @@ namespace ZoomersClient.Server.Hubs
         public void SubmitCorrectGuess(Guid gameId, int questionId, Guid playerId, int guess) {
             var game = _gameService.FindGame(gameId);
             
-            _logger.LogInformation($"Recording a guess of {guess} for {playerId}");
+            // _logger.LogInformation($"Recording a guess of {guess} for {playerId}");
 
             game = game.RecordGuess(questionId, playerId, guess);
 
-            _logger.LogInformation($"Guess recorded - {game.AnsweredQuestions.Where(x => x.Guess > 0).Count()} think more than zero");
+            // _logger.LogInformation($"Guess recorded - {game.AnsweredQuestions.Where(x => x.Guess > 0).Count()} think more than zero");
         }
 
         public async Task AskQuestion(Guid gameId)
@@ -82,14 +82,14 @@ namespace ZoomersClient.Server.Hubs
         {
             var game = _gameService.FindGame(gameId);
             
-            game = game.RecordScore(questionId, score).RecordGuesses(questionId).OrderPlayersByScore().ResetCurrentPlayerAnswers();
+            game = game.RecordScore(questionId, score).RecordGuesses(questionId).ResetCurrentPlayerAnswers();
             
             var roundEnded = false;
 
             if (game.AskedEnoughQuestionsForRound())
             {
                 roundEnded = true;
-                game = game.NextRound();
+                game = _gameService.StartNextRound(gameId); // game.NextRound();
 
                 await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("RoundOver", game);                
             }
@@ -101,7 +101,7 @@ namespace ZoomersClient.Server.Hubs
             {
                 game = _gameService.EndGame(gameId);
 
-                _logger.LogInformation("Hey, its Game Over!");
+                // _logger.LogInformation("Hey, its Game Over!");
                 
                 await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("GameOver", game);
             }

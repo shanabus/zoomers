@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Azure.Cosmos.Table;
 using ZoomersClient.Shared.Exceptions;
 using ZoomersClient.Shared.Models.Enums;
 
 namespace ZoomersClient.Shared.Models
 {
-    public class Game
+    public class Game : TableEntity
     {
         public Guid Id { get; set;}
 
@@ -31,6 +32,7 @@ namespace ZoomersClient.Shared.Models
 
         public Game()
         {
+            Id = Guid.NewGuid();
             Party = new List<PartyIcon>();
             Players = new List<Player>();
             AnsweredQuestions = new List<AnsweredQuestion>();
@@ -38,6 +40,9 @@ namespace ZoomersClient.Shared.Models
             AudienceScore = new List<AudienceScore>();
             CurrentPlayerAnswers = new List<AnsweredQuestion>();
             CurrentRound = 1;
+
+            PartitionKey = "game";
+            RowKey = Id.ToString();
         }
 
         public Game(string name, string voice, int rounds)
@@ -62,6 +67,9 @@ namespace ZoomersClient.Shared.Models
             };
 
             CurrentRound = 1;
+
+            PartitionKey = "game";
+            RowKey = Id.ToString();
         }
 
         public Game RecordGuess(int questionId, Guid playerId, int guess)

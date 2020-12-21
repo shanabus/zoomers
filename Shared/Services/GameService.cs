@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using ZoomersClient.Shared.Data;
 using ZoomersClient.Shared.Exceptions;
 using ZoomersClient.Shared.Models;
 using ZoomersClient.Shared.Models.Enums;
@@ -12,17 +14,17 @@ namespace ZoomersClient.Shared.Services
     {        
         public List<Game> Games { get; set; }
         private ILogger<GameService> _logger { get; set; }
+        private GameRepository _gameRepository { get; set; }
 
-        public GameService(ILogger<GameService> logger)
+        public GameService(ILogger<GameService> logger, GameRepository gameRepository)
         {
             _logger = logger;
-            
+            _gameRepository = gameRepository;
+
             Games = new List<Game>();            
-            
-            SeedDefaultGame();
         }
 
-        public Game SeedDefaultGame()
+        public async Task<Game> SeedDefaultGame()
         {
             Games = new List<Game>();
             // https://postimg.cc/gallery/hxv1nzD/4752bea0
@@ -30,12 +32,13 @@ namespace ZoomersClient.Shared.Services
             defaultGame.Id = Guid.Parse("5b05a3a6-7665-47dd-b515-03372211a95e");
             Games.Add(defaultGame);
 
-            return defaultGame;
+            return await _gameRepository.SaveAsync(defaultGame);
         }
 
-        public Game FindGame(Guid id)
+        public async Task<Game> FindGameAsync(Guid id)
         {
-            var game = Games.FirstOrDefault(x => x.Id == id);
+            // var game = Games.FirstOrDefault(x => x.Id == id);
+            var game = await _gameRepository.GetAsync(id);
 
             return game; 
         }
@@ -47,9 +50,10 @@ namespace ZoomersClient.Shared.Services
             return game; 
         }
 
-        public void CreateGame(Game game)
+        public async Task<Game> CreateGameAsync(Game game)
         {
-            Games.Add(game);
+            // Games.Add(game);
+            return await _gameRepository.SaveAsync(game);
         }
 
         public Game JoinGame(Guid id, Player player)
@@ -73,9 +77,9 @@ namespace ZoomersClient.Shared.Services
             return game;
         }
 
-        public Game AddQuestion(Guid id, WordPlayQuestion q)
+        public async Task<Game> AddQuestionAsync(Guid id, WordPlayQuestion q)
         {
-            var game = FindGame(id);
+            var game = await FindGameAsync(id);
 
             if (game != null) {
                 // _logger.LogInformation(q.Question + " was just added");
@@ -169,6 +173,11 @@ namespace ZoomersClient.Shared.Services
             }
             
             return game;
+        }
+
+        public async Task DeleteAsync(Guid gameId)
+        {
+            await _gameRepository.DeleteAsync(gameId);
         }
     }
 }

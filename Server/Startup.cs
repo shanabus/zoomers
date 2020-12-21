@@ -9,6 +9,8 @@ using System.Linq;
 using ZoomersClient.Server.Hubs;
 using ZoomersClient.Server.Services;
 using ZoomersClient.Shared.Services;
+using ZoomersClient.Shared.Models;
+using ZoomersClient.Shared.Data;
 
 namespace ZoomersClient.Server
 {
@@ -36,8 +38,11 @@ namespace ZoomersClient.Server
                 opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream"});
             });
 
+            services.Configure<AppSettings>(Configuration);
+
             services.AddSingleton<WordPlay>();
             services.AddSingleton<Phrases>();
+            services.AddSingleton<GameRepository>();
             services.AddSingleton<GameService>();
         }
 

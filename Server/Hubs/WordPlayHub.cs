@@ -29,7 +29,7 @@ namespace ZoomersClient.Server.Hubs
 
         public async Task AnswerQuestion(Guid gameId, int questionId, Guid playerId, string answer)
         {
-            var game = _gameService.FindGame(gameId);
+            var game = await _gameService.FindGameAsync(gameId);
 
             var player = game.Players.ToList().FirstOrDefault(x => x.Id == playerId);
 
@@ -47,8 +47,9 @@ namespace ZoomersClient.Server.Hubs
             }
         }
 
-        public void SubmitCorrectGuess(Guid gameId, int questionId, Guid playerId, int guess) {
-            var game = _gameService.FindGame(gameId);
+        public async Task SubmitCorrectGuess(Guid gameId, int questionId, Guid playerId, int guess) 
+        {
+            var game = await _gameService.FindGameAsync(gameId);
             
             // _logger.LogInformation($"Recording a guess of {guess} for {playerId}");
 
@@ -59,7 +60,7 @@ namespace ZoomersClient.Server.Hubs
 
         public async Task AskQuestion(Guid gameId, string category)
         {
-            var game = _gameService.FindGame(gameId);
+            var game = await _gameService.FindGameAsync(gameId);
 
             var question = _wordPlay.GetRandomQuestion(category);
             
@@ -72,7 +73,7 @@ namespace ZoomersClient.Server.Hubs
                 await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("GameOver", game);
             }
             
-            game = _gameService.AddQuestion(gameId, question);
+            game = await _gameService.AddQuestionAsync(gameId, question);
 
             var player = game.GetNextPlayer();
             
@@ -81,7 +82,7 @@ namespace ZoomersClient.Server.Hubs
 
         public async Task QuestionFinished(Guid gameId, int questionId, int score)
         {
-            var game = _gameService.FindGame(gameId);
+            var game = await _gameService.FindGameAsync(gameId);
             
             game = game.RecordScore(questionId, score).RecordGuesses(questionId).ResetCurrentPlayerAnswers();
             
@@ -115,7 +116,7 @@ namespace ZoomersClient.Server.Hubs
 
         public async Task UpdateConnectionId(Guid gameId, Guid playerId)
         {
-            var game = _gameService.FindGame(gameId);
+            var game = await _gameService.FindGameAsync(gameId);
 
             var player = game.UpdatePlayerConnection(playerId, Context.ConnectionId);
             
@@ -124,7 +125,7 @@ namespace ZoomersClient.Server.Hubs
 
         public async Task UpdateGameConnectionId(Guid gameId)
         {
-            var game = _gameService.FindGame(gameId);
+            var game = await _gameService.FindGameAsync(gameId);
 
             _logger.LogInformation($"Setting game connection id {Context.ConnectionId}");
 
@@ -135,7 +136,9 @@ namespace ZoomersClient.Server.Hubs
 
         public async Task AnswersFinished(Guid gameId)
         {
-            var game = _gameService.FindGame(gameId).ShuffleAnswers();
+            var game = await _gameService.FindGameAsync(gameId);
+            
+            game.ShuffleAnswers();
 
             var phrase = _phrases.GetRandomAnswersFinishedPhrase(game.CurrentPlayer.Username, game.Voice) as SpeechSynthesisUtterance;
             
@@ -148,7 +151,7 @@ namespace ZoomersClient.Server.Hubs
         {
             // todo: should calculate Game scores and Answers here
             
-            var game = _gameService.FindGame(gameId);
+            var game = await _gameService.FindGameAsync(gameId);
 
             var rand = new Random();            
             game.CurrentPlayerAnswers = currentPlayerAnswers.OrderBy(x => rand.Next()).ToList();
@@ -175,7 +178,7 @@ namespace ZoomersClient.Server.Hubs
 
         public async Task ResetGame(Guid gameId)
         {
-            var game = _gameService.FindGame(gameId);
+            var game = await _gameService.FindGameAsync(gameId);
 
             var previousPlayers = game.GameAndAllPlayerConnections();
 

@@ -253,7 +253,6 @@
             await hubConnection.SendAsync("QuestionFinished", Game.Id, CurrentQuestion.Id, CurrentPlayerScore);
         });
 
-
         hubConnection.On<Game>("ProceedToNextQuestion", async (game) => {
             State = GameState.SummaryIsEnding;
             StateHasChanged();

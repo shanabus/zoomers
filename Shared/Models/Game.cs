@@ -33,13 +33,10 @@ namespace ZoomersClient.Shared.Models
         public Game()
         {
             Id = Guid.NewGuid();
-            Party = new List<PartyIcon>();
-            Players = new List<Player>();
-            AnsweredQuestions = new List<AnsweredQuestion>();
-            Questions = new List<QuestionBase>();
-            AudienceScore = new List<AudienceScore>();
-            CurrentPlayerAnswers = new List<AnsweredQuestion>();
-            CurrentRound = 1;
+            
+            InitGame();
+
+            Rounds = 2;
 
             PartitionKey = "game";
             RowKey = Id.ToString();
@@ -48,28 +45,32 @@ namespace ZoomersClient.Shared.Models
         public Game(string name, string voice, int rounds)
         {
             Id = Guid.NewGuid();
+            
+            InitGame();
+
             Name = name;
             Voice = voice;
-            Rounds = rounds;
+            Rounds = rounds;            
 
-            Players = new List<Player>();
-            AnsweredQuestions = new List<AnsweredQuestion>();
-            Questions = new List<QuestionBase>();
-            AudienceScore = new List<AudienceScore>();
-            CurrentPlayerAnswers = new List<AnsweredQuestion>();
-            
+            PartitionKey = "game";
+            RowKey = Id.ToString();
+        }
+
+        private void InitGame()
+        {
             State = GameState.Lobby;
-
             Party = new List<PartyIcon>() {
                 RandomEnumValue<PartyIcon>(),
                 RandomEnumValue<PartyIcon>(),
                 RandomEnumValue<PartyIcon>()
             };
+            Players = new List<Player>();
+            AnsweredQuestions = new List<AnsweredQuestion>();
+            Questions = new List<QuestionBase>();
+            AudienceScore = new List<AudienceScore>();
+            CurrentPlayerAnswers = new List<AnsweredQuestion>();
 
             CurrentRound = 1;
-
-            PartitionKey = "game";
-            RowKey = Id.ToString();
         }
 
         public Game RecordGuess(int questionId, Guid playerId, int guess)
@@ -135,21 +136,7 @@ namespace ZoomersClient.Shared.Models
         
         public Game ResetGame()
         {
-            // Id = Guid.NewGuid();
-
-            Players = new List<Player>();
-            AnsweredQuestions = new List<AnsweredQuestion>();
-            Questions = new List<QuestionBase>();
-            AudienceScore = new List<AudienceScore>();
-            CurrentPlayerAnswers = new List<AnsweredQuestion>();
-
-            Party = new List<PartyIcon>() {
-                RandomEnumValue<PartyIcon>(),
-                RandomEnumValue<PartyIcon>(),
-                RandomEnumValue<PartyIcon>()
-            };
-
-            CurrentRound = 1;
+            InitGame();
 
             return this;
         }

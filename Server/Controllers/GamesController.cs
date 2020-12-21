@@ -30,9 +30,10 @@ namespace ZoomersClient.Server.Controllers
         }
 
         [HttpGet]
-        public IEnumerable<Game> Get()
+        public async Task<Game[]> Get()
         {
-            var games = _gameService.Games;
+            var games = await _gameService.AllGamesAsync();
+
             return games;
         }
 

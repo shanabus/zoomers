@@ -35,6 +35,13 @@ namespace ZoomersClient.Shared.Services
             return await _gameRepository.SaveAsync(defaultGame);
         }
 
+        public async Task<Game[]> AllGamesAsync()
+        {
+            var games = await _gameRepository.GetAllAsync();
+
+            return games;
+        }
+
         public async Task<Game> FindGameAsync(Guid id)
         {
             // var game = Games.FirstOrDefault(x => x.Id == id);

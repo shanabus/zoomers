@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Logging;
@@ -40,6 +41,30 @@ namespace ZoomersClient.Shared.Data
             }
 
             return storageAccount;
+        }
+
+        internal async Task<Game[]> GetAllAsync()
+        {
+            try
+            {
+                var table = await CreateTableAsync();
+
+                TableContinuationToken token = null;
+                var entities = new List<Game>();
+                do
+                {
+                    var queryResult = table.ExecuteQuerySegmented(new TableQuery<Game>(), token);
+                    entities.AddRange(queryResult.Results);
+                    token = queryResult.ContinuationToken;
+                } while (token != null);
+
+                return entities.ToArray();
+            }
+            catch (StorageException e)
+            {
+                Console.WriteLine(e.Message);
+                throw;
+            }
         }
 
         public async Task<Game> SaveAsync(Game game)

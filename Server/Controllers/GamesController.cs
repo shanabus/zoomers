@@ -37,17 +37,17 @@ namespace ZoomersClient.Server.Controllers
         }
 
         [HttpGet("{id}")]
-        public Game GetGame([FromRoute]Guid id)
+        public async Task<Game> GetGame([FromRoute]Guid id)
         {
-            var game = _gameService.FindGame(id);
+            var game = await _gameService.FindGameAsync(id);
 
             return game;
         }
 
         [HttpGet("{id}/players")]
-        public IEnumerable<string> GetPlayers([FromRoute]Guid id)
+        public async Task<IEnumerable<string>> GetPlayers([FromRoute]Guid id)
         {
-            var game = _gameService.FindGame(id);
+            var game = await _gameService.FindGameAsync(id);
 
             return game.Players.Select(x => x.Username);
         }
@@ -79,6 +79,14 @@ namespace ZoomersClient.Server.Controllers
             var phrase = _phrases.GetRandomPlayerJoinedPhrase(username, voice);
             
             return phrase;        
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteAsync([FromRoute] Guid id)
+        {
+            await _gameService.DeleteAsync(id);
+            
+            return NoContent();        
         }
     }
 }

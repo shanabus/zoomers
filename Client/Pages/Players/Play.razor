@@ -191,6 +191,7 @@ else
         }
         else if (PlayerIsCurrentPlayer && !EveryoneHasAnswered)
         {
+            Console.WriteLine("EveryoneHasAnswered? " + EveryoneHasAnswered);
             State = PlayState.CurrentPlayerWaiting;
             StatusMessage = CurrentQuestion.Question; 
         }
@@ -203,7 +204,7 @@ else
         {
             StatusMessage = "";
         }
-        // Console.WriteLine("State - " + State.ToString());
+        Console.WriteLine("State - " + State.ToString());
         StateHasChanged();
     }
 

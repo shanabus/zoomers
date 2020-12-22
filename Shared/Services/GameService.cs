@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ZoomersClient.Shared.Data;
 using ZoomersClient.Shared.Exceptions;
@@ -39,10 +40,10 @@ namespace ZoomersClient.Shared.Services
         //     return defaultGame;
         // }
 
-        public Game FindGame(Guid id)
+        public async Task<Game> FindGameAsync(Guid id)
         {
             Console.WriteLine("Looking for game...");
-            var game = _database.Games.FirstOrDefault(x => x.Id == id);
+            var game = await _database.Games.FirstOrDefaultAsync(x => x.Id == id);
             
             return game; 
         }
@@ -85,7 +86,7 @@ namespace ZoomersClient.Shared.Services
 
         public Game AddQuestion(Guid id, QuestionBase q)
         {
-            var game = FindGame(id);
+            var game = FindGameAsync(id);
 
             if (game != null) {
                 // _logger.LogInformation(q.Question + " was just added");
@@ -97,6 +98,15 @@ namespace ZoomersClient.Shared.Services
             }
 
             return game;
+        }
+
+        public async Task DeleteAsync(Guid id)
+        {
+            var game = await _database.Games.FirstOrDefaultAsync(a=>a.Id == id);
+            Console.WriteLine(game.Name + " is leaving us");
+            _database.Remove(game);
+
+            await _database.SaveChangesAsync();
         }
 
         public void UpdateConnectionId(Guid id, string connectionId)

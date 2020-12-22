@@ -5,6 +5,7 @@
 @using Toolbelt.Blazor.SpeechSynthesis
 @using ZoomersClient.Shared.Models.DTOs
 @inject SpeechSynthesis SpeechSynthesis
+@inject IJSRuntime js
 
 <div class="row form-inline">
     <div class="col-sm-12 col-md-6">
@@ -40,7 +41,7 @@
                     </select>
                 </label>
                 <button class="btn btn-info mx-2" @onclick="PreviewVoice">Preview</button>
-                <button class="btn btn-success" @onclick="CreateGame">Create Game</button>
+                <button class="btn btn-success" @onclick="CreateGame" disabled="@(string.IsNullOrEmpty(Name))">Create Game</button>
             </div>            
         }
         
@@ -49,12 +50,33 @@
 
 <hr>
 
-<ul id="games">
+<div id="games">
+    <h3>Games</h3>
+    <div class="row">
     @foreach (var game in Games)
     {
-        <li><a href="game/@game.Id">@game.Name</a></li>
+        <div class="col-3 p-2">
+            <div class="lobby-game @(game.State.ToString().ToLower())">
+                <div class="row px-3">
+                    <div class="col p-2">
+                        <a href="game/@game.Id">@game.Name</a>
+                        <br />
+                        <label>Players: @(game.Players?.Count ?? 0)</label>
+                        <br />
+                        <span clas="text-secondary">@game.Voice</span>
+                    </div>
+                    <div class="col-4 p-2 text-right">
+                        <button class="btn btn-danger" @onclick="@(e => OnClickDeleteGame(e, game.Id))"><span class="oi oi-trash"></span></button>
+                        <br />
+                        <br />
+                        <span class="text-secondary">@game.State.ToString()</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     }
-</ul>
+    </div>    
+</div>
 
 @code {
     private string Name { get; set; }
@@ -64,15 +86,9 @@
     IEnumerable<SpeechSynthesisVoice> Voices;
     private string SelectedVoice { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        Rounds = 2;
-        var result = await Http.GetFromJsonAsync<Game[]>("Games");
-        
-        if (result.Any())
-        {
-            Games = result;
-        }
+        Rounds = 2;        
     }
 
     private async Task CreateGame()
@@ -89,8 +105,19 @@
         if (firstRender)
         {
             this.Voices = await this.SpeechSynthesis.GetVoicesAsync();
+
+            await LoadGamesAsync();            
+            
             this.StateHasChanged();
         }
+    }
+
+    private async Task LoadGamesAsync()
+    {
+        var result = await Http.GetFromJsonAsync<Game[]>("Games");
+                    
+        Games = result;
+        await js.InvokeVoidAsync("PlayAudioFile", "/sounds/ku_chung.mp3");    
     }
 
     private void RandomLobby()
@@ -118,5 +145,14 @@
             };
             this.SpeechSynthesis.Speak(utterancet);
         }
+    }
+
+    private async Task OnClickDeleteGame(MouseEventArgs eventArgs, Guid id)
+    {
+        Console.WriteLine("delete ? " + id.ToString());
+
+        var result = await Http.DeleteAsync($"Games/{id}");
+
+        await LoadGamesAsync();
     }
 }

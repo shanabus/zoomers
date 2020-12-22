@@ -28,7 +28,7 @@ namespace ZoomersClient.Server.Hubs
             _phrases = phrases;
         }
 
-        public async Task JoinTheGame(List<PartyIcon> partyIcons, string username, PlayerIcon icon, string color, string sound)
+        public async Task JoinTheGame(List<string> partyIcons, string username, PlayerIcon icon, string color, string sound)
         {
             var game = _gameService.FindGame(partyIcons);
             if (game == null)

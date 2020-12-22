@@ -40,9 +40,9 @@ namespace ZoomersClient.Shared.Services
             return game; 
         }
 
-        public Game FindGame(List<PartyIcon> party)
+        public Game FindGame(List<string> party)
         {
-            var game = Games.FirstOrDefault(x => x.Party[0] == party[0] && x.Party[1] == party[1] && x.Party[2] == party[2]);
+            var game = Games.FirstOrDefault(x => x.Party == string.Join('|', party));
 
             return game; 
         }
@@ -73,7 +73,7 @@ namespace ZoomersClient.Shared.Services
             return game;
         }
 
-        public Game AddQuestion(Guid id, WordPlayQuestion q)
+        public Game AddQuestion(Guid id, QuestionBase q)
         {
             var game = FindGame(id);
 

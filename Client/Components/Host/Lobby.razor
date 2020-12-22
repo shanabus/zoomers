@@ -1,5 +1,6 @@
 @using ZoomersClient.Client.Components.Shared
 @using ZoomersClient.Shared.Models
+@using ZoomersClient.Shared.Models.Enums
 @inject NavigationManager NavigationManager
 
 <div class="row mb-4">
@@ -36,9 +37,10 @@
             <div id="party-connect">
                 <div class="row">
                     <div class="col-12 text-center slide-in-elliptic-bottom-fwd">
-                    @foreach (var icon in Game.Party)
-                    {                        
-                       <PartyButton Icon="icon"></PartyButton>                    
+                    @foreach (var icon in Game.Party.Split('|'))
+                    {  
+                        var i = (PartyIcon)Enum.Parse(typeof(PartyIcon), icon);                      
+                        <PartyButton Icon="i"></PartyButton>                    
                     }   
                     </div>                
                 </div>

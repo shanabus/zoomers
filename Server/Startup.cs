@@ -9,6 +9,8 @@ using System.Linq;
 using ZoomersClient.Server.Hubs;
 using ZoomersClient.Server.Services;
 using ZoomersClient.Shared.Services;
+using ZoomersClient.Server.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace ZoomersClient.Server
 {
@@ -35,6 +37,8 @@ namespace ZoomersClient.Server
             {
                 opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream"});
             });
+
+            services.AddDbContext<ApplicationDBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
             services.AddSingleton<WordPlay>();
             services.AddSingleton<Phrases>();

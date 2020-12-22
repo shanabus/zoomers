@@ -385,7 +385,7 @@
         var r = new Random();
         var Sound = sounds[r.Next(sounds.Length)];
 
-        await hubConnection.SendAsync("JoinTheGame", Party, Username, ChosenIcon, BackgroundColor, Sound);
+        await hubConnection.SendAsync("JoinTheGame", Party.Select(x => x.ToString()), Username, ChosenIcon, BackgroundColor, Sound);
 
         GameStatus = "Waiting for response...";
         

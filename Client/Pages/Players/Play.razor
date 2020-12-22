@@ -230,7 +230,7 @@ else
             .Build();
 
         // subscribe to other things
-        hubConnection.On<Game, WordPlayQuestion, Player>("QuestionReady", (game, question, player) => {               
+        hubConnection.On<Game, QuestionBase, Player>("QuestionReady", (game, question, player) => {               
             // reset UI
             Game = game;
             

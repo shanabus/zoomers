@@ -138,7 +138,7 @@
     public Player CurrentPlayer { get; set; }
     public string StatusMessage { get; set; }
     [Parameter]
-    public WordPlayQuestion CurrentQuestion { get; set; }
+    public QuestionBase CurrentQuestion { get; set; }
     public List<Player> PlayersAnswered { get; set; }
     public Dictionary<Guid, int> PlayerLove { get; set; }
     private Timer timerRef { get; set; }
@@ -169,7 +169,7 @@
             await hubConnection.SendAsync("AskQuestion", Game.Id, category);
         });
 
-        hubConnection.On<Game, WordPlayQuestion, Player>("QuestionReady", async (game, question, player) => {   
+        hubConnection.On<Game, QuestionBase, Player>("QuestionReady", async (game, question, player) => {   
             // reset UI            
             Game = game;
             CurrentQuestion = question;

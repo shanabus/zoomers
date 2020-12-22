@@ -21,7 +21,7 @@ namespace ZoomersClient.Shared.Models
         public int CurrentRound { get; set; }
         
         public GameState State { get; set; }
-        public List<PartyIcon> Party { get; set; }
+        public string Party { get; set; }
         public List<Player> Players { get; set;}        
         public Player CurrentPlayer { get; set; }
         public List<AnsweredQuestion> AnsweredQuestions { get; set; }
@@ -31,22 +31,22 @@ namespace ZoomersClient.Shared.Models
 
         public Game()
         {
-            Party = new List<PartyIcon>();
-            Players = new List<Player>();
-            AnsweredQuestions = new List<AnsweredQuestion>();
-            Questions = new List<QuestionBase>();
-            AudienceScore = new List<AudienceScore>();
-            CurrentPlayerAnswers = new List<AnsweredQuestion>();
-            CurrentRound = 1;
+            Id = Guid.NewGuid();            
         }
 
         public Game(string name, string voice, int rounds)
         {
             Id = Guid.NewGuid();
+            
+            Init();
+
             Name = name;
             Voice = voice;
             Rounds = rounds;
+        }
 
+        private void Init()
+        {
             Players = new List<Player>();
             AnsweredQuestions = new List<AnsweredQuestion>();
             Questions = new List<QuestionBase>();
@@ -55,11 +55,7 @@ namespace ZoomersClient.Shared.Models
             
             State = GameState.Lobby;
 
-            Party = new List<PartyIcon>() {
-                RandomEnumValue<PartyIcon>(),
-                RandomEnumValue<PartyIcon>(),
-                RandomEnumValue<PartyIcon>()
-            };
+            Party = $"{RandomEnumValue<PartyIcon>()}|{RandomEnumValue<PartyIcon>()}|{RandomEnumValue<PartyIcon>()}";
 
             CurrentRound = 1;
         }
@@ -127,21 +123,7 @@ namespace ZoomersClient.Shared.Models
         
         public Game ResetGame()
         {
-            // Id = Guid.NewGuid();
-
-            Players = new List<Player>();
-            AnsweredQuestions = new List<AnsweredQuestion>();
-            Questions = new List<QuestionBase>();
-            AudienceScore = new List<AudienceScore>();
-            CurrentPlayerAnswers = new List<AnsweredQuestion>();
-
-            Party = new List<PartyIcon>() {
-                RandomEnumValue<PartyIcon>(),
-                RandomEnumValue<PartyIcon>(),
-                RandomEnumValue<PartyIcon>()
-            };
-
-            CurrentRound = 1;
+            Init();
 
             return this;
         }

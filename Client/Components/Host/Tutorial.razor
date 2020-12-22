@@ -7,7 +7,7 @@
 
     public PlayGame TutorialGame { get; set; }
 
-    public WordPlayQuestion Question { get; set; }
+    public QuestionBase Question { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -23,7 +23,7 @@
 
         TutorialGame.SpeakPhrase("Right, in this game we're going to ask players a series of questions");
         await Task.Delay(2000);
-        Question = new WordPlayQuestion() {
+        Question = new QuestionBase() {
             Question = "Why is the sun hot?"
         };
         StateHasChanged();

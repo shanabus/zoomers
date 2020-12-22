@@ -48,7 +48,7 @@
         </div>
     </div>   
 
-        @if(State == GameState.QuestionSummary && Game.CurrentPlayerAnswers.Any())
+        @if(State == GameState.QuestionSummary && Game.AnsweredQuestions.Any(x => !string.IsNullOrEmpty(x.CurrentPlayerAnswer)))
         {
             <Scorecard @ref="scorecardRef" Score="@CurrentPlayerScore" Class="slide-in-blurred-bottom"></Scorecard>
         }    
@@ -101,10 +101,9 @@
                 
                 @if(State == GameState.QuestionSummary)
                 {
-                    var playerAnswer = Game.AnsweredQuestions.FirstOrDefault(x => x.Player.Id == player.Id)?.Answer;
-                    var currentPlayerAnswer = Game.CurrentPlayerAnswers.FirstOrDefault(x => x.Player.Id == player.Id)?.Answer;
+                    var playerAnswer = Game.AnsweredQuestions.FirstOrDefault(x => x.Player.Id == player.Id);
 
-                    <PlayerAnswerResult PlayerAnswer="@playerAnswer" CurrentPlayer="CurrentPlayer" CurrentPlayerAnswer="@currentPlayerAnswer" Show="@(ScoreShown > PlayersAnswered.IndexOf(player))"></PlayerAnswerResult>
+                    <PlayerAnswerResult Answer="@playerAnswer" CurrentPlayer="CurrentPlayer" Show="@(ScoreShown > PlayersAnswered.IndexOf(player))"></PlayerAnswerResult>
                 }    
             </div>
         }
@@ -224,14 +223,12 @@
 
             foreach(var player in PlayersAnswered)
             {
-                var playersAnswer = Game.AnsweredQuestions.FirstOrDefault(x => x.Player.Id == player.Id);
-                var playerAnswer = playersAnswer?.Answer;
-                var currentPlayerAnswer = Game.CurrentPlayerAnswers.FirstOrDefault(x => x.Player.Id == player.Id)?.Answer;
+                var playerAnswer = Game.AnsweredQuestions.FirstOrDefault(x => x.Player.Id == player.Id);
 
                 await Task.Delay(3000);
                 ScoreShown++;
-                Console.WriteLine($"{playersAnswer.Player.Username} said you would get {playersAnswer.Guess} correct");
-                if (playerAnswer == currentPlayerAnswer)
+                Console.WriteLine($"{playerAnswer.Player.Username} said you would get {playerAnswer.Guess} correct");
+                if (playerAnswer?.Answer == playerAnswer?.CurrentPlayerAnswer)
                 {
                     correctQuestions++;
                     CurrentPlayerScore = CurrentPlayerScore + (100 * Game.CurrentRound);
@@ -431,7 +428,7 @@
             await Task.Delay(1500);
         }
         
-        if (!Game.CurrentPlayerAnswers.Any()) {
+        if (!Game.AnsweredQuestions.All(x => string.IsNullOrEmpty(x.CurrentPlayerAnswer))) {
             SpeakPhrase("Nobody had an answer? Strange...  Ok we will move onto the next question");
             await Task.Delay(1500);
         }

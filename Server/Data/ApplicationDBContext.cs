@@ -11,7 +11,7 @@ namespace ZoomersClient.Server.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Game>()                
+            modelBuilder.Entity<Game>()
                 .HasMany(x => x.AnsweredQuestions);
         }
         

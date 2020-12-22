@@ -315,13 +315,11 @@ else
         }        
     }
 
-    public async Task SubmitQuestionCompleteAnswer(List<AnsweredQuestion> CurrentPlayerAnswers)
+    public async Task SubmitQuestionCompleteAnswer(List<AnsweredQuestion> answers)
     {
-        // QuestionCompleteAnswerSubmitted = true;
-        // ShowQuestionCompletePhase = false;
         State = PlayState.QuestionScores;
 
-        await hubConnection.SendAsync("QuestionCompletedAnswer", Game.Id, false, CurrentPlayerAnswers);
+        await hubConnection.SendAsync("QuestionCompletedAnswer", Game.Id, false, answers);
         
         Console.WriteLine("Question Complete Submitted");
         StateHasChanged();

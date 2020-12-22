@@ -4,11 +4,11 @@
 
 
 <div class="row">
-@foreach(var playerAnswer in CurrentPlayerAnswers)
+@foreach(var playerAnswer in Answers)
 {    
     <div class="col-6">
         <PlayerAnswerButton Player="playerAnswer.Player" Answer="playerAnswer" Selected="@(playerAnswer.Player == SelectedPlayer)" OnClickButton="OnClickPlayer">
-            @playerAnswer.Answer
+            @playerAnswer.CurrentPlayerAnswer
         </PlayerAnswerButton>
     </div>
 }
@@ -18,7 +18,7 @@
 <div class="row">
 @foreach(var answer in Answers)
 {
-    var answerIsUsed = CurrentPlayerAnswers.Any(x => x.Answer == answer.Answer);
+    var answerIsUsed = Answers.Any(x => x.CurrentPlayerAnswer == answer.Answer);
 
     <div class='col-6 my-1 answer-panel__answer @(answerIsUsed? "text-secondary" : "text-dark")' @onclick="@((e) => OnClickSelectAnswer(e, answer))">
         <div class="bg-light p-2">
@@ -55,13 +55,11 @@
 
     [Parameter]
     public bool Enabled { get; set; }
-    public bool Valid => CurrentPlayerAnswers.All(x => !string.IsNullOrEmpty(x.Answer));
+    public bool Valid => Answers.All(x => !string.IsNullOrEmpty(x.CurrentPlayerAnswer));
 
     [Parameter]
     public List<AnsweredQuestion> Answers { get; set; }
     
-    public List<AnsweredQuestion> CurrentPlayerAnswers { get; set; }
-        
     [Parameter]
     public EventCallback<List<AnsweredQuestion>> SubmitAnswers { get; set; }
 
@@ -72,7 +70,6 @@
 
     protected override void OnInitialized()
     {        
-        CurrentPlayerAnswers = new List<AnsweredQuestion>();
     }
 
     protected override void OnParametersSet()
@@ -81,7 +78,7 @@
 
         var rand = new Random();
 
-        CurrentPlayerAnswers = Answers.Where(x => x.Player.Id != CurrentPlayer.Id)
+        var XurrentPlayerAnswers = Answers.Where(x => x.Player.Id != CurrentPlayer.Id)
             .OrderBy(x => rand.Next())
             .Select(x => new AnsweredQuestion() { Question = x.Question, Answer = "", Player = x.Player })
             .ToList();   
@@ -102,9 +99,9 @@
     {
         if (SelectedPlayer != null && SelectedAnswer != null)
         {
-            var playerAnswer = CurrentPlayerAnswers.FirstOrDefault(x => x.Player == SelectedPlayer);
+            var playerAnswer = Answers.FirstOrDefault(x => x.Player == SelectedPlayer);
             if (playerAnswer != null){
-                playerAnswer.Answer = SelectedAnswer.Answer;
+                playerAnswer.CurrentPlayerAnswer = SelectedAnswer.Answer;
             }
             SelectedPlayer = null;
             SelectedAnswer = null;
@@ -119,7 +116,7 @@
         // shouldn't have to check this but time ellapsed was firing
         if (Enabled)
         {
-            await SubmitAnswers.InvokeAsync(CurrentPlayerAnswers);            
+            await SubmitAnswers.InvokeAsync(Answers);            
         }        
     }
 }

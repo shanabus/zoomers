@@ -27,7 +27,6 @@ namespace ZoomersClient.Shared.Models
         public List<AnsweredQuestion> AnsweredQuestions { get; set; }
         public List<QuestionBase> Questions { get; set; }
         public List<AudienceScore> AudienceScore { get; set; }
-        public List<AnsweredQuestion> CurrentPlayerAnswers { get; set; }
 
         public Game()
         {
@@ -51,7 +50,6 @@ namespace ZoomersClient.Shared.Models
             AnsweredQuestions = new List<AnsweredQuestion>();
             Questions = new List<QuestionBase>();
             AudienceScore = new List<AudienceScore>();
-            CurrentPlayerAnswers = new List<AnsweredQuestion>();
             
             State = GameState.Lobby;
 
@@ -95,7 +93,8 @@ namespace ZoomersClient.Shared.Models
             AnsweredQuestions.Add(new AnsweredQuestion() {
                 Player = player,
                 Question = Questions.FirstOrDefault(x => x.Id == questionId),
-                Answer = answer
+                Answer = answer,
+                Round = CurrentRound
             });
         }
 
@@ -108,13 +107,11 @@ namespace ZoomersClient.Shared.Models
         {
             var answeredQuestions = new List<AnsweredQuestion>();
 
-            foreach(var answer in CurrentPlayerAnswers)
+            foreach(var answer in AnsweredQuestions)
             {
-                var playerAnswer = AnsweredQuestions.FirstOrDefault(x => x.Player.Id == answer.Player.Id);
-
-                if (playerAnswer != null && answer.Answer == playerAnswer.Answer)
+                if (answer.Answer == answer.CurrentPlayerAnswer)
                 {
-                    answeredQuestions.Add(playerAnswer);
+                    answeredQuestions.Add(answer);
                 }
             }
             
@@ -299,12 +296,6 @@ namespace ZoomersClient.Shared.Models
             return this;
         }
 
-        public Game ResetCurrentPlayerAnswers()
-        {            
-            CurrentPlayerAnswers = new List<AnsweredQuestion>();
-            return this;
-        }
-
         public Game ShufflePlayerOrder()
         {
             var rand = new Random();
@@ -320,7 +311,7 @@ namespace ZoomersClient.Shared.Models
             if (CurrentRound < Rounds)         
             {
                 CurrentRound++;
-                return this.ResetAnswers().ResetQuestions().ResetCurrentPlayerAnswers().ShufflePlayerOrder();
+                return this.ResetAnswers().ResetQuestions().ShufflePlayerOrder();
             }
             
             return this.EndGame();            

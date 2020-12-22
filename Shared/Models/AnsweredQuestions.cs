@@ -16,7 +16,7 @@ namespace ZoomersClient.Shared.Models
 
         public string Answer { get; set; }
 
-        public string CurrentPlayerAnswser { get; set; }
+        public string CurrentPlayerAnswer { get; set; }
 
         public int Guess { get; internal set; }
     }

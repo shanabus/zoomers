@@ -83,7 +83,7 @@ namespace ZoomersClient.Server.Hubs
         {
             var game = _gameService.FindGame(gameId);
             
-            game = game.RecordScore(questionId, score).RecordGuesses(questionId).ResetCurrentPlayerAnswers();
+            game = game.RecordScore(questionId, score).RecordGuesses(questionId);
             
             var roundEnded = false;
 
@@ -144,14 +144,15 @@ namespace ZoomersClient.Server.Hubs
             await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("AnswersFinished", game, phrase);
         }
 
-        public async Task QuestionCompletedAnswer(Guid gameId, bool timeExpired, List<AnsweredQuestion> currentPlayerAnswers)
+        public async Task QuestionCompletedAnswer(Guid gameId, bool timeExpired, List<AnsweredQuestion> xurrentPlayerAnswers)
         {
             // todo: should calculate Game scores and Answers here
             
             var game = _gameService.FindGame(gameId);
 
             var rand = new Random();            
-            game.CurrentPlayerAnswers = currentPlayerAnswers.OrderBy(x => rand.Next()).ToList();
+            Console.WriteLine("FIX THIS NOW! SAVE AND CHANGE VAR NAMES");
+            game.AnsweredQuestions = xurrentPlayerAnswers.OrderBy(x => rand.Next()).ToList();
             
             if (!timeExpired)
             {

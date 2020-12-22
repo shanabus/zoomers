@@ -2,15 +2,10 @@ using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Toolbelt.Blazor.Extensions.DependencyInjection;
 using Plk.Blazor.DragDrop;
 using Blazored.LocalStorage;
-using ZoomersClient.Shared.Data;
-using ZoomersClient.Shared.Services;
-using Microsoft.EntityFrameworkCore;
 
 namespace ZoomersClient.Client
 {

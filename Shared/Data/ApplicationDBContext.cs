@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ZoomersClient.Shared.Models;
 
-namespace ZoomersClient.Server.Data
+namespace ZoomersClient.Shared.Data
 {
     public class ApplicationDBContext : DbContext
     {
@@ -9,11 +9,11 @@ namespace ZoomersClient.Server.Data
         {
         }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<Game>()
-                .HasMany(x => x.AnsweredQuestions);
-        }
+        // protected override void OnModelCreating(ModelBuilder modelBuilder)
+        // {
+        //     modelBuilder.Entity<Game>()
+        //         .HasMany(x => x.AnsweredQuestions);
+        // }
         
         public DbSet<Game> Games { get; set; }
 

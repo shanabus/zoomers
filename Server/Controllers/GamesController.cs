@@ -10,6 +10,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using ZoomersClient.Shared.Models.DTOs;
 using ZoomersClient.Server.Services;
+using System.Threading.Tasks;
 
 namespace ZoomersClient.Server.Controllers
 {
@@ -31,7 +32,7 @@ namespace ZoomersClient.Server.Controllers
         [HttpGet]
         public IEnumerable<Game> Get()
         {
-            var games = _gameService.Games;
+            var games = _gameService.AllGames();
             return games;
         }
 
@@ -52,11 +53,11 @@ namespace ZoomersClient.Server.Controllers
         }
 
         [HttpPost]
-        public Game Post([FromBody] CreateGameDto dto)
+        public async Task<Game> Post([FromBody] CreateGameDto dto)
         {
             var game = new Game(dto.Name, dto.Voice, dto.Rounds);
-            _gameService.CreateGame(game);
-            return game;
+            var gameresult = await _gameService.CreateGameAsync(game);
+            return gameresult;
         }
 
         [HttpGet("{id}/qrcode")]

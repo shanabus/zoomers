@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace ZoomersClient.Server.Migrations
+namespace ZoomersClient.Shared.Migrations
 {
     public partial class Initial : Migration
     {

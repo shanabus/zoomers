@@ -5,10 +5,12 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using ZoomersClient.Shared.Services;
 using Toolbelt.Blazor.Extensions.DependencyInjection;
 using Plk.Blazor.DragDrop;
 using Blazored.LocalStorage;
+using ZoomersClient.Shared.Data;
+using ZoomersClient.Shared.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace ZoomersClient.Client
 {
@@ -25,7 +27,9 @@ namespace ZoomersClient.Client
             builder.Services.AddSpeechSynthesis();
             builder.Services.AddBlazoredLocalStorage();
 
-            builder.Services.AddSingleton<GameService>();
+            //builder.Services.AddDbContext<ApplicationDBContext>(options => options.UseSqlServer("things"));
+            //builder.Services.AddSingleton<ApplicationDBContext>();
+            //builder.Services.AddSingleton<GameService>();
 
             await builder.Build().RunAsync();
         }

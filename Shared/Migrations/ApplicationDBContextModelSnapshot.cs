@@ -3,17 +3,15 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using ZoomersClient.Server.Data;
+using ZoomersClient.Shared.Data;
 
-namespace ZoomersClient.Server.Migrations
+namespace ZoomersClient.Shared.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    [Migration("20201222023907_Initial")]
-    partial class Initial
+    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
     {
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

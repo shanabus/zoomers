@@ -8,9 +8,9 @@ using Microsoft.Extensions.Hosting;
 using System.Linq;
 using ZoomersClient.Server.Hubs;
 using ZoomersClient.Server.Services;
-using ZoomersClient.Shared.Services;
-using ZoomersClient.Server.Data;
 using Microsoft.EntityFrameworkCore;
+using ZoomersClient.Shared.Data;
+using ZoomersClient.Shared.Services;
 
 namespace ZoomersClient.Server
 {
@@ -38,10 +38,15 @@ namespace ZoomersClient.Server
                 opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream"});
             });
 
-            services.AddDbContext<ApplicationDBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            // EF Migrations
+            // https://docs.microsoft.com/en-us/ef/core/managing-schemas/migrations/?tabs=dotnet-core-cli
+
+            // https://docs.microsoft.com/en-us/ef/core/dbcontext-configuration/#constructor-argument
+            services.AddDbContextFactory<ApplicationDBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
             services.AddSingleton<WordPlay>();
             services.AddSingleton<Phrases>();
+            services.AddSingleton<ApplicationDBContext>();
             services.AddSingleton<GameService>();
         }
 

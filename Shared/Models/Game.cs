@@ -201,7 +201,7 @@ namespace ZoomersClient.Shared.Models
             }
         }
 
-        internal Game AddReaction(Player fromPlayer, Player toPlayer, AnswerReaction reaction)
+        public Game AddReaction(Player fromPlayer, Player toPlayer, AnswerReaction reaction)
         {
             // var existingScore = AudienceScore.FirstOrDefault(x => x.Round == CurrentRound && x.FromPlayerId == fromPlayer.Id && x.ToPlayerId == toPlayer.Id);
 

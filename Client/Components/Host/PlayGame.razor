@@ -5,7 +5,6 @@
 @using ZoomersClient.Shared.Models
 @using Microsoft.AspNetCore.SignalR.Client
 @inject NavigationManager NavigationManager
-@inject ZoomersClient.Shared.Services.GameService GameService
 @using Toolbelt.Blazor.SpeechSynthesis
 @using ZoomersClient.Shared.Models.Enums
 @inject SpeechSynthesis SpeechSynthesis
@@ -68,7 +67,7 @@
         </div>
     }
         
-    @if(false)
+    @if(UseTimers)
     {
         <Timer @ref="timerRef" Class="slide-in-blurred-bottom" TimeEllapsed="AnswersFinished"></Timer>
     }  
@@ -145,6 +144,7 @@
     public int CurrentPlayerScore { get; set; }
     private Scorecard scorecardRef { get; set; }
     private int ScoreShown { get; set; }
+    private bool UseTimers { get; set; }
     
     private HubConnection hubConnection;
     

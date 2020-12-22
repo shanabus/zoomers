@@ -50,33 +50,37 @@
 
 <hr>
 
-<div id="games">
-    <h3>Games</h3>
-    <div class="row">
-    @foreach (var game in Games)
-    {
-        <div class="col-3 p-2">
-            <div class="lobby-game @(game.State.ToString().ToLower())">
-                <div class="row px-3">
-                    <div class="col p-2">
-                        <a href="game/@game.Id">@game.Name</a>
-                        <br />
-                        <label>Players: @(game.Players?.Count ?? 0)</label>
-                        <br />
-                        <span clas="text-secondary">@game.Voice</span>
-                    </div>
-                    <div class="col-4 p-2 text-right">
-                        <button class="btn btn-danger" @onclick="@(e => OnClickDeleteGame(e, game.Id))"><span class="oi oi-trash"></span></button>
-                        <br />
-                        <br />
-                        <span class="text-secondary">@game.State.ToString()</span>
+@if (Games.Any())
+{
+    <div id="games">
+        <h3>Games</h3>
+        <div class="row">
+        @foreach (var game in Games)
+        {
+            <div class="col-3 p-2">
+                <div class="lobby-game @(game.State.ToString().ToLower())">
+                    <div class="row px-3">
+                        <div class="col p-2">
+                            <a href="game/@game.Id">@game.Name</a>
+                            <br />
+                            <label>Players: @(game.Players?.Count ?? 0)</label>
+                            <br />
+                            <span clas="text-secondary">@game.Voice</span>
+                        </div>
+                        <div class="col-4 p-2 text-right">
+                            <button class="btn btn-danger" @onclick="@(e => OnClickDeleteGame(e, game.Id))"><span class="oi oi-trash"></span></button>
+                            <br />
+                            <br />
+                            <span class="text-secondary">@game.State.ToString()</span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    }
-    </div>    
-</div>
+        }
+        </div>    
+    </div>
+}
+
 
 @code {
     private string Name { get; set; }

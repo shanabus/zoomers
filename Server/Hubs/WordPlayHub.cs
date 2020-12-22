@@ -72,7 +72,7 @@ namespace ZoomersClient.Server.Hubs
                 await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("GameOver", game);
             }
             
-            game = _gameService.AddQuestion(gameId, question);
+            game = await _gameService.AddQuestion(gameId, question);
 
             var player = game.GetNextPlayer();
             

@@ -84,9 +84,9 @@ namespace ZoomersClient.Shared.Services
             return game;
         }
 
-        public Game AddQuestion(Guid id, QuestionBase q)
+        public async Task<Game> AddQuestion(Guid id, QuestionBase q)
         {
-            var game = FindGameAsync(id);
+            var game = await FindGameAsync(id);
 
             if (game != null) {
                 // _logger.LogInformation(q.Question + " was just added");

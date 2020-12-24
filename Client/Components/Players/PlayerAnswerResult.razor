@@ -1,4 +1,4 @@
-@using ZoomersClient.Shared.Models
+@using ZoomersClient.Shared.Models.DTOs
 @using ZoomersClient.Client.Components.Shared
 
 @if(Show)
@@ -23,10 +23,10 @@
 
 @code {
     [Parameter]
-    public AnsweredQuestion Answer { get; set; }
+    public AnsweredQuestionDto Answer { get; set; }
     
     [Parameter]
-    public Player CurrentPlayer { get; set; }
+    public PlayerDto CurrentPlayer { get; set; }
     
     [Parameter]
     public bool Show { get; set; }

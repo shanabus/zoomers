@@ -1,5 +1,4 @@
 @using ZoomersClient.Client.Components.Shared
-@using ZoomersClient.Shared.Models
 @using ZoomersClient.Shared.Models.DTOs
 
 
@@ -48,29 +47,24 @@
 
 @code {
     [Parameter]
-    public List<Player> Players { get; set; }
-
-    public Player SelectedPlayer { get; set; }
-    public AnsweredQuestion SelectedAnswer { get; set; }
-
+    public List<PlayerDto> Players { get; set; }
     [Parameter]
     public bool Enabled { get; set; }
+    [Parameter]
+    public List<AnsweredQuestionDto> Answers { get; set; }    
+    [Parameter]
+    public EventCallback<List<AnsweredQuestionDto>> SubmitAnswers { get; set; }
+    [Parameter]
+    public PlayerDto CurrentPlayer { get; set; }
+
+    public PlayerDto SelectedPlayer { get; set; }
+
+    public AnsweredQuestionDto SelectedAnswer { get; set; }
+   
     public bool Valid => Answers.All(x => !string.IsNullOrEmpty(x.CurrentPlayerAnswer));
-
-    [Parameter]
-    public List<AnsweredQuestion> Answers { get; set; }
     
-    [Parameter]
-    public EventCallback<List<AnsweredQuestion>> SubmitAnswers { get; set; }
-
-    [Parameter]
-    public Player CurrentPlayer { get; set; }
-
     private Timer answerTimerRef { get; set; }
 
-    protected override void OnInitialized()
-    {        
-    }
 
     protected override void OnParametersSet()
     {
@@ -80,17 +74,17 @@
 
         var XurrentPlayerAnswers = Answers.Where(x => x.Player.Id != CurrentPlayer.Id)
             .OrderBy(x => rand.Next())
-            .Select(x => new AnsweredQuestion() { Question = x.Question, Answer = "", Player = x.Player })
+            .Select(x => new AnsweredQuestionDto() { Question = x.Question, Answer = "", Player = x.Player })
             .ToList();   
     }
 
-    public void OnClickPlayer(Player player)
+    public void OnClickPlayer(PlayerDto player)
     {
         SelectedPlayer = SelectedPlayer == player? null : player;
         CheckAnswer();
     }
 
-    public void OnClickSelectAnswer(MouseEventArgs eventArgs, AnsweredQuestion answer){
+    public void OnClickSelectAnswer(MouseEventArgs eventArgs, AnsweredQuestionDto answer){
         SelectedAnswer = answer;
         CheckAnswer();
     }

@@ -4,11 +4,11 @@ namespace ZoomersClient.Shared.Models.DTOs
 {
     public class ReactionDto 
     {
-        public AnsweredQuestion Answer { get; set; }
+        public AnsweredQuestionDto Answer { get; set; }
 
         public AnswerReaction Reaction { get; set; }
 
-        public ReactionDto(AnsweredQuestion answer, AnswerReaction reaction)
+        public ReactionDto(AnsweredQuestionDto answer, AnswerReaction reaction)
         {
             Answer = answer;
             Reaction = reaction;

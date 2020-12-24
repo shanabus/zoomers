@@ -1,5 +1,5 @@
 @using ZoomersClient.Client.Components.Shared
-@using ZoomersClient.Shared.Models
+@using ZoomersClient.Shared.Models.DTOs
 
 <div class='player-answer-button my-1 @Class @(Selected? "selected" : "")' @onclick="ClickToggleActive">
     <PlayerBadge Player="Player"></PlayerBadge>
@@ -20,10 +20,10 @@
 
 @code {
     [Parameter]
-    public Player Player { get; set; }
+    public PlayerDto Player { get; set; }
 
     [Parameter]
-    public AnsweredQuestion Answer { get; set; }
+    public AnsweredQuestionDto Answer { get; set; }
 
     [Parameter]
     public string Class { get; set; }
@@ -32,7 +32,7 @@
     public bool Selected { get; set; }
 
     [Parameter]
-    public EventCallback<Player> OnClickButton { get; set; }
+    public EventCallback<PlayerDto> OnClickButton { get; set; }
 
     [Parameter]
     public RenderFragment ChildContent { get; set; }

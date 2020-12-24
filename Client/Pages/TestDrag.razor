@@ -1,33 +1,33 @@
 @page "/drag"
 @using ZoomersClient.Client.Components.Players
-@using ZoomersClient.Shared.Models
+@using ZoomersClient.Shared.Models.DTOs
 @using ZoomersClient.Shared.Models.Enums
 
 <DragDropAnswerPanel Players="@PlayerList" Answers="@Answers" Enabled="true" SubmitAnswers="Submit"></DragDropAnswerPanel>
 
 @code {
 
-    public List<Player> PlayerList = new List<Player>() {
-        new Player { Icon = PlayerIcon.Spider, BackgroundColor = "rgb(12,132,5)", Username = "Hugo Chavez" },
-        new Player { Icon = PlayerIcon.Ghost, BackgroundColor = "rgb(124,132,5)", Username = "Player Play" },
-        new Player { Icon = PlayerIcon.PalmTree, BackgroundColor = "rgb(12,1,56)", Username = "Tegan the Wise" },
-        new Player { Icon = PlayerIcon.Vampire, BackgroundColor = "rgb(123,32,5)", Username = "Shane Sievers" },
-        new Player { Icon = PlayerIcon.Dragon, BackgroundColor = "rgb(12,132,5)", Username = "Captain Dad" }
+    public List<PlayerDto> PlayerList = new List<PlayerDto>() {
+        new PlayerDto { Icon = PlayerIcon.Spider, BackgroundColor = "rgb(12,132,5)", Username = "Hugo Chavez" },
+        new PlayerDto { Icon = PlayerIcon.Ghost, BackgroundColor = "rgb(124,132,5)", Username = "Player Play" },
+        new PlayerDto { Icon = PlayerIcon.PalmTree, BackgroundColor = "rgb(12,1,56)", Username = "Tegan the Wise" },
+        new PlayerDto { Icon = PlayerIcon.Vampire, BackgroundColor = "rgb(123,32,5)", Username = "Shane Sievers" },
+        new PlayerDto { Icon = PlayerIcon.Dragon, BackgroundColor = "rgb(12,132,5)", Username = "Captain Dad" }
     };
 
-    public List<List<Player>> PlayerListOfLists = new List<List<Player>>() {
-        new List<Player>(),
-        new List<Player>(),
-        new List<Player>(),
-        new List<Player>(),
+    public List<List<PlayerDto>> PlayerListOfLists = new List<List<PlayerDto>>() {
+        new List<PlayerDto>(),
+        new List<PlayerDto>(),
+        new List<PlayerDto>(),
+        new List<PlayerDto>(),
     };
 
-    public List<AnsweredQuestion> Answers = new List<AnsweredQuestion>() {
-        new AnsweredQuestion() { Question = new QuestionBase() { Question = "Hey, are you listening?"}, Answer = "I got this" },
-        new AnsweredQuestion() { Question = new QuestionBase() { Question = "Hey, are you listening?"}, Answer = "Not Thanks" },
-        new AnsweredQuestion() { Question = new QuestionBase() { Question = "Hey, are you listening?"}, Answer = "Not me tis time" },
-        new AnsweredQuestion() { Question = new QuestionBase() { Question = "Hey, are you listening?"}, Answer = "Do it again?" },
-        new AnsweredQuestion() { Question = new QuestionBase() { Question = "Hey, are you listening?"}, Answer = "Ok, over here" },
+    public List<AnsweredQuestionDto> Answers = new List<AnsweredQuestionDto>() {
+        new AnsweredQuestionDto() { Question = new QuestionDto() { Question = "Hey, are you listening?"}, Answer = "I got this" },
+        new AnsweredQuestionDto() { Question = new QuestionDto() { Question = "Hey, are you listening?"}, Answer = "Not Thanks" },
+        new AnsweredQuestionDto() { Question = new QuestionDto() { Question = "Hey, are you listening?"}, Answer = "Not me tis time" },
+        new AnsweredQuestionDto() { Question = new QuestionDto() { Question = "Hey, are you listening?"}, Answer = "Do it again?" },
+        new AnsweredQuestionDto() { Question = new QuestionDto() { Question = "Hey, are you listening?"}, Answer = "Ok, over here" },
     };
 
     public void Submit()

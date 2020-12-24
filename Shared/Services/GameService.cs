@@ -2,11 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using ZoomersClient.Shared.Data;
 using ZoomersClient.Shared.Exceptions;
 using ZoomersClient.Shared.Models;
+using ZoomersClient.Shared.Models.DTOs;
 using ZoomersClient.Shared.Models.Enums;
 
 namespace ZoomersClient.Shared.Services
@@ -15,180 +18,247 @@ namespace ZoomersClient.Shared.Services
     {        
         private ILogger<GameService> _logger { get; set; }
         private ApplicationDBContext _database { get; set; }
+        private readonly IMapper _mapper;
 
-        public GameService(ILogger<GameService> logger, ApplicationDBContext database)
+        public GameService(ILogger<GameService> logger, ApplicationDBContext database, IMapper mapper)
         {
             _logger = logger;
             _database = database;
-            
-            // SeedDefaultGame();
+            _mapper = mapper;
         }
 
-        public List<Game> AllGames()
+        public List<GameDto> AllGames()
         {
-            return _database.Games.ToList();
+            var games = _database.Games.ToList();
+
+            return _mapper.Map<List<GameDto>>(games);
         }
 
-        // public Game SeedDefaultGame()
-        // {
-        //     if 
-        //     // https://postimg.cc/gallery/hxv1nzD/4752bea0
-        //     var defaultGame = new Game("SWB Game", "en-GB", 2);
-        //     defaultGame.Id = Guid.Parse("5b05a3a6-7665-47dd-b515-03372211a95e");
-        //     Games.Add(defaultGame);
-
-        //     return defaultGame;
-        // }
-
-        public async Task<Game> FindGameAsync(Guid id)
+        public async Task<GameDto> FindGameAsync(Guid id)
         {
-            Console.WriteLine("Looking for game...");
             var game = await _database.Games.FirstOrDefaultAsync(x => x.Id == id);
             
-            return game; 
+            return _mapper.Map<GameDto>(game); 
         }
 
-        public Game FindGame(List<string> party)
+        public async Task SaveGameAsync(Game game)
         {
-            var game = _database.Games.FirstOrDefault(x => x.Party == string.Join('|', party));
+            _logger.LogInformation("Saving game");
 
-            return game; 
+            _database.Entry(game).State = EntityState.Modified;
+            await _database.SaveChangesAsync();
         }
 
-        public async Task<Game> CreateGameAsync(Game game)
+        public async Task<GameDto> AnswerQuestionAsync(Guid id, PlayerDto player, int questionId, string answer)
         {
-            await _database.Games.AddAsync(game);
+            var game = await _database.Games.FirstOrDefaultAsync(x => x.Id == id);
+    
+            var p = game.Players.ToList().FirstOrDefault(x => x.Id == player.Id);
+
+            game.AnswerQuestion(p, questionId, answer);
+
+            await SaveGameAsync(game);
+
+            return _mapper.Map<GameDto>(game);
+        }
+
+        public async Task RecordGuessAsync(Guid id, int questionId, Guid playerId, int guess)
+        {
+            var game = await _database.Games.FirstOrDefaultAsync(x => x.Id == id);
+
+            game.RecordGuess(questionId, playerId, guess);
+
+            await _database.SaveChangesAsync();
+        }
+
+        public async Task<GameDto> FindGameAsync(List<string> party)
+        {
+            var game = await _database.Games.FirstOrDefaultAsync(x => x.Party == string.Join('|', party));
+
+            return _mapper.Map<GameDto>(game); 
+        }
+
+        public async Task<GameDto> CreateGameAsync(Game game)
+        {
+            _database.Games.Add(game);
+
             await _database.SaveChangesAsync();
 
-            return game;
+            return _mapper.Map<GameDto>(game);
         }
 
-        public Game JoinGame(Guid id, Player player)
+        public async Task<GameDto> JoinGameAsync(Guid id, Player player)
         {
-            var game = _database.Games.FirstOrDefault(x => x.Id == id);
+            var game = await _database.Games.FirstOrDefaultAsync(x => x.Id == id);
 
             if (game != null)
             {
-                var existingPlayer = game.Players.Where(x => x.Id == player.Id);
-                if (existingPlayer.Any())
+                var existingPlayer = game.Players?.FirstOrDefault(x => x.Id == player.Id);
+                if (existingPlayer != null)
                 {
-                    _logger.LogInformation("Found an existing player with same Id.");                    
+                    _logger.LogInformation("Found an existing player with same Id. Update connection?");                    
                 }
-                else
+                else                
                 {
-                    game.Players.Add(player);                
+                    _logger.LogInformation("Adding player");
+                    
+                    _database.Players.Add(player);
+                    //_database.GamePlayers.Add(new GamePlayers { GameId = game.Id, PlayerId = player.Id });
+                                        
+                    await SaveGameAsync(game);
+
+                    //_logger.LogInformation(Extensions.Dump(game));
                 }
                 
             }
 
-            return game;
+            var mapped = _mapper.Map<GameDto>(game);
+
+            _logger.LogInformation(Extensions.Dump(mapped));
+
+            return mapped;
         }
 
-        public async Task<Game> AddQuestion(Guid id, QuestionBase q)
+        public async Task<GameDto> RecordScoresAsync(Guid id, int questionId, int score)
         {
-            var game = await FindGameAsync(id);
+            var game = await _database.Games.FirstOrDefaultAsync(x => x.Id == id);
 
-            if (game != null) {
-                // _logger.LogInformation(q.Question + " was just added");
-                
-                game.ResetAnswers()
-                    .Questions.Add(q as QuestionBase);
+            game.RecordScore(questionId, score).RecordGuesses(questionId);
 
-                // _logger.LogInformation(game.Questions.Count + " questions total");
+            await SaveGameAsync(game);
+
+            return _mapper.Map<GameDto>(game);
+        }
+
+        public async Task<PlayerDto> UpdatePlayerConnection(Guid id, Guid playerId, string connectionId)
+        {
+            var game = await _database.Games.FirstOrDefaultAsync(x => x.Id == id);
+            
+            var player = game.UpdatePlayerConnection(playerId, connectionId);
+
+            await SaveGameAsync(game);
+
+            return _mapper.Map<PlayerDto>(player);
+        }
+
+        public async Task<GameDto> UpdateGameConnection(Guid id, string connectionId)
+        {
+            var game = await _database.Games.FirstOrDefaultAsync(x => x.Id == id);
+            
+            game.UpdateGameConnection(connectionId);
+
+            await SaveGameAsync(game);
+
+            return _mapper.Map<GameDto>(game);
+        }
+
+        public async Task<GameDto> AddQuestionAsync(Guid id, QuestionBase q)
+        {
+            var game = await _database.Games.FirstOrDefaultAsync(x => x.Id == id);
+
+            if (game != null) 
+            {   
+                game.ResetAnswers().Questions.Add(q as QuestionBase);
+
+                game.GetNextPlayer();
+
+                await SaveGameAsync(game);
             }
 
-            return game;
+            return _mapper.Map<GameDto>(game);
         }
 
         public async Task DeleteAsync(Guid id)
         {
-            var game = await _database.Games.FirstOrDefaultAsync(a=>a.Id == id);
-            Console.WriteLine(game.Name + " is leaving us");
+            var game = await _database.Games.FirstOrDefaultAsync(a=> a.Id == id);
+
             _database.Remove(game);
 
             await _database.SaveChangesAsync();
         }
 
-        public void UpdateConnectionId(Guid id, string connectionId)
+        public async Task UpdateConnectionIdAsync(Guid id, string connectionId)
         {
-            var game = _database.Games.FirstOrDefault(x => x.Id == id);
+            var game = await _database.Games.FirstOrDefaultAsync(x => x.Id == id);
 
             if (game != null)
             {
                 game.ConnectionId = connectionId;
             }
+
+            await SaveGameAsync(game);
         }
 
-        public Player GetNextPlayer(Guid gameId)
+        public async Task<PlayerDto> GetNextPlayerAsync(Guid gameId)
         {
-            var game = _database.Games.FirstOrDefault(x => x.Id == gameId);
+            var game = await _database.Games.FirstOrDefaultAsync(x => x.Id == gameId);
 
             if (game != null)
             {
-                return game.GetNextPlayer();
+                return _mapper.Map<PlayerDto>(game.GetNextPlayer());
             }
             
             throw new GameNotFoundException();
         }
 
-        public Game EndGame(Guid gameId)
+        public async Task<GameDto> EndGameAsync(Guid gameId)
         {
-            var game = _database.Games.FirstOrDefault(x => x.Id == gameId);
+            var game = await _database.Games.FirstOrDefaultAsync(x => x.Id == gameId);
 
             if (game != null)
             {
-                return game.EndGame();
+                return _mapper.Map<GameDto>(game.EndGame());
             }
             
-            return game;
+            return _mapper.Map<GameDto>(game);
         }
 
-        public Game StartGame(Guid gameId)
+        public async Task<GameDto> StartGameAsync(Guid gameId)
         {
-            var game = _database.Games.FirstOrDefault(x => x.Id == gameId);
+            var game = await _database.Games.FirstOrDefaultAsync(x => x.Id == gameId);
 
             if (game != null)
             {
                 game.StartGame();
             }
 
-            return game;
+            return _mapper.Map<GameDto>(game);
         }
 
-        public Game StartNextRound(Guid gameId)
+        public async Task<GameDto> StartNextRoundAsync(Guid gameId)
         {
-            var game = _database.Games.FirstOrDefault(x => x.Id == gameId);
+            var game = await _database.Games.FirstOrDefaultAsync(x => x.Id == gameId);
 
             if (game != null)
             {
                 game.NextRound();
             }
             
-            return game;
+            return _mapper.Map<GameDto>(game);
         }
 
-        public Game AddAudienceReaction(Guid gameId, Player fromPlayer, Player toPlayer, AnswerReaction reaction)
+        public async Task<GameDto> AddAudienceReactionAsync(Guid gameId, Player fromPlayer, Player toPlayer, AnswerReaction reaction)
         {
-            var game = _database.Games.FirstOrDefault(x => x.Id == gameId);
+            var game = await _database.Games.FirstOrDefaultAsync(x => x.Id == gameId);
 
             if (game != null)
             {
                 game.AddReaction(fromPlayer, toPlayer, reaction);
             }
             
-            return game;
+            return _mapper.Map<GameDto>(game);
         }
 
-        public Game ResetGame(Guid gameId)
+        public async Task<GameDto> ResetGameAsync(Guid gameId)
         {
-            var game = _database.Games.FirstOrDefault(x => x.Id == gameId);
+            var game = await _database.Games.FirstOrDefaultAsync(x => x.Id == gameId);
 
             if (game != null)
             {
                 game.ResetGame();
             }
             
-            return game;
+            return _mapper.Map<GameDto>(game);
         }
-    }
+    }    
 }

@@ -1,4 +1,4 @@
-@using ZoomersClient.Shared.Models
+@using ZoomersClient.Shared.Models.DTOs
 
 <div class="player-badge @Class">    
     <PlayerIconButton Icon="@Player.Icon" BackgroundColor="@Player.BackgroundColor" Class="rotate-in-center"></PlayerIconButton>    
@@ -14,7 +14,7 @@
     public string Class { get; set; }
 
     [Parameter]
-    public Player Player { get; set; }
+    public PlayerDto Player { get; set; }
     
     [Parameter]
     public RenderFragment ChildContent { get; set; }

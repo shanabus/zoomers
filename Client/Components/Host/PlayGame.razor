@@ -1,8 +1,7 @@
 @inject HttpClient Http
 @using ZoomersClient.Client.Components.Players
 @using ZoomersClient.Client.Components.Shared
-@using ZoomersClient.Shared
-@using ZoomersClient.Shared.Models
+@using ZoomersClient.Shared.Models.DTOs
 @using Microsoft.AspNetCore.SignalR.Client
 @inject NavigationManager NavigationManager
 @using Toolbelt.Blazor.SpeechSynthesis
@@ -128,16 +127,16 @@
 @code {
 
     [Parameter]
-    public Game Game { get; set; }
+    public GameDto Game { get; set; }
     [Parameter]
-    public EventCallback<Game> OnGameReset { get; set; }
+    public EventCallback<GameDto> OnGameReset { get; set; }
     [CascadingParameter]
     public GameState State { get; set; }
-    public Player CurrentPlayer { get; set; }
+    public PlayerDto CurrentPlayer { get; set; }
     public string StatusMessage { get; set; }
     [Parameter]
-    public QuestionBase CurrentQuestion { get; set; }
-    public List<Player> PlayersAnswered { get; set; }
+    public QuestionDto CurrentQuestion { get; set; }
+    public List<PlayerDto> PlayersAnswered { get; set; }
     public Dictionary<Guid, int> PlayerLove { get; set; }
     private Timer timerRef { get; set; }
 
@@ -152,7 +151,7 @@
     {
         base.OnInitialized();
         
-        PlayersAnswered = new List<Player>();
+        PlayersAnswered = new List<PlayerDto>();
                 
         // connect to hub
         hubConnection = new HubConnectionBuilder()
@@ -160,7 +159,7 @@
             .Build();
 
         // subscribe to game events             
-        hubConnection.On<Game>("GameConnected", async (game) => {
+        hubConnection.On<GameDto>("GameConnected", async (game) => {
             Game = game;
             // get player on deck, ask first question
             var category = (Game.CurrentRound == 1 && Game.Questions.Count <= 2) ? "First" : null;
@@ -168,12 +167,12 @@
             await hubConnection.SendAsync("AskQuestion", Game.Id, category);
         });
 
-        hubConnection.On<Game, QuestionBase, Player>("QuestionReady", async (game, question, player) => {   
+        hubConnection.On<GameDto, QuestionDto, PlayerDto>("QuestionReady", async (game, question, player) => {   
             // reset UI            
             Game = game;
             CurrentQuestion = question;
             CurrentPlayer = player;
-            PlayersAnswered = new List<Player>();
+            PlayersAnswered = new List<PlayerDto>();
             State = GameState.Playing;
             CurrentPlayerScore = 0;
             ScoreShown = 0;
@@ -191,7 +190,7 @@
             SpeakPhrase(question.Question);
         });
 
-        hubConnection.On<Game, Player>("QuestionAnswered", async (game, player) => {
+        hubConnection.On<GameDto, PlayerDto>("QuestionAnswered", async (game, player) => {
             Game = game;
             PlayersAnswered.Add(player);
 
@@ -205,14 +204,14 @@
             }
         });
 
-        hubConnection.On<Game, SpeechSynthesisUtterance>("AnswersFinished", (game, phrase) => {
+        hubConnection.On<GameDto, SpeechSynthesisUtterance>("AnswersFinished", (game, phrase) => {
             Game = game;
             StatusMessage = phrase.Text;
             StateHasChanged();
             SpeakPhrase(phrase.Text);
         });        
         
-        hubConnection.On<bool, Game>("QuestionSummaryStarted", async (timeExpired, game) => {
+        hubConnection.On<bool, GameDto>("QuestionSummaryStarted", async (timeExpired, game) => {
             StatusMessage = "Time to see how you did";
             Game = game;
             State = GameState.QuestionSummary;
@@ -251,7 +250,7 @@
         });
 
 
-        hubConnection.On<Game>("ProceedToNextQuestion", async (game) => {
+        hubConnection.On<GameDto>("ProceedToNextQuestion", async (game) => {
             State = GameState.SummaryIsEnding;
             StateHasChanged();
             await Task.Delay(700);   
@@ -261,7 +260,7 @@
             await hubConnection.SendAsync("AskQuestion", Game.Id, null);
         });
 
-        hubConnection.On<Game>("RoundOver", async (game) => {            
+        hubConnection.On<GameDto>("RoundOver", async (game) => {            
             Game = game;
             
             if(Game.State != GameState.Ended)
@@ -297,7 +296,7 @@
             }
         });
 
-        hubConnection.On<Game>("GameOver", async (game) => {
+        hubConnection.On<GameDto>("GameOver", async (game) => {
             Game = game;
             ScoreShown = 0;
             StatusMessage = "Game Over";
@@ -333,13 +332,13 @@
             }
         }); 
         
-        hubConnection.On<Game>("GameReset", async (game) => {
+        hubConnection.On<GameDto>("GameReset", async (game) => {
             Game = game;
             await OnGameReset.InvokeAsync(game);
         }); 
 
         // process the love
-        hubConnection.On<Player, Player, AnswerReaction>("ReactionReceived", (fromPlayer, toPlayer, reaction) => {           
+        hubConnection.On<PlayerDto, PlayerDto, AnswerReaction>("ReactionReceived", (fromPlayer, toPlayer, reaction) => {           
             if (PlayerLove.ContainsKey(toPlayer.Id))
             {
                 PlayerLove[toPlayer.Id] += 1;
@@ -376,7 +375,8 @@
         
         this.SpeechSynthesis.Speak(new SpeechSynthesisUtterance() {
             Lang = Game.Voice,
-            Text = message
+            Text = message,
+            Volume = 0.1
         });
     }
     

@@ -1,7 +1,7 @@
 @page "/answer"
 @using System;
 @using ZoomersClient.Client.Components.Players
-@using ZoomersClient.Shared.Models
+@using ZoomersClient.Shared.Models.DTOs
 @using ZoomersClient.Shared.Models.Enums
 @inject IJSRuntime js
 
@@ -24,25 +24,25 @@
 
     public int rWrong { get; set; }
 
-    public List<Player> PlayerList = new List<Player>() {
-        new Player { Id = Guid.NewGuid(), Icon = PlayerIcon.Spider, BackgroundColor = "rgb(12,132,5)", Username = "Hugo Chavez" },
-        new Player { Id = Guid.NewGuid(), Icon = PlayerIcon.Ghost, BackgroundColor = "rgb(124,132,5)", Username = "Player Play" },
-        new Player { Id = Guid.NewGuid(), Icon = PlayerIcon.PalmTree, BackgroundColor = "rgb(12,1,56)", Username = "Tegan the Wise" },
-        new Player { Id = Guid.NewGuid(), Icon = PlayerIcon.Vampire, BackgroundColor = "rgb(123,32,5)", Username = "Shane Sievers" },
-        new Player { Id = Guid.NewGuid(), Icon = PlayerIcon.Dragon, BackgroundColor = "rgb(12,132,5)", Username = "Captain Dad" }
+    public List<PlayerDto> PlayerList = new List<PlayerDto>() {
+        new PlayerDto { Id = Guid.NewGuid(), Icon = PlayerIcon.Spider, BackgroundColor = "rgb(12,132,5)", Username = "Hugo Chavez" },
+        new PlayerDto { Id = Guid.NewGuid(), Icon = PlayerIcon.Ghost, BackgroundColor = "rgb(124,132,5)", Username = "Player Play" },
+        new PlayerDto { Id = Guid.NewGuid(), Icon = PlayerIcon.PalmTree, BackgroundColor = "rgb(12,1,56)", Username = "Tegan the Wise" },
+        new PlayerDto { Id = Guid.NewGuid(), Icon = PlayerIcon.Vampire, BackgroundColor = "rgb(123,32,5)", Username = "Shane Sievers" },
+        new PlayerDto { Id = Guid.NewGuid(), Icon = PlayerIcon.Dragon, BackgroundColor = "rgb(12,132,5)", Username = "Captain Dad" }
     };
 
-    public List<AnsweredQuestion> Answers = new List<AnsweredQuestion>();
+    public List<AnsweredQuestionDto> Answers = new List<AnsweredQuestionDto>();
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
     
-        Answers = new List<AnsweredQuestion>() {
-            new AnsweredQuestion() { Player = PlayerList[1], Question = new QuestionBase() { Question = "Hey, are you listening?"}, Answer = "I got this" },
-            new AnsweredQuestion() { Player = PlayerList[2], Question = new QuestionBase() { Question = "Hey, are you listening?"}, Answer = "Not Thanks" },
-            new AnsweredQuestion() { Player = PlayerList[3], Question = new QuestionBase() { Question = "Hey, are you listening?"}, Answer = "Not me tis time" },
-            new AnsweredQuestion() { Player = PlayerList[4], Question = new QuestionBase() { Question = "Hey, are you listening?"}, Answer = "Do it again?" },
+        Answers = new List<AnsweredQuestionDto>() {
+            new AnsweredQuestionDto() { Player = PlayerList[1], Question = new QuestionDto() { Question = "Hey, are you listening?"}, Answer = "I got this" },
+            new AnsweredQuestionDto() { Player = PlayerList[2], Question = new QuestionDto() { Question = "Hey, are you listening?"}, Answer = "Not Thanks" },
+            new AnsweredQuestionDto() { Player = PlayerList[3], Question = new QuestionDto() { Question = "Hey, are you listening?"}, Answer = "Not me tis time" },
+            new AnsweredQuestionDto() { Player = PlayerList[4], Question = new QuestionDto() { Question = "Hey, are you listening?"}, Answer = "Do it again?" },
         };
     }    
 

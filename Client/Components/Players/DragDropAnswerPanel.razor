@@ -1,10 +1,10 @@
 @using Plk.Blazor.DragDrop
 @using ZoomersClient.Client.Components.Shared
-@using ZoomersClient.Shared.Models
+@using ZoomersClient.Shared.Models.DTOs
 
 
 <div class="row">
-<Dropzone Items="Players" TItem="Player" Class="players-to-answer">
+<Dropzone Items="Players" TItem="PlayerDto" Class="players-to-answer">
     <div style="border: 2px solid blue;">
         <PlayerBadge Player="@context"></PlayerBadge>
     </div>
@@ -20,7 +20,7 @@
             <div class="answered" style="pointer-events: none;">
                 There is a really long answer here.
             </div>     
-            <Dropzone MaxItems="2" TItem="Player" Items="@ListOfPlayers[p]" Class="players-to-answer answers">
+            <Dropzone MaxItems="2" TItem="PlayerDto" Items="@ListOfPlayers[p]" Class="players-to-answer answers">
                 <div style="border: 2px solid black">
                     <PlayerBadge Player="@context">There is a really long answer here!</PlayerBadge>
                 </div>
@@ -40,26 +40,26 @@
 @code {
 
     [Parameter]
-    public List<Player> Players { get; set; }
+    public List<PlayerDto> Players { get; set; }
     [Parameter]
     public bool Enabled { get; set; }
 
     [Parameter]
-    public List<AnsweredQuestion> Answers { get; set; }
+    public List<AnsweredQuestionDto> Answers { get; set; }
 
-    public List<List<Player>> ListOfPlayers { get; set; }
+    public List<List<PlayerDto>> ListOfPlayers { get; set; }
 
     [Parameter]
     public EventCallback SubmitAnswers { get; set; }
 
     protected override void OnInitialized()
     {
-        ListOfPlayers = new List<List<Player>>();
+        ListOfPlayers = new List<List<PlayerDto>>();
     }
 
     protected override void OnParametersSet(){
         foreach(var p in Players){
-            ListOfPlayers.Add(new List<Player>());
+            ListOfPlayers.Add(new List<PlayerDto>());
         }
         StateHasChanged();
     }

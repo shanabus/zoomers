@@ -15,22 +15,23 @@ namespace ZoomersClient.Shared.Models
         public string Name { get; set; }
         public string Voice { get; set; }
         public string GameType = "wordplay";
-        public const int MinimumNumberOfPlayers = 2;
+        public int MinimumNumberOfPlayers = 2;
         public int MaximumNumberOfPlayers = 8;
         public int Rounds { get; set; }
         public int CurrentRound { get; set; }
         
         public GameState State { get; set; }
-        public string Party { get; set; }
-        public List<Player> Players { get; set;}        
-        public Player CurrentPlayer { get; set; }
+        public string Party { get; set; }        
+        public List<Player> Players { get; set; }
         public List<AnsweredQuestion> AnsweredQuestions { get; set; }
         public List<QuestionBase> Questions { get; set; }
         public List<AudienceScore> AudienceScore { get; set; }
 
         public Game()
         {
-            Id = Guid.NewGuid();            
+            Id = Guid.NewGuid(); 
+
+            Init();           
         }
 
         public Game(string name, string voice, int rounds)
@@ -46,7 +47,6 @@ namespace ZoomersClient.Shared.Models
 
         private void Init()
         {
-            Players = new List<Player>();
             AnsweredQuestions = new List<AnsweredQuestion>();
             Questions = new List<QuestionBase>();
             AudienceScore = new List<AudienceScore>();
@@ -98,11 +98,6 @@ namespace ZoomersClient.Shared.Models
             });
         }
 
-        public bool AskedEnoughQuestionsForRound()
-        {
-            return Questions.Count == Players.Count;
-        }
-
         public List<AnsweredQuestion> CorrectAnswers()
         {
             var answeredQuestions = new List<AnsweredQuestion>();
@@ -132,7 +127,7 @@ namespace ZoomersClient.Shared.Models
             return (T) v.GetValue (_R.Next(1,v.Length));
         }
 
-        public Game UpdateGameConnection(Guid gameId, string connectionId)
+        public Game UpdateGameConnection(string connectionId)
         {
             ConnectionId = connectionId;
 
@@ -186,14 +181,16 @@ namespace ZoomersClient.Shared.Models
         {
             try
             {
+                Players.ForEach(p => p.OnDeck = false);
+
                 var mod = (Questions.Count - 1) % Players.Count;
 
                 // this assumes the question was asked first...
                 // Players.ForEach(x => Console.WriteLine(x.Username));
                 // Console.WriteLine("Mod result = " + mod);
-                CurrentPlayer = Players[mod];
+                Players[mod].OnDeck = true;
                 
-                return CurrentPlayer;
+                return Players[mod];
             }
             catch(Exception e) 
             {
@@ -250,40 +247,7 @@ namespace ZoomersClient.Shared.Models
 
             return this;
         }
-
-        public Game ShuffleAnswers()
-        {
-            var r = new Random();
-            AnsweredQuestions.OrderBy(x => r.Next());
-            
-            return this;
-        }
         
-        public string[] GameAndCurrentPlayerConnections()
-        {
-            var conns = new string[] { CurrentPlayer.ConnectionId, ConnectionId };
-            return conns;
-        }
-
-        public string[] GameAndPlayerConnections(Player player)
-        {
-            var conns = new string[] { player.ConnectionId, ConnectionId };
-            return conns;
-        }
-
-        public string[] GameAndAllPlayerConnections()
-        {
-            var conns = Players.Select(x => x.ConnectionId).ToList();
-            conns.Add(ConnectionId);
-
-            return conns.ToArray();
-        }
-
-        public bool HasEnoughPlayers()
-        {
-            return Players.Count() >= MinimumNumberOfPlayers;
-        }
-
         public Game ResetAnswers()
         {
             AnsweredQuestions = new List<AnsweredQuestion>();

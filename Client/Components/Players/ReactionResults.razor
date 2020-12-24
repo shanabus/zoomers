@@ -1,5 +1,5 @@
 @using ZoomersClient.Shared
-@using ZoomersClient.Shared.Models
+@using ZoomersClient.Shared.Models.DTOs
 @using ZoomersClient.Shared.Models.Enums
 
 @if (Player.LoveScore > 0)
@@ -53,10 +53,10 @@
 
 @code {
     [Parameter]
-    public Player Player { get; set; }
+    public PlayerDto Player { get; set; }
 
     [Parameter]
-    public Game Game { get; set; }
+    public GameDto Game { get; set; }
 
     [Parameter]
     public int? Guess { get; set; }

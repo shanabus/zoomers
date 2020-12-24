@@ -161,16 +161,16 @@ else
 
     [Parameter]
     public string Id { get; set; }
-    public Player Player { get; set; }
+    public PlayerDto Player { get; set; }
     public string Answer { get; set; }
     public string StatusMessage { get; set; }
     public int? CurrentGuess { get; set; }
     public PlayState State { get; set; }
 
-    public Game Game { get; set;}
+    public GameDto Game { get; set;}
     public bool PlayerIsCurrentPlayer => Game.CurrentPlayer?.Id == Player.Id;
     public bool EveryoneHasAnswered => Game.AnsweredQuestions.Count() == Game.Players.Count();
-    public QuestionBase CurrentQuestion => Game.Questions.LastOrDefault();
+    public QuestionDto CurrentQuestion => Game.Questions.LastOrDefault();
     
 
     private void UpdatePlayState()
@@ -212,7 +212,7 @@ else
     {
         base.OnInitialized();
 
-        Game = await Http.GetFromJsonAsync<Game>($"Games/{Id}");
+        Game = await Http.GetFromJsonAsync<GameDto>($"Games/{Id}");
         
         Player = await GetPlayerFromStorageAsync();
 
@@ -231,7 +231,7 @@ else
             .Build();
 
         // subscribe to other things
-        hubConnection.On<Game, QuestionBase, Player>("QuestionReady", (game, question, player) => {               
+        hubConnection.On<GameDto, QuestionBase, Player>("QuestionReady", (game, question, player) => {               
             // reset UI
             Game = game;
             
@@ -240,7 +240,7 @@ else
             StateHasChanged();
         });
 
-        hubConnection.On<Game, SpeechSynthesisUtterance>("AnswersFinished", (game, phrase) => {            
+        hubConnection.On<GameDto, SpeechSynthesisUtterance>("AnswersFinished", (game, phrase) => {            
             StatusMessage = phrase.Text;
             Game = game;
             
@@ -253,32 +253,32 @@ else
             StateHasChanged();
         });  
         
-        hubConnection.On<Player, Player, AnswerReaction>("ReactionReceived", async (fromPlayer, toPlayer, reaction) => {   
+        hubConnection.On<PlayerDto, PlayerDto, AnswerReaction>("ReactionReceived", async (fromPlayer, toPlayer, reaction) => {   
             if (Player.Id == toPlayer.Id)
             {
                 await js.InvokeVoidAsync("FloatItem", reaction.ToEmoji());                
             }            
         });
 
-        hubConnection.On<bool, Game>("QuestionSummaryStarted", (timeExpired, game) => {                        
+        hubConnection.On<bool, GameDto>("QuestionSummaryStarted", (timeExpired, game) => {                        
             Game = game;
             StatusMessage = "";
             State = PlayState.QuestionScores;
             StateHasChanged();
         });
 
-        hubConnection.On<Game>("GameOver", (game) => {
+        hubConnection.On<GameDto>("GameOver", (game) => {
             Game = game;            
             Console.WriteLine("Game over and...");
             StateHasChanged();
         }); 
 
-        hubConnection.On<Game>("GameReset", (game) => {
+        hubConnection.On<GameDto>("GameReset", (game) => {
             Console.WriteLine("Reset game?");
             NavigationManager.NavigateTo("join");
         });
         
-        hubConnection.On<Player>("PlayerUpdated", async (player) => {
+        hubConnection.On<PlayerDto>("PlayerUpdated", async (player) => {
             Player = player;
             await SavePlayerToStorageAsync(player);
             Console.WriteLine(player.ConnectionId + " was updated");
@@ -316,7 +316,7 @@ else
         }        
     }
 
-    public async Task SubmitQuestionCompleteAnswer(List<AnsweredQuestion> answers)
+    public async Task SubmitQuestionCompleteAnswer(List<AnsweredQuestionDto> answers)
     {
         State = PlayState.QuestionScores;
 
@@ -326,17 +326,17 @@ else
         StateHasChanged();
     }
 
-    private async Task SavePlayerToStorageAsync(Player player)
+    private async Task SavePlayerToStorageAsync(PlayerDto player)
     {
-        await localStore.SetItemAsync<Player>("player", player); 
+        await localStore.SetItemAsync<PlayerDto>("player", player); 
     }
 
-    public async Task<Player> GetPlayerFromStorageAsync()
+    public async Task<PlayerDto> GetPlayerFromStorageAsync()
     {
         var playerExists = await localStore.ContainKeyAsync("player");
         if (playerExists)
         {
-            var player = await localStore.GetItemAsync<Player>("player");
+            var player = await localStore.GetItemAsync<PlayerDto>("player");
 
             return player;
         }

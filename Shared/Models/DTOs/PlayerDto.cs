@@ -1,14 +1,12 @@
 using System;
 using ZoomersClient.Shared.Models.Enums;
 
-namespace ZoomersClient.Shared.Models
+namespace ZoomersClient.Shared.Models.DTOs
 {
-    public class Player
+    public class PlayerDto
     {
         public Guid Id { get; set; }
-
         public Guid GameId { get; set; }
-        
         public string ConnectionId { get; set; }
         public string Username { get; set; }
         public PlayerIcon Icon { get; set; }

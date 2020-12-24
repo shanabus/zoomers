@@ -1,5 +1,5 @@
 @using ZoomersClient.Client.Components.Shared
-@using ZoomersClient.Shared.Models
+@using ZoomersClient.Shared.Models.DTOs
 @using ZoomersClient.Shared.Models.Enums
 @inject NavigationManager NavigationManager
 
@@ -96,7 +96,7 @@
 
 @code {
     [Parameter]
-    public Game Game { get; set; }    
+    public GameDto Game { get; set; }    
     [Parameter]
     public string StatusMessage { get; set; }
 }

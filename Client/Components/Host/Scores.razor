@@ -1,6 +1,6 @@
 @using ZoomersClient.Client.Components.Shared
 @using ZoomersClient.Shared
-@using ZoomersClient.Shared.Models
+@using ZoomersClient.Shared.Models.DTOs
 @using ZoomersClient.Shared.Models.Enums
 
 <div class="row">
@@ -96,5 +96,5 @@
 
 @code {
     [Parameter]
-    public Game Game { get; set; }
+    public GameDto Game { get; set; }
 }

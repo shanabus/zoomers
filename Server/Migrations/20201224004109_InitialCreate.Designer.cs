@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ZoomersClient.Shared.Data;
 
-namespace ZoomersClient.Shared.Migrations
+namespace ZoomersClient.Server.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20201224004109_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -96,9 +98,6 @@ namespace ZoomersClient.Shared.Migrations
                     b.Property<string>("ConnectionId")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("CurrentPlayerId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<int>("CurrentRound")
                         .HasColumnType("int");
 
@@ -119,8 +118,6 @@ namespace ZoomersClient.Shared.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CurrentPlayerId");
-
                     b.ToTable("Games");
                 });
 
@@ -139,7 +136,7 @@ namespace ZoomersClient.Shared.Migrations
                     b.Property<int>("CorrectGuesses")
                         .HasColumnType("int");
 
-                    b.Property<Guid?>("GameId")
+                    b.Property<Guid>("GameId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("HateReactions")
@@ -156,6 +153,9 @@ namespace ZoomersClient.Shared.Migrations
 
                     b.Property<int>("LoveScore")
                         .HasColumnType("int");
+
+                    b.Property<bool>("OnDeck")
+                        .HasColumnType("bit");
 
                     b.Property<int>("Score")
                         .HasColumnType("int");
@@ -229,20 +229,13 @@ namespace ZoomersClient.Shared.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ZoomersClient.Shared.Models.Game", b =>
-                {
-                    b.HasOne("ZoomersClient.Shared.Models.Player", "CurrentPlayer")
-                        .WithMany()
-                        .HasForeignKey("CurrentPlayerId");
-
-                    b.Navigation("CurrentPlayer");
-                });
-
             modelBuilder.Entity("ZoomersClient.Shared.Models.Player", b =>
                 {
                     b.HasOne("ZoomersClient.Shared.Models.Game", null)
                         .WithMany("Players")
-                        .HasForeignKey("GameId");
+                        .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ZoomersClient.Shared.Models.QuestionBase", b =>

@@ -4,7 +4,7 @@
 @using ZoomersClient.Client.Components.Host
 @using ZoomersClient.Client.Components.Shared
 @using ZoomersClient.Shared.Models
-@using ZoomersClient.Client.Components
+@using ZoomersClient.Shared.Models.DTOs
 @using Microsoft.AspNetCore.SignalR.Client
 @inject NavigationManager NavigationManager
 @using Toolbelt.Blazor.SpeechSynthesis
@@ -36,7 +36,7 @@ else
 @code {
     [Parameter]
     public string Id { get; set; }
-    public Game Game { get; set; }
+    public GameDto Game { get; set; }
     public string StatusMessage { get; set; }
     public GameState State { get; set; }
     
@@ -46,7 +46,7 @@ else
     {
         base.OnInitialized();
 
-        Game = await Http.GetFromJsonAsync<Game>($"Games/{Id}");
+        Game = await Http.GetFromJsonAsync<GameDto>($"Games/{Id}");
         State = GameState.Lobby;
         StatusMessage = "Scan the QR code with your phone and enter the Party Code to join the lobby";
         SpeakMessage(new SpeechSynthesisUtterance() {
@@ -60,7 +60,7 @@ else
             .Build();
 
         // subscribe to other things
-        hubConnection.On<Game, Player, SpeechSynthesisUtterance>("PlayersUpdated", (game, player, phrase) =>
+        hubConnection.On<GameDto, PlayerDto, SpeechSynthesisUtterance>("PlayersUpdated", (game, player, phrase) =>
         {            
             Game = game;
             if (Game.Players.Count > 3) {
@@ -99,7 +99,7 @@ else
         // start hub
         await hubConnection.StartAsync();
 
-        await hubConnection.SendAsync("Subscribe", Id);
+        await hubConnection.SendAsync("SubscribeAsync", Id);
     }
 
     private void SpeakMessage(SpeechSynthesisUtterance phrase)
@@ -119,15 +119,13 @@ else
         return message;
     }
 
-    public void OnGameResetAsync(Game game)
+    public void OnGameResetAsync(GameDto game)
     {
         Console.WriteLine("Reset game!");
         Game = game;
         StateHasChanged();
                 
         NavigationManager.NavigateTo($"/");
-
-        // await this.OnInitializedAsync();
     }
 
     public bool IsConnected =>

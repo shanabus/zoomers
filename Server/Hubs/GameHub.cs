@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Toolbelt.Blazor.SpeechSynthesis;
 using ZoomersClient.Server.Services;
 using ZoomersClient.Shared.Models;
@@ -30,7 +31,7 @@ namespace ZoomersClient.Server.Hubs
 
         public async Task JoinTheGame(List<string> partyIcons, string username, PlayerIcon icon, string color, string sound)
         {
-            var game = _gameService.FindGame(partyIcons);
+            var game = await _gameService.FindGameAsync(partyIcons);
             if (game == null)
             {
                 await Clients.Caller.SendAsync("PlayerJoinedError", "Could not find game");
@@ -39,8 +40,10 @@ namespace ZoomersClient.Server.Hubs
             {   
                 if (game.Players.Count < game.MaximumNumberOfPlayers)               
                 {
+                    // todo look for existing player
                     var player = new Player() { 
                         Id = Guid.NewGuid(),
+                        GameId = game.Id,
                         ConnectionId = Context.ConnectionId, 
                         Username = username,
                         Icon = icon,
@@ -49,10 +52,10 @@ namespace ZoomersClient.Server.Hubs
                     };
                     // _logger.LogInformation(player.Username + " connected as " + player.ConnectionId);
                     
-                    var updatedGame = _gameService.JoinGame(game.Id, player);
+                    var updatedGame = await _gameService.JoinGameAsync(game.Id, player);
 
                     // let new player know
-                    await Clients.Caller.SendAsync("PlayerJoined", game, player);                
+                    await Clients.Caller.SendAsync("PlayerJoined", updatedGame, player);                
 
                     var phrase = _phrases.GetRandomPlayerJoinedPhrase(username, updatedGame.Voice) as SpeechSynthesisUtterance;
                     await Clients.All.SendAsync("PlayersUpdated", updatedGame, player, phrase);
@@ -78,15 +81,15 @@ namespace ZoomersClient.Server.Hubs
         public async Task StartGame(Guid gameId)
         {
             // get game, start it (set date?)
-            var game = _gameService.StartGame(gameId);
+            var game = _gameService.StartGameAsync(gameId);
 
             // inform players game has started
             await Clients.All.SendAsync("GameStarted", gameId);
         }
 
-        public void Subscribe(Guid id)
+        public async Task SubscribeAsync(Guid id)
         {
-            _gameService.UpdateConnectionId(id, Context.ConnectionId);
+            await _gameService.UpdateConnectionIdAsync(id, Context.ConnectionId);
         }
     }
 }

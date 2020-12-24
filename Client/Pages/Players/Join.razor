@@ -1,8 +1,10 @@
 @page "/join"
 @inject HttpClient Http
 @using Microsoft.AspNetCore.SignalR.Client
+@using Newtonsoft.Json
 @using ZoomersClient.Client.Components.Shared
 @using ZoomersClient.Shared.Models
+@using ZoomersClient.Shared.Models.DTOs
 @using ZoomersClient.Shared.Models.Enums
 @inject Blazored.LocalStorage.ILocalStorageService localStore
 @inject NavigationManager NavigationManager
@@ -250,7 +252,7 @@
     };
     
     public string GameStatus { get; set;}
-    public Game Game { get; set; }
+    public GameDto Game { get; set; }
     
     public bool ShowStartButton => Game != null && Game.HasEnoughPlayers() && Game.Players.First().Id == Player.Id;
 
@@ -271,7 +273,7 @@
         await CheckExistingPlayerAndGame();
 
         // subscribe to other things
-        hubConnection.On<Game, Player>("PlayerJoined", async (game, player) => {
+        hubConnection.On<GameDto, Player>("PlayerJoined", async (game, player) => {
             Player = player;
             Game = game;
             GameStatus = $"Welcome to {game.Name} - Waiting for others to start...";
@@ -289,7 +291,7 @@
             StateHasChanged();
         });
 
-        hubConnection.On<Game>("ReadyToStartGame", (game) => {
+        hubConnection.On<GameDto>("ReadyToStartGame", (game) => {
             Game = game;
             StateHasChanged();
         });
@@ -417,7 +419,7 @@
             try
             {
                 var gameId = await GetGameFromStorageAsync();
-                Game = await Http.GetFromJsonAsync<Game>($"Games/{gameId}");
+                Game = await Http.GetFromJsonAsync<GameDto>($"Games/{gameId}");
 
                 if (Game == null || Game.State == GameState.Ended)
                 {
@@ -431,7 +433,9 @@
                     NavigationManager.NavigateTo($"play/{Game.Id}");
                 }
                 else if (Game.State == GameState.Lobby)
-                {
+                {                    
+                    Console.WriteLine(JsonConvert.SerializeObject(Game));
+
                     if (Game.Players.Any(x => x.Id == Player.Id))
                     {
                         Console.WriteLine("Game looks valid, should be in lobby");

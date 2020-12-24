@@ -30,14 +30,14 @@ namespace ZoomersClient.Server.Controllers
         }
 
         [HttpGet]
-        public IEnumerable<Game> Get()
+        public IEnumerable<GameDto> Get()
         {
             var games = _gameService.AllGames();
             return games;
         }
 
         [HttpGet("{id}")]
-        public async Task<Game> GetGame([FromRoute]Guid id)
+        public async Task<GameDto> GetGame([FromRoute]Guid id)
         {
             var game = await _gameService.FindGameAsync(id);
 
@@ -53,7 +53,7 @@ namespace ZoomersClient.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<Game> Post([FromBody] CreateGameDto dto)
+        public async Task<GameDto> Post([FromBody] CreateGameDto dto)
         {
             var game = new Game(dto.Name, dto.Voice, dto.Rounds);
             var gameresult = await _gameService.CreateGameAsync(game);

@@ -11,6 +11,7 @@ using ZoomersClient.Server.Services;
 using Microsoft.EntityFrameworkCore;
 using ZoomersClient.Shared.Data;
 using ZoomersClient.Shared.Services;
+using AutoMapper;
 
 namespace ZoomersClient.Server
 {
@@ -38,16 +39,19 @@ namespace ZoomersClient.Server
                 opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream"});
             });
 
+            services.AddAutoMapper(typeof(Startup));
+            
             // EF Migrations
             // https://docs.microsoft.com/en-us/ef/core/managing-schemas/migrations/?tabs=dotnet-core-cli
 
             // https://docs.microsoft.com/en-us/ef/core/dbcontext-configuration/#constructor-argument
-            services.AddDbContextFactory<ApplicationDBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddDbContext<ApplicationDBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("ZoomersClient.Server"))
+                .EnableSensitiveDataLogging().UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking), ServiceLifetime.Scoped);
 
             services.AddSingleton<WordPlay>();
             services.AddSingleton<Phrases>();
-            services.AddSingleton<ApplicationDBContext>();
-            services.AddSingleton<GameService>();
+            //services.AddScoped<ApplicationDBContext>();
+            services.AddScoped<GameService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

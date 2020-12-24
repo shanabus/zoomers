@@ -7,13 +7,12 @@ namespace ZoomersClient.Shared.Data
     {
         public ApplicationDBContext(DbContextOptions<ApplicationDBContext> options):base(options)
         {
+            
         }
 
-        // protected override void OnModelCreating(ModelBuilder modelBuilder)
-        // {
-        //     modelBuilder.Entity<Game>()
-        //         .HasMany(x => x.AnsweredQuestions);
-        // }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+        }
         
         public DbSet<Game> Games { get; set; }
 

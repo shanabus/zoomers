@@ -1,5 +1,5 @@
 @using ZoomersClient.Client.Components.Players
-@using ZoomersClient.Shared.Models
+@using ZoomersClient.Shared.Models.DTOs
 
 <h1>The answers are, lets see how they did:</h1>
 
@@ -18,8 +18,8 @@
 
 @code {
     [Parameter]
-    public Game Game { get; set; }
+    public GameDto Game { get; set; }
 
     [Parameter]
-    public Player CurrentPlayer { get; set; }    
+    public PlayerDto CurrentPlayer { get; set; }    
 }

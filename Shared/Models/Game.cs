@@ -27,17 +27,10 @@ namespace ZoomersClient.Shared.Models
         public List<QuestionBase> Questions { get; set; }
         public List<AudienceScore> AudienceScore { get; set; }
 
-        public Game()
-        {
-            Id = Guid.NewGuid(); 
-
-            Init();           
-        }
-
         public Game(string name, string voice, int rounds)
         {
             Id = Guid.NewGuid();
-            
+            Console.WriteLine("Game ctor overload about to call init");
             Init();
 
             Name = name;
@@ -47,6 +40,7 @@ namespace ZoomersClient.Shared.Models
 
         private void Init()
         {
+            Players = new List<Player>();
             AnsweredQuestions = new List<AnsweredQuestion>();
             Questions = new List<QuestionBase>();
             AudienceScore = new List<AudienceScore>();

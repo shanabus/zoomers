@@ -36,7 +36,7 @@ namespace ZoomersClient.Shared.Services
 
         public async Task<GameDto> FindGameAsync(Guid id)
         {
-            var game = await _database.Games.FirstOrDefaultAsync(x => x.Id == id);
+            var game = await _database.Games.Include(x => x.Players).FirstOrDefaultAsync(x => x.Id == id);
             
             return _mapper.Map<GameDto>(game); 
         }
@@ -87,9 +87,9 @@ namespace ZoomersClient.Shared.Services
             return _mapper.Map<GameDto>(game);
         }
 
-        public async Task<GameDto> JoinGameAsync(Guid id, Player player)
+        public async Task<GameDto> JoinGameAsync(Guid id, PlayerDto player)
         {
-            var game = await _database.Games.FirstOrDefaultAsync(x => x.Id == id);
+            var game = await _database.Games.Include(x => x.Players).FirstOrDefaultAsync(x => x.Id == id);
 
             if (game != null)
             {
@@ -102,9 +102,10 @@ namespace ZoomersClient.Shared.Services
                 {
                     _logger.LogInformation("Adding player");
                     
-                    _database.Players.Add(player);
-                    //_database.GamePlayers.Add(new GamePlayers { GameId = game.Id, PlayerId = player.Id });
-                                        
+                    var newPlayer = _mapper.Map<Player>(player);
+
+                    _database.Players.Add(newPlayer);
+                                                            
                     await SaveGameAsync(game);
 
                     //_logger.LogInformation(Extensions.Dump(game));
@@ -114,7 +115,7 @@ namespace ZoomersClient.Shared.Services
 
             var mapped = _mapper.Map<GameDto>(game);
 
-            _logger.LogInformation(Extensions.Dump(mapped));
+            //_logger.LogInformation(Extensions.Dump(mapped));
 
             return mapped;
         }
@@ -154,7 +155,10 @@ namespace ZoomersClient.Shared.Services
 
         public async Task<GameDto> AddQuestionAsync(Guid id, QuestionBase q)
         {
-            var game = await _database.Games.FirstOrDefaultAsync(x => x.Id == id);
+            var game = await _database.Games
+                .Include(x => x.Players)
+                .Include(x => x.Questions)
+                .FirstOrDefaultAsync(x => x.Id == id);
 
             if (game != null) 
             {   
@@ -177,9 +181,9 @@ namespace ZoomersClient.Shared.Services
             await _database.SaveChangesAsync();
         }
 
-        public async Task UpdateConnectionIdAsync(Guid id, string connectionId)
+        public async Task UpdateConnectionIdAsync(Guid gameId, string connectionId)
         {
-            var game = await _database.Games.FirstOrDefaultAsync(x => x.Id == id);
+            var game = await _database.Games.FirstOrDefaultAsync(x => x.Id == gameId);
 
             if (game != null)
             {
@@ -221,6 +225,8 @@ namespace ZoomersClient.Shared.Services
             {
                 game.StartGame();
             }
+
+            await SaveGameAsync(game);
 
             return _mapper.Map<GameDto>(game);
         }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
@@ -7,6 +8,7 @@ using Newtonsoft.Json;
 using Toolbelt.Blazor.SpeechSynthesis;
 using ZoomersClient.Server.Services;
 using ZoomersClient.Shared.Models;
+using ZoomersClient.Shared.Models.DTOs;
 using ZoomersClient.Shared.Models.Enums;
 using ZoomersClient.Shared.Services;
 
@@ -29,7 +31,7 @@ namespace ZoomersClient.Server.Hubs
             _phrases = phrases;
         }
 
-        public async Task JoinTheGame(List<string> partyIcons, string username, PlayerIcon icon, string color, string sound)
+        public async Task JoinTheGame(List<string> partyIcons, PlayerDto player)
         {
             var game = await _gameService.FindGameAsync(partyIcons);
             if (game == null)
@@ -41,24 +43,22 @@ namespace ZoomersClient.Server.Hubs
                 if (game.Players.Count < game.MaximumNumberOfPlayers)               
                 {
                     // todo look for existing player
-                    var player = new Player() { 
-                        Id = Guid.NewGuid(),
-                        GameId = game.Id,
-                        ConnectionId = Context.ConnectionId, 
-                        Username = username,
-                        Icon = icon,
-                        BackgroundColor = color,
-                        Sound = sound
-                    };
-                    // _logger.LogInformation(player.Username + " connected as " + player.ConnectionId);
-                    
+                    if (player.Id == default(Guid) || player.Id == Guid.Empty)
+                    {
+                        player.Id = Guid.NewGuid();
+                    }
+
+                    player.GameId = game.Id;
+                                        
                     var updatedGame = await _gameService.JoinGameAsync(game.Id, player);
 
                     // let new player know
                     await Clients.Caller.SendAsync("PlayerJoined", updatedGame, player);                
 
-                    var phrase = _phrases.GetRandomPlayerJoinedPhrase(username, updatedGame.Voice) as SpeechSynthesisUtterance;
-                    await Clients.All.SendAsync("PlayersUpdated", updatedGame, player, phrase);
+                    var phrase = _phrases.GetRandomPlayerJoinedPhrase(player.Username, updatedGame.Voice) as SpeechSynthesisUtterance;
+                    
+                    // let everyone know
+                    await Clients.Clients(GameAndPlayersConnections(updatedGame)).SendAsync("PlayersUpdated", updatedGame, player, phrase);
 
                     if (updatedGame.HasEnoughPlayers())
                     {
@@ -69,11 +69,11 @@ namespace ZoomersClient.Server.Hubs
                 else
                 {
                     // let new player know
-                    await Clients.Caller.SendAsync("LobbyIsFull", username);
+                    await Clients.Caller.SendAsync("LobbyIsFull", player.Username);
 
                     // let the lobby know
                     // let new player know
-                    await Clients.All.SendAsync("TooManyPlayersWarning", game.MaximumNumberOfPlayers, username);
+                    await Clients.All.SendAsync("TooManyPlayersWarning", game.MaximumNumberOfPlayers, player.Username);
                 }
             }
         }
@@ -81,15 +81,23 @@ namespace ZoomersClient.Server.Hubs
         public async Task StartGame(Guid gameId)
         {
             // get game, start it (set date?)
-            var game = _gameService.StartGameAsync(gameId);
+            var game = await _gameService.StartGameAsync(gameId);
 
             // inform players game has started
-            await Clients.All.SendAsync("GameStarted", gameId);
+            await Clients.Clients(GameAndPlayersConnections(game)).SendAsync("GameStarted", gameId);
         }
 
-        public async Task SubscribeAsync(Guid id)
+        public async Task SubscribeAsync(Guid gameId)
         {
-            await _gameService.UpdateConnectionIdAsync(id, Context.ConnectionId);
+            await _gameService.UpdateConnectionIdAsync(gameId, Context.ConnectionId);
+        }
+
+        private List<string> GameAndPlayersConnections(GameDto game)
+        {
+            var clients = game.Players.Select(x => x.ConnectionId).ToList();
+            clients.Add(game.ConnectionId);
+
+            return clients;
         }
     }
 }

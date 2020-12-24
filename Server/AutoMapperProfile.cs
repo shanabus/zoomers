@@ -10,6 +10,7 @@ namespace ZoomersClient.Server
         public AutoMapperProfile()  
         {  
             CreateMap<Player, PlayerDto>();  
+            CreateMap<PlayerDto, Player>();  
             CreateMap<QuestionBase, QuestionDto>();  
             CreateMap<AnsweredQuestion, AnsweredQuestionDto>();
             CreateMap<AudienceScore, AudienceScoreDto>();

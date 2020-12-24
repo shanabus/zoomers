@@ -11,6 +11,7 @@ using System.IO;
 using ZoomersClient.Shared.Models.DTOs;
 using ZoomersClient.Server.Services;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace ZoomersClient.Server.Controllers
 {
@@ -40,7 +41,7 @@ namespace ZoomersClient.Server.Controllers
         public async Task<GameDto> GetGame([FromRoute]Guid id)
         {
             var game = await _gameService.FindGameAsync(id);
-
+            // Console.WriteLine(JsonConvert.SerializeObject(game));
             return game;
         }
 

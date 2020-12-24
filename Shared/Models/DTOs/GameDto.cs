@@ -28,6 +28,12 @@ namespace ZoomersClient.Shared.Models.DTOs
 
         public PlayerDto CurrentPlayer => Players.FirstOrDefault(x => x.OnDeck);
 
+        public GameDto()
+        {
+            Players = new List<PlayerDto>();
+            Questions = new List<QuestionDto>();
+        }
+
         public bool HasEnoughPlayers()
         {
             return Players.Count >= MinimumNumberOfPlayers;

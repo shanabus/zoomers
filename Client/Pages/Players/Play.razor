@@ -2,6 +2,7 @@
 @inject HttpClient Http
 @layout PlayerLayout
 @using Microsoft.AspNetCore.SignalR.Client
+@using Newtonsoft.Json
 @using Toolbelt.Blazor.SpeechSynthesis
 @using ZoomersClient.Client.Components.Players
 @using ZoomersClient.Client.Components.Shared
@@ -168,7 +169,7 @@ else
     public PlayState State { get; set; }
 
     public GameDto Game { get; set;}
-    public bool PlayerIsCurrentPlayer => Game.CurrentPlayer?.Id == Player.Id;
+    public bool PlayerIsCurrentPlayer => Game.Players.Any() && Game.CurrentPlayer?.Id == Player.Id;
     public bool EveryoneHasAnswered => Game.AnsweredQuestions.Count() == Game.Players.Count();
     public QuestionDto CurrentQuestion => Game.Questions.LastOrDefault();
     
@@ -216,7 +217,10 @@ else
         
         Player = await GetPlayerFromStorageAsync();
 
-        if (Game == null || Game.State == GameState.Ended || Game.State == GameState.Lobby)
+        Console.WriteLine("Player loaded from storage:");
+        Console.WriteLine(JsonConvert.SerializeObject(Player));
+
+        if (Game == null || Game.State == GameState.Ended || Game.State == GameState.Lobby) // || Player == null)
         {
             NavigationManager.NavigateTo("/join");
         }
@@ -282,6 +286,7 @@ else
             Player = player;
             await SavePlayerToStorageAsync(player);
             Console.WriteLine(player.ConnectionId + " was updated");
+            Console.WriteLine(JsonConvert.SerializeObject(player));
         });
 
         // start hub

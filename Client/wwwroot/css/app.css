@@ -3,7 +3,13 @@
 html, body {
     /*font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;*/
     font-family: 'Balsamiq Sans', cursive;
+    height: 100vh;
 }
+
+#app {
+  height: 100vh;
+}
+
 
 #app-splash {
     position: fixed;
@@ -123,10 +129,14 @@ a, .btn-link {
 .game-name {
   display: inline-block;
   padding: .5em;
-  font-size: 4em;
+  font-size: 4rem;
   background-color: #fff;
   border: 5px solid rgb(61, 151, 84);
   border-radius: 50%;
+}
+
+.player-layout .game-name {
+  font-size: 2rem;
 }
 
 #game-party-icons .party-icon {

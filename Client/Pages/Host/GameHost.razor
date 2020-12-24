@@ -63,6 +63,7 @@ else
         hubConnection.On<GameDto, PlayerDto, SpeechSynthesisUtterance>("PlayersUpdated", (game, player, phrase) =>
         {            
             Game = game;
+            Console.WriteLine("PlayersUpdated");
             if (Game.Players.Count > 3) {
                 StatusMessage = "Hey " + Game.Players.First().Username + ", press 'START GAME' when everybody is in";
             }
@@ -73,6 +74,7 @@ else
 
         hubConnection.On<Guid>("GameStarted", (id) =>
         {            
+            Console.WriteLine("GameStarted");
             this.SpeechSynthesis.Speak(new SpeechSynthesisUtterance() {
                 Lang = Game.Voice,
                 Text = $"Ok, let us begin the game!"

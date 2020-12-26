@@ -41,7 +41,8 @@ namespace ZoomersClient.Server.Controllers
         public async Task<GameDto> GetGame([FromRoute]Guid id)
         {
             var game = await _gameService.FindGameAsync(id);
-            // Console.WriteLine(JsonConvert.SerializeObject(game));
+            Console.WriteLine(JsonConvert.SerializeObject(game.CurrentPlayer));
+            
             return game;
         }
 
@@ -56,6 +57,7 @@ namespace ZoomersClient.Server.Controllers
         [HttpPost]
         public async Task<GameDto> Post([FromBody] CreateGameDto dto)
         {
+            Console.WriteLine("Creating game - " + dto.Name);
             var game = new Game(dto.Name, dto.Voice, dto.Rounds);
             var gameresult = await _gameService.CreateGameAsync(game);
             return gameresult;

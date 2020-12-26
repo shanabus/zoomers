@@ -36,7 +36,7 @@ namespace ZoomersClient.Shared.Models.DTOs
 
         public bool HasEnoughPlayers()
         {
-            return Players.Count >= MinimumNumberOfPlayers;
+            return Players.Count > MinimumNumberOfPlayers;
         }   
 
         public bool AskedEnoughQuestionsForRound()

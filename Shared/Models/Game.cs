@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using ZoomersClient.Shared.Exceptions;
 using ZoomersClient.Shared.Models.Enums;
 
@@ -30,7 +31,7 @@ namespace ZoomersClient.Shared.Models
         public Game(string name, string voice, int rounds)
         {
             Id = Guid.NewGuid();
-            Console.WriteLine("Game ctor overload about to call init");
+            // Console.WriteLine("Game ctor overload about to call init");
             Init();
 
             Name = name;
@@ -64,6 +65,17 @@ namespace ZoomersClient.Shared.Models
             {
                 Console.WriteLine("player answer not found to record guess!");
             }
+
+            return this;
+        }
+
+        public Game AddQuestion(QuestionBase q)
+        {
+            if (Questions == null)
+            {
+                Questions = new List<QuestionBase>();
+            }
+            Questions.Add(q);
 
             return this;
         }
@@ -107,6 +119,10 @@ namespace ZoomersClient.Shared.Models
             return answeredQuestions;
         }
         
+        public Game()
+        {            
+        }
+
         public Game ResetGame()
         {
             Init();
@@ -171,23 +187,27 @@ namespace ZoomersClient.Shared.Models
             return this;
         }
 
-        public Player GetNextPlayer()
+        public Game PickNextPlayer()
         {
             try
             {
+                //Console.WriteLine(JsonConvert.SerializeObject(this));
+                Console.WriteLine("Made it here with " + Players.Count);
+
                 Players.ForEach(p => p.OnDeck = false);
 
                 var mod = (Questions.Count - 1) % Players.Count;
 
                 // this assumes the question was asked first...
                 // Players.ForEach(x => Console.WriteLine(x.Username));
-                // Console.WriteLine("Mod result = " + mod);
+                Console.WriteLine("Mod result = " + mod);
                 Players[mod].OnDeck = true;
-                
-                return Players[mod];
+                Players.ForEach(x => Console.WriteLine(x.Username + " - " + x.OnDeck));
+                return this; // Players[mod];
             }
             catch(Exception e) 
             {
+                Console.WriteLine(e.Message);
                 throw new PlayerQuestionMismatchException(e.Message);
             }
         }

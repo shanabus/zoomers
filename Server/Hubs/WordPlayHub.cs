@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Toolbelt.Blazor.SpeechSynthesis;
 using ZoomersClient.Server.Services;
 using ZoomersClient.Shared.Models;
@@ -19,13 +21,15 @@ namespace ZoomersClient.Server.Hubs
         private ILogger<WordPlayHub> _logger { get; set; }
         private GameService _gameService { get; set; }
         private Phrases _phrases { get; set; }
+        private IMapper _mapper { get; set; }
 
-        public WordPlayHub(ILogger<WordPlayHub> logger, WordPlay wordplay, GameService gameService, Phrases phrases)
+        public WordPlayHub(ILogger<WordPlayHub> logger, WordPlay wordplay, GameService gameService, Phrases phrases, IMapper mapper)
         {
             _logger = logger;
             _wordPlay = wordplay;
             _gameService = gameService;
             _phrases = phrases;
+            _mapper = mapper;
         }
 
         public async Task AnswerQuestion(Guid gameId, int questionId, Guid playerId, string answer)
@@ -63,12 +67,22 @@ namespace ZoomersClient.Server.Hubs
             // todo: double check, it should be handled in QuestionFinished!
             if (game.Questions.Count == game.Players.Count)
             {
+                Console.WriteLine("Game over?");
                 await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("GameOver", game);
             }
             
             game = await _gameService.AddQuestionAsync(gameId, question);
             
-            await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("QuestionReady", game, question, game.CurrentPlayer);
+            Console.WriteLine("Sending QuestionReady");
+            //Console.WriteLine(JsonConvert.SerializeObject(game));
+            //Console.WriteLine(JsonConvert.SerializeObject(game.CurrentPlayer));
+
+            var q = _mapper.Map<QuestionDto>(question);
+            
+            Console.WriteLine(game.GameAndAllPlayerConnections().Length + " players to notify");
+            Console.WriteLine(JsonConvert.SerializeObject(game));
+
+            await Clients.All.SendAsync("QuestionReady", game, q, game.CurrentPlayer);
         }
 
         public async Task QuestionFinished(Guid gameId, int questionId, int score)
@@ -98,11 +112,11 @@ namespace ZoomersClient.Server.Hubs
             }            
         }
 
-        public async Task UpdateConnectionId(Guid gameId, Guid playerId)
+        public async Task UpdatePlayerConnectionId(Guid gameId, Guid playerId)
         {
-            var player = await _gameService.UpdatePlayerConnection(gameId, playerId, Context.ConnectionId);
+            var game = await _gameService.UpdatePlayerConnectionId(gameId, playerId, Context.ConnectionId);
             
-            await Clients.Client(Context.ConnectionId).SendAsync("PlayerUpdated", player);
+            await Clients.Client(Context.ConnectionId).SendAsync("PlayerUpdated", game);
         }
 
         public async Task UpdateGameConnectionId(Guid gameId)

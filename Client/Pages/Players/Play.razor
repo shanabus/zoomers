@@ -6,7 +6,6 @@
 @using Toolbelt.Blazor.SpeechSynthesis
 @using ZoomersClient.Client.Components.Players
 @using ZoomersClient.Client.Components.Shared
-@using ZoomersClient.Shared.Models
 @using ZoomersClient.Shared.Models.DTOs
 @using ZoomersClient.Shared.Models.Enums
 @using ZoomersClient.Shared
@@ -198,12 +197,18 @@ else
         }
         else if (PlayerIsCurrentPlayer && EveryoneHasAnswered)
         {
+            Console.WriteLine("PLayer is current and answers are in");
             State = PlayState.CurrentPlayerAnswering;
             StatusMessage = "You are on the spot, what ya got?";
         }
         else if (Game.State == GameState.Ended)
         {
+            Console.WriteLine("Game has eneded");
             StatusMessage = "";
+        }
+        else
+        {
+            Console.WriteLine("Woah, no conditions met?");
         }
         Console.WriteLine("State - " + State.ToString());
         StateHasChanged();
@@ -213,32 +218,21 @@ else
     {
         base.OnInitialized();
 
-        Game = await Http.GetFromJsonAsync<GameDto>($"Games/{Id}");
+        // await Task.Delay(2000);
+
+        // Game = await Http.GetFromJsonAsync<GameDto>($"Games/{Id}");
         
         Player = await GetPlayerFromStorageAsync();
 
-        Console.WriteLine("Player loaded from storage:");
-        Console.WriteLine(JsonConvert.SerializeObject(Player));
-
-        if (Game == null || Game.State == GameState.Ended || Game.State == GameState.Lobby) // || Player == null)
-        {
-            NavigationManager.NavigateTo("/join");
-        }
-        else
-        {
-            Console.WriteLine("~ Initialized state ~");
-            UpdatePlayState();
-        }
-
         hubConnection = new HubConnectionBuilder()
-            .WithUrl(NavigationManager.ToAbsoluteUri($"/{Game.GameType}hub"))
+            .WithUrl(NavigationManager.ToAbsoluteUri($"/wordplayhub"))
             .Build();
 
         // subscribe to other things
-        hubConnection.On<GameDto, QuestionBase, Player>("QuestionReady", (game, question, player) => {               
+        hubConnection.On<GameDto, QuestionDto, PlayerDto>("QuestionReady", (game, question, player) => {               
             // reset UI
             Game = game;
-            
+            Console.WriteLine("QuestionReady");
             UpdatePlayState();
 
             StateHasChanged();
@@ -282,17 +276,31 @@ else
             NavigationManager.NavigateTo("join");
         });
         
-        hubConnection.On<PlayerDto>("PlayerUpdated", async (player) => {
-            Player = player;
-            await SavePlayerToStorageAsync(player);
-            Console.WriteLine(player.ConnectionId + " was updated");
-            Console.WriteLine(JsonConvert.SerializeObject(player));
+        hubConnection.On<GameDto>("PlayerUpdated", async (game) => {
+            Game = game;
+
+            var updatedPlayer = game.Players.FirstOrDefault(x => x.Id == Player.Id);
+            Console.WriteLine(Game.State);
+
+            if (Game == null || Game.State == GameState.Ended || Game.State == GameState.Lobby || updatedPlayer == null)
+            {
+                NavigationManager.NavigateTo("/join");
+            }
+            else
+            {
+                Player = updatedPlayer;
+                Game = game;
+                await SavePlayerToStorageAsync(Player);
+
+                Console.WriteLine("~ Initialized state ~");
+                UpdatePlayState();
+            }
         });
 
         // start hub
         await hubConnection.StartAsync();
         
-        await hubConnection.SendAsync("UpdateConnectionId", Game.Id, Player.Id);
+        await hubConnection.SendAsync("UpdatePlayerConnectionId", Id, Player.Id);
     }
 
     public async Task SubmitAnswer() 

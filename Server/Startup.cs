@@ -46,8 +46,9 @@ namespace ZoomersClient.Server
 
             // https://docs.microsoft.com/en-us/ef/core/dbcontext-configuration/#constructor-argument
             services.AddDbContext<ApplicationDBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("ZoomersClient.Server"))
-                .EnableSensitiveDataLogging().UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking), ServiceLifetime.Scoped);
-
+                .EnableSensitiveDataLogging(), ServiceLifetime.Scoped);
+            // .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
+            
             services.AddSingleton<WordPlay>();
             services.AddSingleton<Phrases>();
             //services.AddScoped<ApplicationDBContext>();

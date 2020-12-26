@@ -49,6 +49,7 @@ namespace ZoomersClient.Server.Hubs
                     }
 
                     player.GameId = game.Id;
+                    player.ConnectionId = Context.ConnectionId;
                                         
                     var updatedGame = await _gameService.JoinGameAsync(game.Id, player);
 
@@ -57,7 +58,7 @@ namespace ZoomersClient.Server.Hubs
 
                     var phrase = _phrases.GetRandomPlayerJoinedPhrase(player.Username, updatedGame.Voice) as SpeechSynthesisUtterance;
                     
-                    // let everyone know
+                    // let everyone know                    
                     await Clients.Clients(GameAndPlayersConnections(updatedGame)).SendAsync("PlayersUpdated", updatedGame, player, phrase);
 
                     if (updatedGame.HasEnoughPlayers())
@@ -80,6 +81,7 @@ namespace ZoomersClient.Server.Hubs
 
         public async Task StartGame(Guid gameId)
         {
+            // Console.WriteLine("StartGame");
             // get game, start it (set date?)
             var game = await _gameService.StartGameAsync(gameId);
 
@@ -97,7 +99,26 @@ namespace ZoomersClient.Server.Hubs
             var clients = game.Players.Select(x => x.ConnectionId).ToList();
             clients.Add(game.ConnectionId);
 
+            Console.WriteLine("Starting Game for " + clients.Count + " connections");
+
             return clients;
         }
+
+        public override async Task OnDisconnectedAsync(Exception exception)  
+        {  
+            Console.Write("Disconnected: " + Context.ConnectionId);
+
+            Guid gameId = await _gameService.RemoveDisconnectedPlayer(Context.ConnectionId);
+                        
+            if (gameId != Guid.Empty)
+            {
+                Console.WriteLine("Found a game client was connected to");
+                var game = await _gameService.FindGameAsync(gameId);
+                
+                await Clients.Clients(GameAndPlayersConnections(game)).SendAsync("PlayersRemoved", game);                               
+            }
+            
+            await base.OnDisconnectedAsync(exception);              
+        }  
     }
 }

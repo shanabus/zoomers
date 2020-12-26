@@ -213,7 +213,7 @@
     {
         <div class="row mt-3">
             <div class="col">
-                <button class="btn btn-lg btn-primary w-100" @onclick="(e => StartGame())">START GAME</button>
+                <button class="btn btn-lg btn-primary w-100" @onclick="(e => StartGame())" disabled="@(!IsConnected)">START GAME</button>
             </div>
         </div>
     }
@@ -281,11 +281,8 @@
 
         GameStatus = "Loading player and checking game";
 
-        await CheckExistingPlayerAndGame();
-
         // subscribe to other things
         hubConnection.On<GameDto, PlayerDto>("PlayerJoined", async (game, player) => {
-            Console.WriteLine(JsonConvert.SerializeObject(player));
             Console.WriteLine("PlayerJoined");
             Player = player;
             Game = game;
@@ -311,11 +308,13 @@
         });
 
         hubConnection.On<GameDto>("ReadyToStartGame", (game) => {
+            Console.WriteLine("ReadyToStartGame");
             Game = game;
             StateHasChanged();
         });
 
         hubConnection.On<Guid>("GameStarted", (id) => {
+            Console.WriteLine("GameStarted");
             NavigationManager.NavigateTo($"play/{id}", true);
             StateHasChanged();
         });
@@ -329,8 +328,7 @@
         await hubConnection.StartAsync();
 
         // load previous user from Username / cookies
-        
-        // maybe check if they were supposed to already be in an active game?
+        await CheckExistingPlayerAndGame();
     }
 
     private void ConnectToParty()
@@ -426,6 +424,7 @@
     {
         try
         {
+            Console.WriteLine("Checking player in storage");
             Player = await GetPlayerFromStorageAsync();
         }
         catch(Exception e)
@@ -451,16 +450,17 @@
             {
                 var gameId = await GetGameFromStorageAsync();
                 Game = await Http.GetFromJsonAsync<GameDto>($"Games/{gameId}");
-
-                if (Game == null || Game.State == GameState.Ended)
+                
+                if (Game == null || Game.State == GameState.Ended || !Game.Players.Any())
                 {
-                    Console.WriteLine("Game is null or has");
+                    Console.WriteLine("Game is null or has Ended");
                     GameStatus = "Found a game but its over, enter a new code";
                     State = LobbyState.SelectingParty;
                 }
-                else if (Game.State == GameState.Started || Game.State == GameState.Playing)
+                else if (Game.State != GameState.Lobby && Game.Players.Any(x => x.Id == Player.Id))
                 {
                     Console.WriteLine("Game has started or is being played, will try to catch up!");
+                    // Console.WriteLine("Would normally navigate, checking null players tho");
                     NavigationManager.NavigateTo($"play/{Game.Id}");
                 }
                 else if (Game.State == GameState.Lobby)
@@ -472,8 +472,11 @@
                         State = LobbyState.ConnectedToGame;
                     }
                     else {
-                        Console.WriteLine("Game looks valid, need to rejoin with party code");
+                        var partyIcons = Game.Party.Split("|").ToList();
+
+                        Console.WriteLine("Game looks valid, need to rejoin with party code " + string.Join(',', partyIcons));
                         GameStatus = "Found a game the lobby is empty, enter a new code";
+                        await hubConnection.SendAsync("JoinTheGame", partyIcons, Player);
                         State = LobbyState.SelectingParty;
                     }
                 }

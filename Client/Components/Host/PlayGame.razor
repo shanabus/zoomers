@@ -1,4 +1,5 @@
 @inject HttpClient Http
+@using Newtonsoft.Json
 @using ZoomersClient.Client.Components.Players
 @using ZoomersClient.Client.Components.Shared
 @using ZoomersClient.Shared.Models.DTOs
@@ -161,6 +162,7 @@
         // subscribe to game events             
         hubConnection.On<GameDto>("GameConnected", async (game) => {
             Game = game;
+
             // get player on deck, ask first question
             var category = (Game.CurrentRound == 1 && Game.Questions.Count <= 2) ? "First" : null;
 

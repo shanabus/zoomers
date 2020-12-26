@@ -65,11 +65,11 @@ namespace ZoomersClient.Server.Hubs
             var question = _wordPlay.GetRandomQuestion(category);
             
             // todo: double check, it should be handled in QuestionFinished!
-            if (game.Questions.Count == game.Players.Count)
-            {
-                Console.WriteLine("Game over?");
-                await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("GameOver", game);
-            }
+            // if (game.Questions.Count == game.Players.Count)
+            // {
+            //     Console.WriteLine("Game over? from Ask Question");
+            //     await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("GameOver", game);
+            // }
             
             game = await _gameService.AddQuestionAsync(gameId, question);
             
@@ -102,6 +102,7 @@ namespace ZoomersClient.Server.Hubs
             
             if (game.State == GameState.Ended)
             {
+                Console.WriteLine("State says Game Ended");
                 game = await _gameService.EndGameAsync(gameId);
 
                 await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("GameOver", game);

@@ -229,6 +229,8 @@ namespace ZoomersClient.Shared.Models
             // {
             //     existingScore.Score = existingScore.Score + 1;
             // }
+            Console.WriteLine("Reacdtion to " + toPlayer?.Id);
+            
             var player = Players.FirstOrDefault(x => x.Id == toPlayer.Id);
             
             if (player != null)

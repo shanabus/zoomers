@@ -164,9 +164,36 @@
             Game = game;
 
             // get player on deck, ask first question
-            var category = (Game.CurrentRound == 1 && Game.Questions.Count <= 2) ? "First" : null;
+            // Console.WriteLine(JsonConvert.SerializeObject(Game));
 
-            await hubConnection.SendAsync("AskQuestion", Game.Id, category);
+            // todo: figure out if we need to ask a question?
+            if (Game.CurrentRound == Game.Questions.Count)
+            {
+                Console.WriteLine("Its already a round per question");     
+
+
+                Game = game;
+                CurrentQuestion = game.Questions.Last();
+                CurrentPlayer = game.Players.FirstOrDefault(x => x.OnDeck);
+                PlayersAnswered = new List<PlayerDto>();
+                State = GameState.Playing;
+                CurrentPlayerScore = 0;
+                ScoreShown = 0;
+                StatusMessage = "";
+                PlayerLove = new Dictionary<Guid, int>();
+
+                // timerRef.ResetTimer();
+                // timerRef.StartTimer(30);
+
+                await js.InvokeVoidAsync("PlayAudioFile", "/sounds/whoosh_1.mp3");
+                await Task.Delay(750);
+
+                StateHasChanged();           
+            }
+            else
+            {
+                await hubConnection.SendAsync("AskQuestion", Game.Id, null);
+            }
         });
 
         hubConnection.On<GameDto, QuestionDto, PlayerDto>("QuestionReady", async (game, question, player) => {   
@@ -299,6 +326,7 @@
         });
 
         hubConnection.On<GameDto>("GameOver", async (game) => {
+            Console.WriteLine("GameOver on host");
             Game = game;
             ScoreShown = 0;
             StatusMessage = "Game Over";

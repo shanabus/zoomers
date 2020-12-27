@@ -16,7 +16,7 @@ namespace ZoomersClient.Shared.Models
         public string CategoriesString { get; set; }        
         
         public string[] Categories { get {
-            return CategoriesString.Split(",");
+            return CategoriesString?.Split(",");
             }
         }  
     }

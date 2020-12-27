@@ -28,6 +28,10 @@ namespace ZoomersClient.Shared.Models
         public List<QuestionBase> Questions { get; set; }
         public List<AudienceScore> AudienceScore { get; set; }
 
+        public Game()
+        {            
+        }
+
         public Game(string name, string voice, int rounds)
         {
             Id = Guid.NewGuid();
@@ -90,7 +94,7 @@ namespace ZoomersClient.Shared.Models
         public Game EndGame()
         {
             State = GameState.Ended;
-            Players = Players.OrderByDescending(x => x.Score).ToList();
+            Players = Players.OrderByDescending(x => x.Score).ThenBy(x => x.LoveReactions).ToList();
             return this;
         }
 
@@ -119,10 +123,6 @@ namespace ZoomersClient.Shared.Models
             return answeredQuestions;
         }
         
-        public Game()
-        {            
-        }
-
         public Game ResetGame()
         {
             Init();
@@ -162,13 +162,12 @@ namespace ZoomersClient.Shared.Models
             var answers = AnsweredQuestions.Where(x => x.Question.Id == questionId);
             var numberCorrect = CorrectAnswers().Count;
 
-            foreach(var answer in answers) {
-                // Console.WriteLine($"Checking {answer.Player.Username} answer for guess");
-
+            foreach(var answer in answers) 
+            {
                 if (answer.Guess == numberCorrect)
                 {
-                    // Console.WriteLine("Got it right!");
                     var player = Players.FirstOrDefault(x => x.Id == answer.Player.Id);
+                    player.Score += 50;
                     player.CorrectGuesses++;
                 }
             }
@@ -181,7 +180,7 @@ namespace ZoomersClient.Shared.Models
 
             if (q != null)
             {
-                Players[Questions.Count - 1].Score += score;
+                Players.FirstOrDefault(x => x.OnDeck).Score += score;
             }
 
             return this;
@@ -191,19 +190,13 @@ namespace ZoomersClient.Shared.Models
         {
             try
             {
-                //Console.WriteLine(JsonConvert.SerializeObject(this));
-                Console.WriteLine("Made it here with " + Players.Count);
-
                 Players.ForEach(p => p.OnDeck = false);
 
                 var mod = (Questions.Count - 1) % Players.Count;
 
                 // this assumes the question was asked first...
-                // Players.ForEach(x => Console.WriteLine(x.Username));
-                Console.WriteLine("Mod result = " + mod);
                 Players[mod].OnDeck = true;
-                Players.ForEach(x => Console.WriteLine(x.Username + " - " + x.OnDeck));
-                return this; // Players[mod];
+                return this;
             }
             catch(Exception e) 
             {
@@ -212,7 +205,7 @@ namespace ZoomersClient.Shared.Models
             }
         }
 
-        public Game AddReaction(Player fromPlayer, Player toPlayer, AnswerReaction reaction)
+        public Game AddReaction(Guid fromPlayerId, Guid toPlayerId, AnswerReaction reaction)
         {
             // var existingScore = AudienceScore.FirstOrDefault(x => x.Round == CurrentRound && x.FromPlayerId == fromPlayer.Id && x.ToPlayerId == toPlayer.Id);
 
@@ -229,9 +222,8 @@ namespace ZoomersClient.Shared.Models
             // {
             //     existingScore.Score = existingScore.Score + 1;
             // }
-            Console.WriteLine("Reacdtion to " + toPlayer?.Id);
             
-            var player = Players.FirstOrDefault(x => x.Id == toPlayer.Id);
+            var player = Players.FirstOrDefault(x => x.Id == toPlayerId);
             
             if (player != null)
             {
@@ -246,7 +238,7 @@ namespace ZoomersClient.Shared.Models
                 }
             }
 
-            var playerReacting = Players.FirstOrDefault(x => x.Id == fromPlayer.Id);
+            var playerReacting = Players.FirstOrDefault(x => x.Id == fromPlayerId);
             
             if (playerReacting != null)
             {
@@ -264,18 +256,6 @@ namespace ZoomersClient.Shared.Models
             return this;
         }
         
-        public Game ResetAnswers()
-        {
-            AnsweredQuestions = new List<AnsweredQuestion>();
-            return this;
-        }
-
-        public Game ResetQuestions()
-        {
-            Questions = new List<QuestionBase>();
-            return this;
-        }
-
         public Game ShufflePlayerOrder()
         {
             var rand = new Random();
@@ -291,7 +271,7 @@ namespace ZoomersClient.Shared.Models
             if (CurrentRound < Rounds)         
             {
                 CurrentRound++;
-                return this.ResetAnswers().ResetQuestions().ShufflePlayerOrder();
+                return this.ShufflePlayerOrder();
             }
             
             return this.EndGame();            

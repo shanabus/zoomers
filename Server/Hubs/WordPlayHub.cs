@@ -64,24 +64,12 @@ namespace ZoomersClient.Server.Hubs
 
             var question = _wordPlay.GetRandomQuestion(category);
             
-            // todo: double check, it should be handled in QuestionFinished!
-            // if (game.Questions.Count == game.Players.Count)
-            // {
-            //     Console.WriteLine("Game over? from Ask Question");
-            //     await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("GameOver", game);
-            // }
-            
             game = await _gameService.AddQuestionAsync(gameId, question);
             
             Console.WriteLine("Sending QuestionReady");
-            //Console.WriteLine(JsonConvert.SerializeObject(game));
-            //Console.WriteLine(JsonConvert.SerializeObject(game.CurrentPlayer));
 
             var q = _mapper.Map<QuestionDto>(question);
             
-            Console.WriteLine(game.GameAndAllPlayerConnections().Length + " players to notify");
-            Console.WriteLine(JsonConvert.SerializeObject(game));
-
             await Clients.All.SendAsync("QuestionReady", game, q, game.CurrentPlayer);
         }
 
@@ -91,7 +79,6 @@ namespace ZoomersClient.Server.Hubs
                         
             var roundEnded = false;
 
-            // todo: push StartNextRoundAsync into service!
             if (game.AskedEnoughQuestionsForRound())
             {
                 roundEnded = true;
@@ -124,7 +111,7 @@ namespace ZoomersClient.Server.Hubs
         {
             var game = await _gameService.UpdateGameConnection(gameId, Context.ConnectionId);
 
-            _logger.LogInformation($"Setting game connection id {Context.ConnectionId}");
+            // _logger.LogInformation($"Setting game connection id {Context.ConnectionId}");
 
             await Clients.Client(Context.ConnectionId).SendAsync("GameConnected", game);
         }
@@ -162,7 +149,7 @@ namespace ZoomersClient.Server.Hubs
             }
         }
 
-        public async Task SendReaction(Guid gameId, Player fromPlayer, Player toPlayer, AnswerReaction reaction)
+        public async Task SendReaction(Guid gameId, PlayerDto fromPlayer, PlayerDto toPlayer, AnswerReaction reaction)
         {   
             if (fromPlayer.Id != toPlayer.Id)
             {

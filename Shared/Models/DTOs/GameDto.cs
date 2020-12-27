@@ -41,7 +41,7 @@ namespace ZoomersClient.Shared.Models.DTOs
 
         public bool AskedEnoughQuestionsForRound()
         {
-            return Questions.Count == Players.Count;
+            return Questions.Any() && Questions.Count % Players.Count == 0;
         }
 
         public string[] GameAndAllPlayerConnections()
@@ -58,7 +58,7 @@ namespace ZoomersClient.Shared.Models.DTOs
             return conns;
         }
 
-        public string[] GameAndPlayerConnections(Player player)
+        public string[] GameAndPlayerConnections(PlayerDto player)
         {
             var conns = new string[] { player.ConnectionId, ConnectionId };
             return conns;
@@ -85,6 +85,13 @@ namespace ZoomersClient.Shared.Models.DTOs
             }
             
             return answeredQuestions;
+        }
+
+        public List<AnsweredQuestionDto> CurrentAnswers()
+        {
+            var lastQuestionAsked = Questions.LastOrDefault();
+
+            return AnsweredQuestions.Where(x => lastQuestionAsked != null && x.Question.Id == lastQuestionAsked.Id).ToList();
         }
     }
 }

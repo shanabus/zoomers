@@ -58,7 +58,7 @@ namespace ZoomersClient.Shared.Services
             {   
                 // todo: we have to zero it out otherwise EF bitches about rows its expecting to track
                 question.Id = 0;
-                game = game.ResetAnswers().AddQuestion(question).PickNextPlayer();                
+                game = game.AddQuestion(question).PickNextPlayer();                
 
                 //_database.Entry(game.Players.FirstOrDefault(x => x.OnDeck)).State = EntityState.Modified;
 
@@ -272,14 +272,16 @@ namespace ZoomersClient.Shared.Services
             return _mapper.Map<GameDto>(game);
         }
 
-        public async Task<GameDto> AddAudienceReactionAsync(Guid gameId, Player fromPlayer, Player toPlayer, AnswerReaction reaction)
+        public async Task<GameDto> AddAudienceReactionAsync(Guid gameId, PlayerDto fromPlayer, PlayerDto toPlayer, AnswerReaction reaction)
         {
-            var game = await _database.Games.FirstOrDefaultAsync(x => x.Id == gameId);
+            var game = await LoadGameAsync(gameId);
 
             if (game != null)
             {
-                game.AddReaction(fromPlayer, toPlayer, reaction);
+                game.AddReaction(fromPlayer.Id, toPlayer.Id, reaction);
             }
+
+            await SaveGameAsync(game);
             
             return _mapper.Map<GameDto>(game);
         }

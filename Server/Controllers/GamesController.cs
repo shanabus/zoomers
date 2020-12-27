@@ -41,7 +41,6 @@ namespace ZoomersClient.Server.Controllers
         public async Task<GameDto> GetGame([FromRoute]Guid id)
         {
             var game = await _gameService.FindGameAsync(id);
-            Console.WriteLine(JsonConvert.SerializeObject(game.CurrentPlayer));
             
             return game;
         }

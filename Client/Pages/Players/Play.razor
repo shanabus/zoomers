@@ -30,7 +30,7 @@
         <p>Could not determine game state.</p>
     }
 
-    @if(State == PlayState.AnsweringQuestion)
+    @if(State == PlayState.AnsweringQuestion && CurrentQuestion != null)
     {        
         <div class="swing-in-top-fwd">
             
@@ -63,12 +63,12 @@
     {
         <h4 class="mt-4">Congrats, your answer has been counted!</h4>
                 
-        @if(Game.AnsweredQuestions.Any())
+        @if(Game.CurrentAnswers().Any())
         {
             <p>Click emoji buttons to share a reaction.</p>
         }
 
-        @foreach(var answer in Game.AnsweredQuestions)
+        @foreach(var answer in Game.CurrentAnswers())
         {
             <div class="row my-2">
                 <div class="col-10 p-2 offset-1 bg-light">
@@ -80,9 +80,9 @@
                 </div>
             </div>
         }
-        @if (Game.AnsweredQuestions.Count > 0)
+        @if (Game.CurrentAnswers().Count > 0)
         {
-            <AnswersCorrectPanel MaxCount="@Game.AnsweredQuestions.Count" Username="@Game.CurrentPlayer.Username" OnSubmit="SubmitQuestionGuessAsync"></AnswersCorrectPanel>
+            <AnswersCorrectPanel MaxCount="@Game.CurrentAnswers().Count" Username="@Game.CurrentPlayer.Username" OnSubmit="SubmitQuestionGuessAsync"></AnswersCorrectPanel>
         }        
     }
 
@@ -105,7 +105,7 @@
     {
         <h4 class="mt-4">Click on a player then the answer they gave</h4>
 
-        <AnswerPanel Players="@Game.Players" Answers="@Game.AnsweredQuestions" CurrentPlayer="@Game.CurrentPlayer" SubmitAnswers="@((a) => SubmitQuestionCompleteAnswer(a))" Enabled="@true"></AnswerPanel>        
+        <AnswerPanel Players="@Game.Players" Answers="@Game.CurrentAnswers()" CurrentPlayer="@Game.CurrentPlayer" SubmitAnswers="@((a) => SubmitQuestionCompleteAnswer(a))" Enabled="@true"></AnswerPanel>        
     }
 
     @if (State == PlayState.QuestionScores)
@@ -169,18 +169,18 @@ else
 
     public GameDto Game { get; set;}
     public bool PlayerIsCurrentPlayer => Game.Players.Any() && Game.CurrentPlayer?.Id == Player.Id;
-    public bool EveryoneHasAnswered => Game.AnsweredQuestions.Count() == Game.Players.Count();
+    public bool EveryoneHasAnswered => Game.CurrentAnswers().Count == Game.Players.Count(x => !x.OnDeck);
     public QuestionDto CurrentQuestion => Game.Questions.LastOrDefault();
     
-
     private void UpdatePlayState()
     {
-        var playerAnswer = Game.AnsweredQuestions.FirstOrDefault(x => x.Player.Id == Player.Id);
+        var playerAnswer = Game.CurrentAnswers().FirstOrDefault(x => x.Player.Id == Player.Id);
 
         if (CurrentQuestion != null && !PlayerIsCurrentPlayer && playerAnswer == null)
         {
             Answer = "";
             CurrentGuess = null;
+            Console.WriteLine(CurrentQuestion.Question);
             State = PlayState.AnsweringQuestion;
             StatusMessage = "Type your answer and hit Submit";
         }
@@ -217,10 +217,6 @@ else
     protected override async Task OnInitializedAsync()
     {
         base.OnInitialized();
-
-        // await Task.Delay(2000);
-
-        // Game = await Http.GetFromJsonAsync<GameDto>($"Games/{Id}");
         
         Player = await GetPlayerFromStorageAsync();
 

@@ -106,13 +106,13 @@ namespace ZoomersClient.Server.Hubs
 
         public override async Task OnDisconnectedAsync(Exception exception)  
         {  
-            Console.Write("Disconnected: " + Context.ConnectionId);
+            // Console.Write("Disconnected: " + Context.ConnectionId);
 
             Guid gameId = await _gameService.RemoveDisconnectedPlayer(Context.ConnectionId);
                         
             if (gameId != Guid.Empty)
             {
-                Console.WriteLine("Found a game client was connected to");
+                // Console.WriteLine("Found a game client was connected to");
                 var game = await _gameService.FindGameAsync(gameId);
                 
                 await Clients.Clients(GameAndPlayersConnections(game)).SendAsync("PlayersRemoved", game);                               

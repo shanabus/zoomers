@@ -2,12 +2,6 @@ body {
     overflow: hidden;
 }
 
-#game-layout {
-    overflow: hidden;
-    width: 100vw;
-    height: 100vh;
-}
-
 #current-question {
     font-size: 4em;
     padding-right: 3em;

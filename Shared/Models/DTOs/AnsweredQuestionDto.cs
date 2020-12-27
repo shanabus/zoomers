@@ -10,7 +10,7 @@ namespace ZoomersClient.Shared.Models.DTOs
 
         public PlayerDto Player { get; set; }
 
-        public QuestionDto Question { get; set; }
+        public GameQuestionDto Question { get; set; }
 
         public int Round { get; set; }
 

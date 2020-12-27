@@ -25,7 +25,7 @@ namespace ZoomersClient.Shared.Models
         public string Party { get; set; }        
         public List<Player> Players { get; set; }
         public List<AnsweredQuestion> AnsweredQuestions { get; set; }
-        public List<QuestionBase> Questions { get; set; }
+        public List<GameQuestion> Questions { get; set; }
         public List<AudienceScore> AudienceScore { get; set; }
 
         public Game()
@@ -47,7 +47,7 @@ namespace ZoomersClient.Shared.Models
         {
             Players = new List<Player>();
             AnsweredQuestions = new List<AnsweredQuestion>();
-            Questions = new List<QuestionBase>();
+            Questions = new List<GameQuestion>();
             AudienceScore = new List<AudienceScore>();
             
             State = GameState.Lobby;
@@ -73,11 +73,11 @@ namespace ZoomersClient.Shared.Models
             return this;
         }
 
-        public Game AddQuestion(QuestionBase q)
+        public Game AddQuestion(GameQuestion q)
         {
             if (Questions == null)
             {
-                Questions = new List<QuestionBase>();
+                Questions = new List<GameQuestion>();
             }
             Questions.Add(q);
 

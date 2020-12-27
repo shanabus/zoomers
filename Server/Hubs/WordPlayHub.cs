@@ -68,7 +68,7 @@ namespace ZoomersClient.Server.Hubs
             
             Console.WriteLine("Sending QuestionReady");
 
-            var q = _mapper.Map<QuestionDto>(question);
+            var q = _mapper.Map<GameQuestionDto>(question);
             
             await Clients.All.SendAsync("QuestionReady", game, q, game.CurrentPlayer);
         }

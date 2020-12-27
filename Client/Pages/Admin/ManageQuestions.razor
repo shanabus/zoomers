@@ -1,0 +1,15 @@
+@page "/admin/questions"
+@using ZoomersClient.Shared.Models.DTOs
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+
+@code {
+
+    public List<GameQuestionDto> AllQuestions { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        AllQuestions = await Http.GetFromJsonAsync<List<GameQuestionDto>>("Questions");
+    }
+}

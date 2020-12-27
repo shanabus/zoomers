@@ -50,7 +50,7 @@ namespace ZoomersClient.Shared.Services
             await _database.SaveChangesAsync();
         }
 
-        public async Task<GameDto> AddQuestionAsync(Guid gameId, QuestionBase question)
+        public async Task<GameDto> AddQuestionAsync(Guid gameId, GameQuestion question)
         {
             var game = await LoadGameAsync(gameId);
 

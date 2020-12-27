@@ -170,7 +170,7 @@ else
     public GameDto Game { get; set;}
     public bool PlayerIsCurrentPlayer => Game.Players.Any() && Game.CurrentPlayer?.Id == Player.Id;
     public bool EveryoneHasAnswered => Game.CurrentAnswers().Count == Game.Players.Count(x => !x.OnDeck);
-    public QuestionDto CurrentQuestion => Game.Questions.LastOrDefault();
+    public GameQuestionDto CurrentQuestion => Game.Questions.LastOrDefault();
     
     private void UpdatePlayState()
     {
@@ -225,7 +225,7 @@ else
             .Build();
 
         // subscribe to other things
-        hubConnection.On<GameDto, QuestionDto, PlayerDto>("QuestionReady", (game, question, player) => {               
+        hubConnection.On<GameDto, GameQuestionDto, PlayerDto>("QuestionReady", (game, question, player) => {               
             // reset UI
             Game = game;
             Console.WriteLine("QuestionReady");

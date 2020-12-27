@@ -11,10 +11,12 @@ namespace ZoomersClient.Server
         {  
             CreateMap<Player, PlayerDto>();  
             CreateMap<PlayerDto, Player>();  
-            CreateMap<QuestionBase, QuestionDto>();  
+            CreateMap<GameQuestion, GameQuestionDto>();  
             CreateMap<AnsweredQuestion, AnsweredQuestionDto>();
             CreateMap<AudienceScore, AudienceScoreDto>();
             CreateMap<Game, GameDto>();  
+
+            CreateMap<QuestionBase, GameQuestionDto>();
         }  
     }  
 }

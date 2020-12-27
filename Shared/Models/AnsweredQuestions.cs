@@ -10,7 +10,7 @@ namespace ZoomersClient.Shared.Models
 
         public Player Player { get; set; }
 
-        public QuestionBase Question { get; set; }
+        public GameQuestion Question { get; set; }
 
         public int Round { get; set; }
 

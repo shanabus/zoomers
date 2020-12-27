@@ -39,10 +39,10 @@
         base.OnInitialized();
     
         Answers = new List<AnsweredQuestionDto>() {
-            new AnsweredQuestionDto() { Player = PlayerList[1], Question = new QuestionDto() { Question = "Hey, are you listening?"}, Answer = "I got this" },
-            new AnsweredQuestionDto() { Player = PlayerList[2], Question = new QuestionDto() { Question = "Hey, are you listening?"}, Answer = "Not Thanks" },
-            new AnsweredQuestionDto() { Player = PlayerList[3], Question = new QuestionDto() { Question = "Hey, are you listening?"}, Answer = "Not me tis time" },
-            new AnsweredQuestionDto() { Player = PlayerList[4], Question = new QuestionDto() { Question = "Hey, are you listening?"}, Answer = "Do it again?" },
+            new AnsweredQuestionDto() { Player = PlayerList[1], Question = new GameQuestionDto() { Question = "Hey, are you listening?"}, Answer = "I got this" },
+            new AnsweredQuestionDto() { Player = PlayerList[2], Question = new GameQuestionDto() { Question = "Hey, are you listening?"}, Answer = "Not Thanks" },
+            new AnsweredQuestionDto() { Player = PlayerList[3], Question = new GameQuestionDto() { Question = "Hey, are you listening?"}, Answer = "Not me tis time" },
+            new AnsweredQuestionDto() { Player = PlayerList[4], Question = new GameQuestionDto() { Question = "Hey, are you listening?"}, Answer = "Do it again?" },
         };
     }    
 

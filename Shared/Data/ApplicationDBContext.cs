@@ -18,8 +18,10 @@ namespace ZoomersClient.Shared.Data
 
         public DbSet<Player> Players { get; set; }
 
-        public DbSet<QuestionBase> Questions { get; set; }
+        public DbSet<GameQuestion> Questions { get; set; }
 
         public DbSet<AnsweredQuestion> Answers { get; set; }
+
+        public DbSet<QuestionBase> AllQuestions { get; set; }
     }
 }

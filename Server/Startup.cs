@@ -47,12 +47,11 @@ namespace ZoomersClient.Server
             // https://docs.microsoft.com/en-us/ef/core/dbcontext-configuration/#constructor-argument
             services.AddDbContext<ApplicationDBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("ZoomersClient.Server"))
                 .EnableSensitiveDataLogging(), ServiceLifetime.Scoped);
-            // .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
-            
+                        
             services.AddSingleton<WordPlay>();
             services.AddSingleton<Phrases>();
-            //services.AddScoped<ApplicationDBContext>();
             services.AddScoped<GameService>();
+            services.AddScoped<QuestionService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

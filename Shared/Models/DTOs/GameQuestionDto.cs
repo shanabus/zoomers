@@ -1,6 +1,6 @@
 namespace ZoomersClient.Shared.Models.DTOs
 {
-    public class QuestionDto
+    public class GameQuestionDto
     {
         public int Id { get; set; }
         

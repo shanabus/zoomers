@@ -11,9 +11,9 @@ namespace ZoomersClient.Server.Services
 {
     public class WordPlay
     {
-        public List<QuestionBase> Questions { get; set; }
+        public List<GameQuestion> Questions { get; set; }
 
-        public List<QuestionBase> RemainingQuestions => Questions.Where(x => !LastQuestions.Contains(x.Id)).ToList();
+        public List<GameQuestion> RemainingQuestions => Questions.Where(x => !LastQuestions.Contains(x.Id)).ToList();
 
         public List<int> LastQuestions { get; set;}
 
@@ -21,7 +21,7 @@ namespace ZoomersClient.Server.Services
         {
             CsvParserOptions csvParserOptions = new CsvParserOptions(true, ',');
             CsvWordPlayMapping csvMapper = new CsvWordPlayMapping();
-            CsvParser<QuestionBase> csvParser = new CsvParser<QuestionBase>(csvParserOptions, csvMapper);
+            CsvParser<GameQuestion> csvParser = new CsvParser<GameQuestion>(csvParserOptions, csvMapper);
            
             var filePath = ToApplicationPath("Data/Games","charles-game.csv");
             //var filePath = ToApplicationPath("Data/Games","word-play.csv");
@@ -34,7 +34,7 @@ namespace ZoomersClient.Server.Services
             LastQuestions = new List<int>();
         }
 
-        public QuestionBase GetRandomQuestion(string category)
+        public GameQuestion GetRandomQuestion(string category)
         {
             var questionPool = string.IsNullOrWhiteSpace(category)? RemainingQuestions : RemainingQuestions.Where(x => x.Categories.Contains(category));
 
@@ -63,7 +63,7 @@ namespace ZoomersClient.Server.Services
         }
     }
 
-    public class CsvWordPlayMapping : CsvMapping<QuestionBase>
+    public class CsvWordPlayMapping : CsvMapping<GameQuestion>
     {
         public CsvWordPlayMapping()
                 : base()

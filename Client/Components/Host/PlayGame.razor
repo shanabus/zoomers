@@ -132,7 +132,7 @@
     [Parameter]
     public EventCallback<GameDto> OnGameReset { get; set; }
     [Parameter]
-    public QuestionDto CurrentQuestion { get; set; }
+    public GameQuestionDto CurrentQuestion { get; set; }
     [CascadingParameter]
     public GameState State { get; set; }
     
@@ -198,7 +198,7 @@
             }
         });
 
-        hubConnection.On<GameDto, QuestionDto, PlayerDto>("QuestionReady", async (game, question, player) => {   
+        hubConnection.On<GameDto, GameQuestionDto, PlayerDto>("QuestionReady", async (game, question, player) => {   
             // reset UI            
             Game = game;
             CurrentQuestion = question;

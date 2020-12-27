@@ -22,7 +22,7 @@ namespace ZoomersClient.Shared.Models.DTOs
 
         public List<PlayerDto> Players { get; set; }
 
-        public List<QuestionDto> Questions { get; set; }
+        public List<GameQuestionDto> Questions { get; set; }
         public List<AnsweredQuestionDto> AnsweredQuestions { get; set; }
         public List<AudienceScoreDto> AudienceScore { get; set; }
 
@@ -31,7 +31,7 @@ namespace ZoomersClient.Shared.Models.DTOs
         public GameDto()
         {
             Players = new List<PlayerDto>();
-            Questions = new List<QuestionDto>();
+            Questions = new List<GameQuestionDto>();
         }
 
         public bool HasEnoughPlayers()

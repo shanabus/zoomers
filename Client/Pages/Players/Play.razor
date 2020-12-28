@@ -15,7 +15,7 @@
 
 @if(Game != null && Player != null && Game.CurrentPlayer != null)
 {
-    <div class='row @(Game.CurrentPlayer == Player? "currentplayer" : "")' id="game-banner">
+    <div class='row @(PlayerIsCurrentPlayer? "currentplayer" : "")' id="game-banner">
         <div class="col-9 pt-2">
             <h1>@Game.Name</h1>
         </div>
@@ -163,7 +163,7 @@ else
     public PlayState State { get; set; }
 
     public GameDto Game { get; set;}
-    public bool PlayerIsCurrentPlayer => Game.Players.Any() && Game.CurrentPlayer?.Id == Player.Id;
+    public bool PlayerIsCurrentPlayer => Game.Players.Any() && Game.CurrentPlayer?.Id == Player.Id && Game.State != GameState.Ended;
     public bool EveryoneHasAnswered => Game.CurrentAnswers().Count == Game.Players.Count(x => !x.OnDeck);
     public bool CurrentPlayerHasAnswered => Game.Questions.Any() && Game.CurrentAnswers().All(x => !string.IsNullOrEmpty(x.CurrentPlayerAnswer));
 

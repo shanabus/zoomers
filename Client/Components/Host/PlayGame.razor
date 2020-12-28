@@ -38,7 +38,7 @@
                     <PlayerBadge Player="CurrentPlayer" Class="@answerClass"></PlayerBadge>
                 </div>                     
                 }
-                <div class='col-8 pt-3 @((Game.State == GameState.SummaryIsEnding)? "slide-out-right": "slide-in-right")'>
+                <div class='col-8 pt-3 align-self-center @((Game.State == GameState.SummaryIsEnding)? "slide-out-right": "slide-in-right")'>
                     <h3>@StatusMessage</h3>
                 </div>
             </div>       
@@ -107,7 +107,7 @@
         else if (CurrentQuestion != null && !string.IsNullOrEmpty(CurrentQuestion.ImageUrl))
         {
             <div class="col text-center">
-                <img src="@CurrentQuestion.ImageUrl" class="slide-in-blurred-bottom img-fluid" />
+                <img src="@CurrentQuestion.ImageUrl" id="game-host-image" class="slide-in-blurred-bottom img-fluid" />
             </div>
         }
     </div>
@@ -325,7 +325,7 @@
         });
 
         hubConnection.On<GameDto>("GameOver", async (game) => {
-            Console.WriteLine("GameOver on host");
+            Console.WriteLine("GameOver on host - " + game.State);
             Game = game;
             ScoreShown = 0;
             StatusMessage = "Game Over";

@@ -84,7 +84,10 @@ namespace ZoomersClient.Server.Hubs
                 roundEnded = true;
                 game = await _gameService.StartNextRoundAsync(gameId); 
 
-                await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("RoundOver", game);                
+                if (game.State != GameState.Ended)
+                {
+                    await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("RoundOver", game);                
+                }
             }
             
             if (game.State == GameState.Ended)

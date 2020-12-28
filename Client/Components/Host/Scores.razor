@@ -6,7 +6,7 @@
 <div class="row">
     @foreach(var player in Game.Players.OrderByDescending(x => x.Score).ThenBy(x => x.LoveScore))
     {
-        var isWinner = Game.Players.OrderByDescending(x => x.Score).ThenBy(x => x.LoveScore).ToList().IndexOf(player) == 0;
+        var isWinner = Game.Players.OrderByDescending(x => x.Score).ThenBy(x => x.LoveScore).ToList().IndexOf(player) == 0 && Game.State == GameState.Ended;
 
         <div class="col-4 my-2">
             <div class='player-score @((isWinner)? "winning-player" : "")'>
@@ -22,22 +22,22 @@
                     <div class="col-12">
                         <div class="row px-4">
                             <div class="col-6">
-                                @if(Game.Players.OrderByDescending(x => x.LoveScore).ToList().IndexOf(player) == 0)
+                                @if(Game.Players.OrderByDescending(x => x.LoveScore).ToList().IndexOf(player) == 0 && Game.State == GameState.Ended)
                                 {
                                     <span>💏 they loved you the most!</span> 
                                 }
-                                else if(Game.Players.OrderByDescending(x => x.LoveReactions).ToList().IndexOf(player) == 0)
+                                else if(Game.Players.OrderByDescending(x => x.LoveReactions).ToList().IndexOf(player) == 0 && Game.State == GameState.Ended)
                                 {
                                     <span>💘 you loved the most!</span> 
                                 }
                             </div>
 
                             <div class="col-6 text-right">
-                                @if(Game.Players.OrderByDescending(x => x.HateScore).ToList().IndexOf(player) == 0)
+                                @if(Game.Players.OrderByDescending(x => x.HateScore).ToList().IndexOf(player) == 0 && Game.State == GameState.Ended)
                                 {
                                     <span>🚽 you got dumped on</span> 
                                 }
-                                else if(Game.Players.OrderByDescending(x => x.HateReactions).ToList().IndexOf(player) == 0)
+                                else if(Game.Players.OrderByDescending(x => x.HateReactions).ToList().IndexOf(player) == 0 && Game.State == GameState.Ended)
                                 {
                                     <span>🧻 you might need toilet paper</span> 
                                 }

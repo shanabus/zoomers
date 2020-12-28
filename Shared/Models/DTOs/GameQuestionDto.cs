@@ -4,6 +4,8 @@ namespace ZoomersClient.Shared.Models.DTOs
     {
         public int Id { get; set; }
         
+        public int QuestionBaseId { get; set; }
+        
         public string Question { get; set; }
 
         public string ImageUrl { get; set; }

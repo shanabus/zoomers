@@ -271,6 +271,7 @@ namespace ZoomersClient.Shared.Models
             if (CurrentRound < Rounds)         
             {
                 CurrentRound++;
+                State = GameState.RoundSummary;
                 return this.ShufflePlayerOrder();
             }
             

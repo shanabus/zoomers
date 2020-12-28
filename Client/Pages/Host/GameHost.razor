@@ -18,7 +18,7 @@
     </div>
     
 }
-else if (Game != null && (Game.State == GameState.Playing || Game.State == GameState.Started))
+else if (Game != null)
 {
     <CascadingValue Value="Game.State">
         <PlayGame Game="Game" OnGameReset="OnGameResetAsync"></PlayGame>
@@ -42,12 +42,15 @@ else
         base.OnInitialized();
 
         Game = await Http.GetFromJsonAsync<GameDto>($"Games/{Id}");
-        // State = GameState.Lobby;
-        StatusMessage = "Scan the QR code with your phone and enter the Party Code to join the lobby";
-        SpeakMessage(new SpeechSynthesisUtterance() {
-            Text = StatusMessage,
-            Lang = Game.Voice
-        });
+
+        if (Game.State == GameState.Lobby)
+        {
+            StatusMessage = "Scan the QR code with your phone and enter the Party Code to join the lobby";
+            SpeakMessage(new SpeechSynthesisUtterance() {
+                Text = StatusMessage,
+                Lang = Game.Voice
+            });
+        }        
 
         // connect to hub
         hubConnection = new HubConnectionBuilder()
@@ -69,7 +72,7 @@ else
 
         hubConnection.On<GameDto>("PlayersRemoved", (game) => {
             Game = game;
-            Console.WriteLine("PlayersRemoved");
+            // Console.WriteLine("PlayersRemoved");
             StateHasChanged();
         });
 
@@ -81,10 +84,11 @@ else
                 Text = $"Ok, let us begin the game!"
             }); 
             
-            Game.State = GameState.Starting;
+            // Game.State = GameState.Starting;
             StateHasChanged();
 
             Task.Run(async() => {
+                // allows for CSS animations to finish
                 await Task.Delay(500);
                 Game.State = GameState.Playing;
                 StateHasChanged();

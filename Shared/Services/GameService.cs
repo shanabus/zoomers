@@ -58,7 +58,8 @@ namespace ZoomersClient.Shared.Services
             {   
                 // todo: we have to zero it out otherwise EF bitches about rows its expecting to track
                 question.Id = 0;
-                game = game.AddQuestion(question).PickNextPlayer();                
+                game = game.AddQuestion(question).PickNextPlayer();             
+                game.State = GameState.Playing;   
 
                 //_database.Entry(game.Players.FirstOrDefault(x => x.OnDeck)).State = EntityState.Modified;
 
@@ -79,6 +80,24 @@ namespace ZoomersClient.Shared.Services
             await SaveGameAsync(game);
 
             return _mapper.Map<GameDto>(game);
+        }
+
+        public async Task<GameDto> AnswersFinishedAsync(Guid gameId)
+        {
+            var game = await LoadGameAsync(gameId);
+
+            game.State = GameState.PlayerChoosing;
+
+            await SaveGameAsync(game);
+
+            return _mapper.Map<GameDto>(game);
+        }
+
+        public QuestionBase GetRandomQuestion(GameDto gameDto, string category)
+        {
+            var newQuestion = _database.AllQuestions.Where(q => !gameDto.Questions.Select(x => x.QuestionBaseId).Contains(q.Id)).OrderBy(o => Guid.NewGuid()).First();
+
+            return newQuestion;
         }
 
         public async Task RecordGuessAsync(Guid gameId, int questionId, Guid playerId, int guess)
@@ -140,8 +159,30 @@ namespace ZoomersClient.Shared.Services
             var game = await LoadGameAsync(gameId);
 
             game.RecordScore(questionId, score).RecordGuesses(questionId);
+            game.State = GameState.Playing;
 
             await SaveGameAsync(game);
+
+            return _mapper.Map<GameDto>(game);
+        }
+
+        public async Task<GameDto> QuestionCompletedAnswerAsync(Guid gameId, List<AnsweredQuestionDto> xurrentPlayerAnswers)
+        {
+            var game = await LoadGameAsync(gameId);
+
+            foreach(var cpAnswer in xurrentPlayerAnswers)
+            {
+                var answer = game.AnsweredQuestions.FirstOrDefault(x => x.Id == cpAnswer.Id);
+
+                if (answer != null)
+                {
+                    answer.CurrentPlayerAnswer = cpAnswer.CurrentPlayerAnswer;
+                }
+            }
+
+            game.State = GameState.QuestionSummary;
+
+            await _database.SaveChangesAsync();
 
             return _mapper.Map<GameDto>(game);
         }

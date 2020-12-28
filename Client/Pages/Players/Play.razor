@@ -82,7 +82,7 @@
         }
         @if (Game.CurrentAnswers().Count > 0)
         {
-            <AnswersCorrectPanel MaxCount="@Game.CurrentAnswers().Count" Username="@Game.CurrentPlayer.Username" OnSubmit="SubmitQuestionGuessAsync"></AnswersCorrectPanel>
+            <AnswersCorrectPanel MaxCount="@Game.CurrentAnswers().Count" CorrectCount="CurrentGuess" Submitted="CurrentGuess.HasValue" Username="@Game.CurrentPlayer.Username" OnSubmit="SubmitQuestionGuessAsync"></AnswersCorrectPanel>
         }        
     }
 
@@ -91,14 +91,17 @@
         <h4 class="my-4">You are on deck.</h4>
         <p>Sit tight while others try to answer this question:</p>
 
-        @if(!string.IsNullOrEmpty(CurrentQuestion.ImageUrl))
-        {
-            <div class="row">
-                <div class="col text-center">
-                    <img src="@CurrentQuestion.ImageUrl" class="img-fluid img-question" />
+        <div class="swing-in-top-fwd">            
+            <h4 class="my-4">@CurrentQuestion.Question</h4>
+            @if(!string.IsNullOrEmpty(CurrentQuestion.ImageUrl))
+            {
+                <div class="row">
+                    <div class="col text-center">
+                        <img src="@CurrentQuestion.ImageUrl" class="img-fluid img-question" />
+                    </div>
                 </div>
-            </div>
-        }
+            }
+        </div>        
     }
 
     @if (State == PlayState.CurrentPlayerAnswering)
@@ -172,6 +175,8 @@ else
     public bool EveryoneHasAnswered => Game.CurrentAnswers().Count == Game.Players.Count(x => !x.OnDeck);
     public GameQuestionDto CurrentQuestion => Game.Questions.LastOrDefault();
     
+    // public AnsweredQuestionDto CurrentAnswer => Game.CurrentAnswers().Where(x => x.Player.Id == Player.Id)
+
     private void UpdatePlayState()
     {
         var playerAnswer = Game.CurrentAnswers().FirstOrDefault(x => x.Player.Id == Player.Id);
@@ -180,24 +185,24 @@ else
         {
             Answer = "";
             CurrentGuess = null;
-            Console.WriteLine(CurrentQuestion.Question);
             State = PlayState.AnsweringQuestion;
             StatusMessage = "Type your answer and hit Submit";
         }
         else if (CurrentQuestion != null && !PlayerIsCurrentPlayer && playerAnswer != null)
         {
             State = PlayState.AnswerSubmitted;
+            CurrentGuess = playerAnswer.Guess;
             StatusMessage = "";
         }
         else if (PlayerIsCurrentPlayer && !EveryoneHasAnswered)
         {
             Console.WriteLine("EveryoneHasAnswered? " + EveryoneHasAnswered);
             State = PlayState.CurrentPlayerWaiting;
-            StatusMessage = CurrentQuestion.Question; 
+            // StatusMessage = CurrentQuestion.Question; 
         }
         else if (PlayerIsCurrentPlayer && EveryoneHasAnswered)
         {
-            Console.WriteLine("PLayer is current and answers are in");
+            Console.WriteLine("Player is current and answers are in");
             State = PlayState.CurrentPlayerAnswering;
             StatusMessage = "You are on the spot, what ya got?";
         }

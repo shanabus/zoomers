@@ -50,6 +50,11 @@ namespace ZoomersClient.Server.Hubs
 
                     player.GameId = game.Id;
                     player.ConnectionId = Context.ConnectionId;
+                    player.LoveReactions = 0;
+                    player.LoveScore = 0;
+                    player.HateReactions = 0;
+                    player.HateScore = 0;
+                    player.Score = 0;
                                         
                     var updatedGame = await _gameService.JoinGameAsync(game.Id, player);
 

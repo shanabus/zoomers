@@ -17,16 +17,14 @@ namespace ZoomersClient.Server.Hubs
 {
     public class WordPlayHub : Hub, IGameTypeHub
     {
-        private WordPlay _wordPlay { get; set; }
         private ILogger<WordPlayHub> _logger { get; set; }
         private GameService _gameService { get; set; }
         private Phrases _phrases { get; set; }
         private IMapper _mapper { get; set; }
 
-        public WordPlayHub(ILogger<WordPlayHub> logger, WordPlay wordplay, GameService gameService, Phrases phrases, IMapper mapper)
+        public WordPlayHub(ILogger<WordPlayHub> logger, GameService gameService, Phrases phrases, IMapper mapper)
         {
             _logger = logger;
-            _wordPlay = wordplay;
             _gameService = gameService;
             _phrases = phrases;
             _mapper = mapper;
@@ -62,7 +60,7 @@ namespace ZoomersClient.Server.Hubs
         {
             var game = await _gameService.FindGameAsync(gameId);
 
-            var questionBase = _wordPlay.GetRandomQuestion(category);           
+            var questionBase = _gameService.GetRandomQuestion(game, category);           
 
             var question = _mapper.Map<GameQuestion>(questionBase);
 
@@ -120,13 +118,13 @@ namespace ZoomersClient.Server.Hubs
 
         public async Task AnswersFinished(Guid gameId)
         {
-            var game = await _gameService.FindGameAsync(gameId);
+            var game = await _gameService.AnswersFinishedAsync(gameId);
             
             game.ShuffleAnswers();
 
             var phrase = _phrases.GetRandomAnswersFinishedPhrase(game.CurrentPlayer.Username, game.Voice) as SpeechSynthesisUtterance;
             
-            _logger.LogInformation("AnswersFinished, grabbed phrase for " + game.CurrentPlayer.Username);
+            // _logger.LogInformation("AnswersFinished, grabbed phrase for " + game.CurrentPlayer.Username);
 
             await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("AnswersFinished", game, phrase);
         }
@@ -135,11 +133,11 @@ namespace ZoomersClient.Server.Hubs
         {
             // todo: should calculate Game scores and Answers here
             
-            var game = await _gameService.FindGameAsync(gameId);
+            var game = await _gameService.QuestionCompletedAnswerAsync(gameId, xurrentPlayerAnswers);
 
-            var rand = new Random();            
-            Console.WriteLine("FIX THIS NOW! SAVE AND CHANGE VAR NAMES");
-            game.AnsweredQuestions = xurrentPlayerAnswers.OrderBy(x => rand.Next()).ToList();
+            //var rand = new Random();            
+            //Console.WriteLine("FIX THIS NOW! SAVE AND CHANGE VAR NAMES");
+            //game.AnsweredQuestions = xurrentPlayerAnswers.OrderBy(x => rand.Next()).ToList();
             
             if (!timeExpired)
             {

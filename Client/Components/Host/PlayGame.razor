@@ -12,9 +12,9 @@
 
 @if (Game != null)
 {
-    @if(State != GameState.RoundEnding && State != GameState.RoundSummary && State != GameState.Ended)
+    @if(Game.State != GameState.RoundEnding && Game.State != GameState.RoundSummary && Game.State != GameState.Ended)
     {
-    <div class='row @((State != GameState.Ending)? "slide-in-blurred-bottom": "slide-out-fwd-center") @State.ToString().ToLower()'>
+    <div class='row @((Game.State != GameState.Ending)? "slide-in-blurred-bottom": "slide-out-fwd-center") @Game.State.ToString().ToLower()'>
         <div class="col">            
             @if(CurrentQuestion != null)
             {
@@ -32,13 +32,13 @@
             <div class="row">                    
                 @if(CurrentPlayer != null)
                 {                    
-                var answerClass = (State == GameState.SummaryIsEnding)? "swing-out-left-bck": "swing-in-left-fwd";
+                var answerClass = (Game.State == GameState.SummaryIsEnding)? "swing-out-left-bck": "swing-in-left-fwd";
                 <div class="col-4" id="on-deck">
                     <span class="@answerClass" id="on-deck__label">On Deck</span>
                     <PlayerBadge Player="CurrentPlayer" Class="@answerClass"></PlayerBadge>
                 </div>                     
                 }
-                <div class='col-8 pt-3 @((State == GameState.SummaryIsEnding)? "slide-out-right": "slide-in-right")'>
+                <div class='col-8 pt-3 @((Game.State == GameState.SummaryIsEnding)? "slide-out-right": "slide-in-right")'>
                     <h3>@StatusMessage</h3>
                 </div>
             </div>       
@@ -47,12 +47,12 @@
         </div>
     </div>   
 
-        @if(State == GameState.QuestionSummary && Game.AnsweredQuestions.Any(x => !string.IsNullOrEmpty(x.CurrentPlayerAnswer)))
+        @if(Game.State == GameState.QuestionSummary && Game.AnsweredQuestions.Any(x => !string.IsNullOrEmpty(x.CurrentPlayerAnswer)))
         {
             <Scorecard @ref="scorecardRef" Score="@CurrentPlayerScore" Class="slide-in-blurred-bottom"></Scorecard>
         }    
     }           
-    else if (State == GameState.Ended)
+    else if (Game.State == GameState.Ended)
     {
         <div class="row mb-4">
             <div class="col text-center">
@@ -72,9 +72,9 @@
         <Timer @ref="timerRef" Class="slide-in-blurred-bottom" TimeEllapsed="AnswersFinished"></Timer>
     }  
     
-    @if(State == GameState.RoundSummary || State == GameState.RoundEnding)
+    @if(Game.State == GameState.RoundSummary || Game.State == GameState.RoundEnding)
     {
-    var answerClass = (State == GameState.RoundEnding)? "swing-out-left-bck": "swing-in-left-fwd";
+    var answerClass = (Game.State == GameState.RoundEnding)? "swing-out-left-bck": "swing-in-left-fwd";
     <div class='row @answerClass'>
         <div class="col">            
             <h2>Round Summary</h2>
@@ -83,33 +83,43 @@
     </div>    
     }
 
-    @if(PlayersAnswered.Any() && (State == GameState.Playing || State == GameState.QuestionSummary || State == GameState.PlayerChoosing))
-    {
+    @if(Game.State == GameState.Playing || Game.State == GameState.QuestionSummary || Game.State == GameState.PlayerChoosing)
+    {        
     <div class="row">
-        @foreach(var player in PlayersAnswered)
+
+        @if(PlayersAnswered.Any())
         {
-            var answerClass = (State == GameState.SummaryIsEnding)? "slide-out-fwd-center": "slide-in-blurred-bottom";
+            @foreach(var player in PlayersAnswered)
+            {
+                var answerClass = (Game.State == GameState.SummaryIsEnding)? "slide-out-fwd-center": "slide-in-blurred-bottom";
 
-            <div class="col-4 my-2 @answerClass">
-                <PlayerBadge Player="@player" Class="">                        
-                    @if(PlayerLove != null && PlayerLove.ContainsKey(player.Id))
+                <div class="col-4 my-2 @answerClass">
+                    <PlayerBadge Player="@player" Class="">                        
+                        @if(PlayerLove != null && PlayerLove.ContainsKey(player.Id))
+                        {
+                            <span class="flip-in-hor-bottom" style="color: goldenrod;">+ @PlayerLove[player.Id]</span>
+                        } 
+                    </PlayerBadge>
+                    
+                    @if(Game.State == GameState.QuestionSummary)
                     {
-                        <span class="flip-in-hor-bottom" style="color: goldenrod;">+ @PlayerLove[player.Id]</span>
-                    } 
-                </PlayerBadge>
-                
-                @if(State == GameState.QuestionSummary)
-                {
-                    var playerAnswer = Game.AnsweredQuestions.FirstOrDefault(x => x.Player.Id == player.Id);
+                        var playerAnswer = Game.AnsweredQuestions.FirstOrDefault(x => x.Player.Id == player.Id);
 
-                    <PlayerAnswerResult Answer="@playerAnswer" CurrentPlayer="CurrentPlayer" Show="@(ScoreShown > PlayersAnswered.IndexOf(player))"></PlayerAnswerResult>
-                }    
+                        <PlayerAnswerResult Answer="@playerAnswer" CurrentPlayer="CurrentPlayer" Show="@(ScoreShown > PlayersAnswered.IndexOf(player))"></PlayerAnswerResult>
+                    }    
+                </div>
+            }
+        }
+        else if (CurrentQuestion != null && !string.IsNullOrEmpty(CurrentQuestion.ImageUrl))
+        {
+            <div class="col text-center">
+                <img src="@CurrentQuestion.ImageUrl" class="slide-in-blurred-bottom img-fluid" />
             </div>
         }
     </div>
     }
 
-    @if(State == GameState.RoundSummary || State == GameState.RoundEnding || Game.State == GameState.Ended)
+    @if(Game.State == GameState.RoundSummary || Game.State == GameState.RoundEnding || Game.State == GameState.Ended)
     {
         <Scores Game="Game"></Scores>
 
@@ -133,12 +143,13 @@
     public EventCallback<GameDto> OnGameReset { get; set; }
     [Parameter]
     public GameQuestionDto CurrentQuestion { get; set; }
-    [CascadingParameter]
-    public GameState State { get; set; }
+    // [CascadingParameter]
+    // public GameState State { get; set; }
     
     public PlayerDto CurrentPlayer { get; set; }
     public string StatusMessage { get; set; }    
-    public List<PlayerDto> PlayersAnswered { get; set; }
+    public List<PlayerDto> PlayersAnswered => Game.CurrentAnswers().Select(x => x.Player).ToList();
+
     public Dictionary<Guid, int> PlayerLove { get; set; }
     public int CurrentPlayerScore { get; set; }
     private int ScoreShown { get; set; }
@@ -154,8 +165,6 @@
     {
         base.OnInitialized();
         
-        PlayersAnswered = new List<PlayerDto>();
-                
         // connect to hub
         hubConnection = new HubConnectionBuilder()
             .WithUrl(NavigationManager.ToAbsoluteUri($"/wordplayhub"))
@@ -172,13 +181,11 @@
             // this only really handles mid-question refreshes UI states
             if (Game.Questions.Any())
             {
-                Console.WriteLine("Its already a round per question");     
+                Console.WriteLine("GameConnected - Questions.Any() - " + Game.State);     
 
                 Game = game;
                 CurrentQuestion = game.Questions.Last();
                 CurrentPlayer = game.Players.FirstOrDefault(x => x.OnDeck);
-                PlayersAnswered = new List<PlayerDto>();
-                State = GameState.Playing;
                 CurrentPlayerScore = 0;
                 ScoreShown = 0;
                 StatusMessage = "";
@@ -203,8 +210,6 @@
             Game = game;
             CurrentQuestion = question;
             CurrentPlayer = player;
-            PlayersAnswered = new List<PlayerDto>();
-            State = GameState.Playing;
             CurrentPlayerScore = 0;
             ScoreShown = 0;
             StatusMessage = "";
@@ -245,7 +250,7 @@
         hubConnection.On<bool, GameDto>("QuestionSummaryStarted", async (timeExpired, game) => {
             StatusMessage = "Time to see how you did";
             Game = game;
-            State = GameState.QuestionSummary;
+            // State = GameState.QuestionSummary;
             StateHasChanged();
             var correctQuestions = 0;
 
@@ -257,7 +262,7 @@
 
                 await Task.Delay(3000);
                 ScoreShown++;
-                Console.WriteLine($"{playerAnswer.Player.Username} said you would get {playerAnswer.Guess} correct");
+                // Console.WriteLine($"{playerAnswer.Player.Username} said you would get {playerAnswer.Guess} correct");
                 if (playerAnswer?.Answer == playerAnswer?.CurrentPlayerAnswer)
                 {
                     correctQuestions++;
@@ -268,7 +273,7 @@
                 {
                     await PlayWrong();
                 }
-                Console.WriteLine("Showed " + player.Username + "'s answer");
+                // Console.WriteLine("Showed " + player.Username + "'s answer");
                 
                 StateHasChanged();
             }
@@ -282,7 +287,7 @@
 
 
         hubConnection.On<GameDto>("ProceedToNextQuestion", async (game) => {
-            State = GameState.SummaryIsEnding;
+            // State = GameState.SummaryIsEnding;
             StateHasChanged();
             await Task.Delay(700);   
             Game = game;            
@@ -297,7 +302,7 @@
             if(Game.State != GameState.Ended)
             {
                 ScoreShown = 0;
-                State = GameState.RoundSummary;
+                // State = GameState.RoundSummary;
                 StateHasChanged();
                 
                 await js.InvokeVoidAsync("PlayMusic", $"/sounds/round_end_music.mp3");
@@ -318,7 +323,7 @@
                 }
                 
                 await Task.Delay(4500);
-                State = GameState.RoundSummary;
+                // State = GameState.RoundSummary;
                 StateHasChanged();
 
                 await Task.Delay(2000);
@@ -332,7 +337,7 @@
             Game = game;
             ScoreShown = 0;
             StatusMessage = "Game Over";
-            State = game.State; // GameState.Ending;
+            // State = game.State; // GameState.Ending;
             StateHasChanged();
 
             SpeakPhrase("That wraps up this game. Let's check the scores.");
@@ -392,8 +397,6 @@
     public async Task AnswersFinished()
     {        
         // timerRef.ResetTimer();
-        State = GameState.PlayerChoosing;
-        // Console.WriteLine("Something told me to fire AnswersFinished");
         await hubConnection.SendAsync("AnswersFinished", Game.Id);
         StateHasChanged();
     }
@@ -408,7 +411,7 @@
         this.SpeechSynthesis.Speak(new SpeechSynthesisUtterance() {
             Lang = Game.Voice,
             Text = message,
-            Volume = 0.1
+            Volume = 0.7
         });
     }
     

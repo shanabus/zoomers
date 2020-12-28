@@ -50,10 +50,10 @@ namespace ZoomersClient.Server.Hubs
             }
         }
 
-        public async Task SubmitCorrectGuess(Guid gameId, int questionId, Guid playerId, int guess) {
-            
-            await _gameService.RecordGuessAsync(gameId, questionId, playerId, guess);            
-            
+        public async Task SubmitCorrectGuess(Guid gameId, int questionId, Guid playerId, int? guess) 
+        {            
+            await _gameService.RecordGuessAsync(gameId, questionId, playerId, guess.Value);    
+            Console.WriteLine("A guess should have been logged");                    
         }
 
         public async Task AskQuestion(Guid gameId, string category)

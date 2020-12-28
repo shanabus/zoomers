@@ -44,16 +44,16 @@ else
 
     protected override void OnInitialized()
     {
-
         if (!CorrectCount.HasValue)
         {
-            Console.WriteLine("AnswerCorrectPanel - " + Submitted + " / " + CorrectCount);
             CorrectCount = 0;
         }
         else
         {
-            Console.WriteLine("AnswerCorrectPanel hasval? - " + Submitted + " / " + CorrectCount);
+            Submitted = true;
         }
+        
+        StateHasChanged();
     }
 
     void Lower(MouseEventArgs e)

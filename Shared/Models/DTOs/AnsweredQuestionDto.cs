@@ -18,6 +18,6 @@ namespace ZoomersClient.Shared.Models.DTOs
 
         public string CurrentPlayerAnswer { get; set; }
 
-        public int? Guess { get; internal set; }
+        public int? Guess { get; set; }
     }
 }

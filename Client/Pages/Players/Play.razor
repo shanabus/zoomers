@@ -175,8 +175,6 @@ else
     public bool EveryoneHasAnswered => Game.CurrentAnswers().Count == Game.Players.Count(x => !x.OnDeck);
     public GameQuestionDto CurrentQuestion => Game.Questions.LastOrDefault();
     
-    // public AnsweredQuestionDto CurrentAnswer => Game.CurrentAnswers().Where(x => x.Player.Id == Player.Id)
-
     private void UpdatePlayState()
     {
         var playerAnswer = Game.CurrentAnswers().FirstOrDefault(x => x.Player.Id == Player.Id);

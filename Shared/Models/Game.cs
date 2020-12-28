@@ -268,9 +268,11 @@ namespace ZoomersClient.Shared.Models
 
         public Game NextRound()
         {   
-            if (CurrentRound < Rounds)         
+            Console.WriteLine("Current - " + CurrentRound + " / " + Rounds);
+
+            if (CurrentRound <= Rounds)         
             {
-                CurrentRound++;
+                CurrentRound += 1;
                 State = GameState.RoundSummary;
                 return this.ShufflePlayerOrder();
             }

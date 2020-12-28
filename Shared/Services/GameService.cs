@@ -309,6 +309,8 @@ namespace ZoomersClient.Shared.Services
             {
                 game.NextRound();
             }
+
+            await SaveGameAsync(game);
             
             return _mapper.Map<GameDto>(game);
         }

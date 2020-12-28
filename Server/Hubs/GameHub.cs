@@ -55,6 +55,7 @@ namespace ZoomersClient.Server.Hubs
                     player.HateReactions = 0;
                     player.HateScore = 0;
                     player.Score = 0;
+                    player.CorrectGuesses = 0;
                                         
                     var updatedGame = await _gameService.JoinGameAsync(game.Id, player);
 

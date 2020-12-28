@@ -103,7 +103,7 @@
                     
                     @if(Game.State == GameState.QuestionSummary)
                     {
-                        var playerAnswer = Game.AnsweredQuestions.FirstOrDefault(x => x.Player.Id == player.Id);
+                        var playerAnswer = Game.CurrentAnswers().FirstOrDefault(x => x.Player.Id == player.Id);
 
                         <PlayerAnswerResult Answer="@playerAnswer" CurrentPlayer="CurrentPlayer" Show="@(ScoreShown > PlayersAnswered.IndexOf(player))"></PlayerAnswerResult>
                     }    
@@ -143,9 +143,7 @@
     public EventCallback<GameDto> OnGameReset { get; set; }
     [Parameter]
     public GameQuestionDto CurrentQuestion { get; set; }
-    // [CascadingParameter]
-    // public GameState State { get; set; }
-    
+        
     public PlayerDto CurrentPlayer { get; set; }
     public string StatusMessage { get; set; }    
     public List<PlayerDto> PlayersAnswered => Game.CurrentAnswers().Select(x => x.Player).ToList();
@@ -258,11 +256,11 @@
 
             foreach(var player in PlayersAnswered)
             {
-                var playerAnswer = Game.AnsweredQuestions.FirstOrDefault(x => x.Player.Id == player.Id);
+                var playerAnswer = Game.CurrentAnswers().FirstOrDefault(x => x.Player.Id == player.Id);
 
                 await Task.Delay(3000);
                 ScoreShown++;
-                // Console.WriteLine($"{playerAnswer.Player.Username} said you would get {playerAnswer.Guess} correct");
+                
                 if (playerAnswer?.Answer == playerAnswer?.CurrentPlayerAnswer)
                 {
                     correctQuestions++;
@@ -463,7 +461,7 @@
             await Task.Delay(1500);
         }
         
-        if (!Game.AnsweredQuestions.All(x => string.IsNullOrEmpty(x.CurrentPlayerAnswer))) {
+        if (Game.AnsweredQuestions.All(x => string.IsNullOrEmpty(x.CurrentPlayerAnswer))) {
             SpeakPhrase("Nobody had an answer? Strange...  Ok we will move onto the next question");
             await Task.Delay(1500);
         }

@@ -1,3 +1,10 @@
 .text-poo {
     color: rgb(112, 55, 21);
 }
+
+.trophy 
+{
+    position: relative;
+    top: -6px;
+    left: -12px;
+}

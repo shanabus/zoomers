@@ -86,7 +86,7 @@
         }        
     }
 
-    @if(State == PlayState.CurrentPlayerWaiting)
+    @if(State == PlayState.CurrentPlayerWaiting && CurrentQuestion != null)
     {
         <h4 class="my-4">You are on deck.</h4>
         <p>Sit tight while others try to answer this question:</p>
@@ -135,16 +135,7 @@
         }
         else // you are the current player and just submitted scores
         {
-            <h4 class="mt-4">Check the scoreboard to see how you did</h4>
-
-            if(Game.CurrentRound > 1)
-            {
-                <div class="row">
-                    <div class="col text-center">
-                        <img src="https://i.postimg.cc/FFPh45cd/1-F1-AA583.png" class="img-fluid img-question" />
-                    </div>
-                </div>
-            }             
+            <h4 class="mt-4">Check the scoreboard to see how you did</h4>          
         }
     }
         
@@ -173,6 +164,8 @@ else
     public GameDto Game { get; set;}
     public bool PlayerIsCurrentPlayer => Game.Players.Any() && Game.CurrentPlayer?.Id == Player.Id;
     public bool EveryoneHasAnswered => Game.CurrentAnswers().Count == Game.Players.Count(x => !x.OnDeck);
+    public bool CurrentPlayerHasAnswered => Game.Questions.Any() && Game.CurrentAnswers().All(x => !string.IsNullOrEmpty(x.CurrentPlayerAnswer));
+
     public GameQuestionDto CurrentQuestion => Game.Questions.LastOrDefault();
     
     private void UpdatePlayState()
@@ -198,11 +191,15 @@ else
             State = PlayState.CurrentPlayerWaiting;
             // StatusMessage = CurrentQuestion.Question; 
         }
-        else if (PlayerIsCurrentPlayer && EveryoneHasAnswered)
+        else if (PlayerIsCurrentPlayer && EveryoneHasAnswered && !CurrentPlayerHasAnswered)
         {
             Console.WriteLine("Player is current and answers are in");
             State = PlayState.CurrentPlayerAnswering;
-            StatusMessage = "You are on the spot, what ya got?";
+            StatusMessage = "";
+        }
+        else if (PlayerIsCurrentPlayer && EveryoneHasAnswered && CurrentPlayerHasAnswered)
+        {
+            State = PlayState.QuestionScores;
         }
         else if (Game.State == GameState.Ended)
         {
@@ -334,7 +331,6 @@ else
 
         await hubConnection.SendAsync("QuestionCompletedAnswer", Game.Id, false, answers);
         
-        Console.WriteLine("Question Complete Submitted");
         StateHasChanged();
     }
 

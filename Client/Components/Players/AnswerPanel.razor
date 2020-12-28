@@ -29,7 +29,7 @@
                 }
                 else
                 {
-                    <span class='oi oi-circle-check @((SelectedAnswer == answer)? "text-success" : "text-secondary")'></span>
+                    <span class='oi oi-media-record @((SelectedAnswer == answer)? "text-success" : "text-secondary")'></span>
                 }            
             </div>
         </div>
@@ -64,19 +64,6 @@
     public bool Valid => Answers.All(x => !string.IsNullOrEmpty(x.CurrentPlayerAnswer));
     
     private Timer answerTimerRef { get; set; }
-
-
-    protected override void OnParametersSet()
-    {
-        base.OnInitialized();
-
-        var rand = new Random();
-
-        var XurrentPlayerAnswers = Answers.Where(x => x.Player.Id != CurrentPlayer.Id)
-            .OrderBy(x => rand.Next())
-            .Select(x => new AnsweredQuestionDto() { Question = x.Question, Answer = "", Player = x.Player })
-            .ToList();   
-    }
 
     public void OnClickPlayer(PlayerDto player)
     {

@@ -76,7 +76,7 @@ namespace ZoomersClient.Shared.Models.DTOs
         {
             var answeredQuestions = new List<AnsweredQuestionDto>();
 
-            foreach(var answer in AnsweredQuestions)
+            foreach(var answer in CurrentAnswers())
             {
                 if (answer.Answer == answer.CurrentPlayerAnswer)
                 {

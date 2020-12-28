@@ -4,12 +4,12 @@
 <div class='player-answer-button my-1 @Class @(Selected? "selected" : "")' @onclick="ClickToggleActive">
     <PlayerBadge Player="Player"></PlayerBadge>
     <div class="player-answer-button__check">
-        @if(!string.IsNullOrEmpty(Answer.Answer))
+        @if(string.IsNullOrEmpty(Answer.CurrentPlayerAnswer))
         {
-            <span class='oi oi-check text-info' aria-hidden="true"></span>
+            <span class='oi @(Selected? "oi-check text-success" : "oi-media-record text-white")' aria-hidden="true"></span>
         }
         else {
-            <span class='oi oi-circle-check @((Selected)? "text-success" : "text-secondary")' aria-hidden="true"></span>
+            <span class='oi oi-check @((Selected)? "text-secondary" : "text-success")' aria-hidden="true"></span>
         }
         
     </div>

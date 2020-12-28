@@ -42,7 +42,7 @@ else
     [Parameter]
     public bool Submitted { get; set; }
 
-    protected override void OnInitialized()
+    protected override void OnParametersSet()
     {
         if (!CorrectCount.HasValue)
         {

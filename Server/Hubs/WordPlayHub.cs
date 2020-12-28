@@ -62,8 +62,10 @@ namespace ZoomersClient.Server.Hubs
         {
             var game = await _gameService.FindGameAsync(gameId);
 
-            var question = _wordPlay.GetRandomQuestion(category);
-            
+            var questionBase = _wordPlay.GetRandomQuestion(category);           
+
+            var question = _mapper.Map<GameQuestion>(questionBase);
+
             game = await _gameService.AddQuestionAsync(gameId, question);
             
             Console.WriteLine("Sending QuestionReady");

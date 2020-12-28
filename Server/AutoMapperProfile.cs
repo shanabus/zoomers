@@ -17,6 +17,9 @@ namespace ZoomersClient.Server
             CreateMap<Game, GameDto>();  
 
             CreateMap<QuestionBase, GameQuestionDto>();
+            CreateMap<QuestionBase, GameQuestion>()
+                .ForMember(dest => dest.QuestionBaseId, opts => opts.MapFrom(src => src.Id))
+                .ForMember(dest => dest.Id, opts => opts.Ignore());
             CreateMap<CreateQuestionDto, QuestionBase>()
                 .ForMember(dest => dest.CategoriesString, opts => opts.MapFrom(src => src.Categories));
 

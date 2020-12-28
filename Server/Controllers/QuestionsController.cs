@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using ZoomersClient.Server.Services;
 using ZoomersClient.Shared.Data;
+using ZoomersClient.Shared.Models;
 using ZoomersClient.Shared.Models.DTOs;
 using ZoomersClient.Shared.Services;
 
@@ -27,6 +29,27 @@ namespace ZoomersClient.Server.Controllers
         {
             return _questionService.AllQuestions();
         }
+
+        // [HttpGet("fromFile")]
+        // public async Task<string> GetFromFile()
+        // {
+        //     WordPlay wordPlay = new WordPlay();
+
+        //     foreach(var q in wordPlay.Questions)
+        //     {
+        //         var question = new CreateQuestionDto() {
+        //             Question = q.Question,
+        //             ImageUrl = "",
+        //             Categories = q.CategoriesString
+        //         };
+
+        //          await _questionService.AddQuestionAsync(question);
+
+        //          await Task.Delay(500);
+        //     }
+
+        //     return wordPlay.Questions.Count + " added to the database";
+        // }
 
         [HttpPost]
         public async Task Post([FromBody] CreateQuestionDto question)

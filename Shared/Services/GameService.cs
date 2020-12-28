@@ -95,7 +95,9 @@ namespace ZoomersClient.Shared.Services
 
         public QuestionBase GetRandomQuestion(GameDto gameDto, string category)
         {
-            var newQuestion = _database.AllQuestions.Where(q => !gameDto.Questions.Select(x => x.QuestionBaseId).Contains(q.Id)).OrderBy(o => Guid.NewGuid()).First();
+            Console.WriteLine(category + " TODO - Add category searching!");
+            var newQuestion = _database.AllQuestions.Where(q => !gameDto.Questions.Select(x => x.QuestionBaseId).Contains(q.Id))
+                .OrderBy(o => Guid.NewGuid()).First();
 
             return newQuestion;
         }

@@ -20,7 +20,7 @@
     var answerIsUsed = Answers.Any(x => x.CurrentPlayerAnswer == answer.Answer);
 
     <div class='col-6 my-1 answer-panel__answer @(answerIsUsed? "text-secondary" : "text-dark")' @onclick="@((e) => OnClickSelectAnswer(e, answer))">
-        <div class="bg-light p-2">
+        <div class="bg-light p-2 bs-10">
             @answer.Answer
             <div class="answer-panel__answer-icon">
                 @if(answerIsUsed)

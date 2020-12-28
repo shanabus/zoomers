@@ -11,10 +11,11 @@ body {
 #on-deck__label {
     position: absolute;
     top: 0px;
-    left: 22px;
+    left: 26px;
     z-index: 1000;
-    padding: 0 4px;
-    background-color: #ddd;    
+    padding: 0 6px;
+    background-color: orange;    
+    border-radius: 3px;
 }
 
 .roundending .player-badge, .roundsummary .player-badge {

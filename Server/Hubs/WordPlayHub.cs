@@ -105,9 +105,16 @@ namespace ZoomersClient.Server.Hubs
 
         public async Task UpdatePlayerConnectionId(Guid gameId, Guid playerId)
         {
-            var game = await _gameService.UpdatePlayerConnectionId(gameId, playerId, Context.ConnectionId);
+            try{
+                var game = await _gameService.UpdatePlayerConnectionId(gameId, playerId, Context.ConnectionId);
+
+                await Clients.Client(Context.ConnectionId).SendAsync("PlayerUpdated", game);
+            }
+            catch(Exception e)
+            {
+                await Clients.Client(Context.ConnectionId).SendAsync("ConnectionError", e.Message);
+            }
             
-            await Clients.Client(Context.ConnectionId).SendAsync("PlayerUpdated", game);
         }
 
         public async Task UpdateGameConnectionId(Guid gameId)

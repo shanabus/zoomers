@@ -2,7 +2,6 @@
 @inject HttpClient Http
 @layout PlayerLayout
 @using Microsoft.AspNetCore.SignalR.Client
-@using Newtonsoft.Json
 @using Toolbelt.Blazor.SpeechSynthesis
 @using ZoomersClient.Client.Components.Players
 @using ZoomersClient.Client.Components.Shared
@@ -16,7 +15,7 @@
 
 @if(Game != null && Player != null && Game.CurrentPlayer != null)
 {
-    <div class="row" id="game-banner">
+    <div class='row @(Game.CurrentPlayer == Player? "currentplayer" : "")' id="game-banner">
         <div class="col-9 pt-2">
             <h1>@Game.Name</h1>
         </div>
@@ -38,7 +37,9 @@
 
             <div class="row my-4">
                 <div class="col">
-                    <input @bind-value="Answer" class="form-control" maxlength="42" @onsubmit="SubmitAnswer" />
+                    <form @onsubmit="SubmitAnswer">
+                        <input @bind-value="Answer" class="form-control" maxlength="42" />
+                    </form>
                 </div>
             </div>
 
@@ -108,7 +109,7 @@
     {
         <h4 class="mt-4">Click on a player then the answer they gave</h4>
 
-        <AnswerPanel Players="@Game.Players" Answers="@Game.CurrentAnswers()" CurrentPlayer="@Game.CurrentPlayer" SubmitAnswers="@((a) => SubmitQuestionCompleteAnswer(a))" Enabled="@true"></AnswerPanel>        
+        <AnswerPanel Players="ShuffledPlayers()" Answers="ShuffledAnswers()" CurrentPlayer="@Game.CurrentPlayer" SubmitAnswers="@((a) => SubmitQuestionCompleteAnswer(a))" Enabled="@true"></AnswerPanel>        
     }
 
     @if (State == PlayState.QuestionScores)
@@ -293,6 +294,13 @@ else
             }
         });
 
+        hubConnection.On<string>("ConnectionError", (message) => {
+            Console.WriteLine("error - " + message);
+
+            // clear game and send to Join?
+            NavigationManager.NavigateTo("join");            
+        });
+
         // start hub
         await hubConnection.StartAsync();
         
@@ -350,6 +358,18 @@ else
         }
         
         throw new Exception("Player not found!");        
+    }
+
+    private List<PlayerDto> ShuffledPlayers()
+    {
+        var r = new Random();
+        return Game.Players.Where(x => !x.OnDeck).OrderBy(x => r.Next()).ToList();
+    }
+
+    private List<AnsweredQuestionDto> ShuffledAnswers()
+    {
+        var r = new Random();
+        return Game.CurrentAnswers().OrderBy(x => r.Next()).ToList();
     }
 
     public async ValueTask DisposeAsync()

@@ -9,7 +9,6 @@ body {
     width: 100vw;
     height: 100vh;
     
-    background-color: #ddd;
     background-image: url("/images/client-footer.png");
     background-repeat: repeat-x;    
     background-position-y: bottom;

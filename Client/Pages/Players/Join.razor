@@ -18,13 +18,15 @@
 
     <div class="row mb-4 mt-2">
         <div class="col-8">
-            <div class="input-group input-group-lg">                
-                <input placeholder="Player name" maxlength="25" type="text" class="form-control" @bind="Username" />                
-                <div class="input-group-append">
-                    <span class="input-group-text" id="inputGroup-sizing-lg" @onclick="RandomPlayer">
-                        <span class="oi oi-loop-square" aria-hidden="true"></span>
-                    </span>
-                </div>
+            <div class="input-group input-group-lg">               
+                <form @onsubmit="(e => ConnectToParty())">
+                    <input placeholder="Player name" maxlength="25" type="text" class="form-control" @bind="Username" />                
+                    <div class="input-group-append">
+                        <span class="input-group-text" id="inputGroup-sizing-lg" @onclick="RandomPlayer">
+                            <span class="oi oi-loop-square" aria-hidden="true"></span>
+                        </span>
+                    </div>
+                </form> 
             </div>
         </div>
         <div class="col-4 text-center">            

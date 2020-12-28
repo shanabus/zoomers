@@ -361,9 +361,6 @@
                     var otherWinners = string.Join(", ", Game.Players.Where(x => x.Score == winner.Score && x.Id != winner.Id).Select(x => x.Username).ToArray());
                     SpeakPhrase($"Although there were others in the running. Congratulations, you are all winners {otherWinners}");
                 }
-                
-                await Task.Delay(2500);            
-                SpeakPhrase("Wait, who am I kidding, with Charles around we are all winners.  Happy Birthday Charles!");
             }
         }); 
         

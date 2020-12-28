@@ -67,7 +67,7 @@ namespace ZoomersClient.Shared.Models.DTOs
         public GameDto ShuffleAnswers()
         {
             var r = new Random();
-            AnsweredQuestions.OrderBy(x => r.Next());
+            CurrentAnswers().OrderBy(x => r.Next());
             
             return this;
         }

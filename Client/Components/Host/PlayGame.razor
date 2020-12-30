@@ -10,6 +10,12 @@
 @inject SpeechSynthesis SpeechSynthesis
 @inject IJSRuntime js
 
+<style>
+    body, #app {        
+        overflow: hidden;
+    }
+</style>
+
 @if (Game != null)
 {
     @if(Game.State != GameState.RoundEnding && Game.State != GameState.RoundSummary && Game.State != GameState.Ended)
@@ -236,28 +242,37 @@
             CurrentPlayerTimerRef.ResetTimer();
             var correctQuestions = 0;
 
-            await js.InvokeVoidAsync("PlayAudioFile", "/sounds/tada_1.mp3");
-
-            foreach(var player in PlayersAnswered)
+            if (timeExpired)
             {
-                var playerAnswer = Game.CurrentAnswers().FirstOrDefault(x => x.Player.Id == player.Id);
+                await js.InvokeVoidAsync("PlayAudioFile", "/sounds/wrong_1.mp3");
 
-                await Task.Delay(3000);
-                ScoreShown++;
-                
-                if (playerAnswer?.Answer == playerAnswer?.CurrentPlayerAnswer)
-                {
-                    correctQuestions++;
-                    CurrentPlayerScore = CurrentPlayerScore + (100 * Game.CurrentRound);
-                    await PlayRight();
-                }
-                else
-                {
-                    await PlayWrong();
-                }
-                
-                StateHasChanged();
+                // wait, then talk some trash and give other points players?
             }
+            else
+            {
+                await js.InvokeVoidAsync("PlayAudioFile", "/sounds/tada_1.mp3");
+
+                foreach(var player in PlayersAnswered)
+                {
+                    var playerAnswer = Game.CurrentAnswers().FirstOrDefault(x => x.Player.Id == player.Id);
+
+                    await Task.Delay(3000);
+                    ScoreShown++;
+                    
+                    if (playerAnswer?.Answer == playerAnswer?.CurrentPlayerAnswer)
+                    {
+                        correctQuestions++;
+                        CurrentPlayerScore = CurrentPlayerScore + (100 * Game.CurrentRound);
+                        await PlayRight();
+                    }
+                    else
+                    {
+                        await PlayWrong();
+                    }
+                    
+                    StateHasChanged();
+                }
+            }            
             
             await CheckBanterEngineAsync(CurrentPlayerScore, correctQuestions);
 

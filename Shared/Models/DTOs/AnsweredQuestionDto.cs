@@ -19,5 +19,7 @@ namespace ZoomersClient.Shared.Models.DTOs
         public string CurrentPlayerAnswer { get; set; }
 
         public int? Guess { get; set; }
+
+        public bool AnswerTimedOut { get; set; }
     }
 }

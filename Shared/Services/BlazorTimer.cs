@@ -19,10 +19,8 @@ namespace ZoomersClient.Shared.Services
 
         public void DisposeTimer()
         {
-            Console.WriteLine("DisposeTimer");
             if (_timer != null)
             {
-                Console.WriteLine("Not null, disposing!");
                 _timer.Stop();
                 _timer.Elapsed -= NotifyTimerElapsed;
                 _timer.Dispose();
@@ -35,13 +33,11 @@ namespace ZoomersClient.Shared.Services
         {
             if (_timer.Interval * Tick < _end)
             {
-                Console.WriteLine("timer tick");
                 OnElapsed?.Invoke();
                 Tick += 1;
             }
             else 
             {
-                Console.WriteLine("ellapsed");
                 OnElapsed?.Invoke();
                 _timer.Dispose();
             }

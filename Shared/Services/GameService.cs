@@ -98,7 +98,7 @@ namespace ZoomersClient.Shared.Services
                         Round = game.CurrentRound,
                         Question = game.Questions.Last(),
                         Answer = "DNF",
-                        Guess = 0
+                        AnswerTimedOut = true
                     });
                 }
             }

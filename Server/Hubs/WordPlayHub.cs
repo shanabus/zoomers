@@ -134,29 +134,14 @@ namespace ZoomersClient.Server.Hubs
 
             var phrase = _phrases.GetRandomAnswersFinishedPhrase(game.CurrentPlayer.Username, game.Voice) as SpeechSynthesisUtterance;
             
-            // _logger.LogInformation("AnswersFinished, grabbed phrase for " + game.CurrentPlayer.Username);
-
             await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("AnswersFinished", game, phrase);
         }
 
         public async Task QuestionCompletedAnswer(Guid gameId, bool timeExpired, List<AnsweredQuestionDto> xurrentPlayerAnswers)
-        {
-            // todo: should calculate Game scores and Answers here
-            
+        {            
             var game = await _gameService.QuestionCompletedAnswerAsync(gameId, xurrentPlayerAnswers);
-
-            //var rand = new Random();            
-            //Console.WriteLine("FIX THIS NOW! SAVE AND CHANGE VAR NAMES");
-            //game.AnsweredQuestions = xurrentPlayerAnswers.OrderBy(x => rand.Next()).ToList();
             
-            if (!timeExpired)
-            {
-                // Console.WriteLine("with time on the clock");
-                await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("QuestionSummaryStarted", timeExpired, game);
-            }            
-            else {
-                Console.WriteLine("Time expired for current player?");
-            }
+            await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("QuestionSummaryStarted", timeExpired, game);               
         }
 
         public async Task SendReaction(Guid gameId, PlayerDto fromPlayer, PlayerDto toPlayer, AnswerReaction reaction)

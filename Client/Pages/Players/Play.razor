@@ -83,7 +83,16 @@
         }
         @if (Game.CurrentAnswers().Count > 0)
         {
-            <AnswersCorrectPanel MaxCount="@Game.CurrentAnswers().Count" CorrectCount="CurrentGuess" Submitted="CurrentGuess.HasValue" Username="@Game.CurrentPlayer.Username" OnSubmit="SubmitQuestionGuessAsync"></AnswersCorrectPanel>
+            var playerAnswer = Game.CurrentAnswers().FirstOrDefault(x => x.Player.Id == Player.Id);
+
+            if (playerAnswer != null && !playerAnswer.AnswerTimedOut)
+            {
+                <AnswersCorrectPanel MaxCount="@Game.CurrentAnswers().Count" CorrectCount="CurrentGuess" Submitted="CurrentGuess.HasValue" Username="@Game.CurrentPlayer.Username" OnSubmit="SubmitQuestionGuessAsync"></AnswersCorrectPanel>
+            }
+            else
+            {
+                <span class="text-white">You didn't answer this round!</span>
+            }
         }        
     }
 

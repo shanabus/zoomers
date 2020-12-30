@@ -3,13 +3,13 @@
 
 @if(Show)
 {
-    <div class="row player-answer-result m-2 p-2">
+    <div class="row player-answer-result @AnswerClass m-2 p-2">
         <div class="col-10 swing-in-top-fwd">
-            <div><span class="text-secondary">Answer:</span> @Answer.Answer</div>
-            <div><span class="text-secondary"><PlayerIconButton Icon="@CurrentPlayer.Icon" BackgroundColor="@CurrentPlayer.BackgroundColor"></PlayerIconButton> chose:</span> @Answer.CurrentPlayerAnswer</div>
+            <div><span class="text-dark">Answered:</span> @Answer.Answer</div>
+            <div><span class="text-dark"><PlayerIconButton Icon="@CurrentPlayer.Icon" BackgroundColor="@CurrentPlayer.BackgroundColor"></PlayerIconButton> chose:</span> @Answer.CurrentPlayerAnswer</div>
         </div>
         <div class="col-2 text-right player-answer-result__icon">
-            @if(Answer.Answer == Answer.CurrentPlayerAnswer)
+            @if(Correct)
             {
                 <span class='oi oi-thumb-up text-success flip-in-hor-bottom' aria-hidden="true"></span>
             } 
@@ -30,4 +30,25 @@
     
     [Parameter]
     public bool Show { get; set; }
+
+    public bool Correct { get; set; }
+
+    public string AnswerClass { get; set; }
+
+    protected override void OnParametersSet()
+        {
+            base.OnParametersSet();
+
+            Correct = Answer.Answer == Answer.CurrentPlayerAnswer && !Answer.AnswerTimedOut;
+
+            if (!Show)
+            {
+                AnswerClass = "";
+            }
+            else
+            {
+                AnswerClass = Correct? "correct" : "wrong";
+
+            }
+        }
 }

@@ -121,8 +121,6 @@ namespace ZoomersClient.Server.Hubs
         {
             var game = await _gameService.UpdateGameConnection(gameId, Context.ConnectionId);
 
-            // _logger.LogInformation($"Setting game connection id {Context.ConnectionId}");
-
             await Clients.Client(Context.ConnectionId).SendAsync("GameConnected", game);
         }
 
@@ -152,6 +150,11 @@ namespace ZoomersClient.Server.Hubs
                 
                 await Clients.Clients(game.GameAndPlayerConnections(toPlayer)).SendAsync("ReactionReceived", fromPlayer, toPlayer, reaction);
             }            
+        }
+
+        public async Task AddToPlayerScoreAsync(Guid playerId, int scoreToAdd)
+        {
+            await _gameService.AddToPlayerScoreAsync(playerId, scoreToAdd);
         }
 
         public async Task ResetGame(Guid gameId)

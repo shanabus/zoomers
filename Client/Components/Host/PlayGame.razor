@@ -55,14 +55,14 @@
 
         @if(Game.State == GameState.QuestionSummary && Game.AnsweredQuestions.Any(x => !string.IsNullOrEmpty(x.CurrentPlayerAnswer)))
         {
-            <Scorecard @ref="scorecardRef" Score="@CurrentPlayerScore" Class="slide-in-blurred-bottom"></Scorecard>
+            <Scorecard @ref="scorecardRef" Score="@CurrentPlayerScore" Class="slide-in-blurred-top"></Scorecard>
         }    
     }           
     else if (Game.State == GameState.Ended)
     {
         <div class="row mb-4">
             <div class="col text-center">
-                <h1 class="game-name swing-in-top-fwd">@Game.Name</h1>            
+                <h1 class="game-name swing-in-top-fwd bs-10">@Game.Name</h1>            
             </div>
         </div>
     }
@@ -98,20 +98,22 @@
             {
                 var answerClass = (Game.State == GameState.SummaryIsEnding)? "slide-out-fwd-center": "slide-in-blurred-bottom";
 
-                <div class="col-4 my-2 @answerClass">
-                    <PlayerBadge Player="@player" Class="">                        
-                        @if(PlayerLove != null && PlayerLove.ContainsKey(player.Id))
+                <div class="col-4 my-2 p-1 @answerClass">
+                    <div class="player-answer-summary">
+                        <PlayerBadge Player="@player" Class="">                        
+                            @if(PlayerLove != null && PlayerLove.ContainsKey(player.Id))
+                            {
+                                <span class="flip-in-hor-bottom" style="color: goldenrod;">+ @PlayerLove[player.Id]</span>
+                            } 
+                        </PlayerBadge>
+                        
+                        @if(Game.State == GameState.QuestionSummary && !CurrentPlayerTimedOut)
                         {
-                            <span class="flip-in-hor-bottom" style="color: goldenrod;">+ @PlayerLove[player.Id]</span>
-                        } 
-                    </PlayerBadge>
-                    
-                    @if(Game.State == GameState.QuestionSummary)
-                    {
-                        var playerAnswer = Game.CurrentAnswers().FirstOrDefault(x => x.Player.Id == player.Id);
+                            var playerAnswer = Game.CurrentAnswers().FirstOrDefault(x => x.Player.Id == player.Id);
 
-                        <PlayerAnswerResult Answer="@playerAnswer" CurrentPlayer="CurrentPlayer" Show="@(ScoreShown > PlayersAnswered.IndexOf(player))"></PlayerAnswerResult>
-                    }    
+                            <PlayerAnswerResult Answer="@playerAnswer" CurrentPlayer="CurrentPlayer" Show="@(ScoreShown > PlayersAnswered.IndexOf(player))"></PlayerAnswerResult>
+                        }    
+                    </div>
                 </div>
             }
         }
@@ -155,6 +157,7 @@
 
     public Dictionary<Guid, int> PlayerLove { get; set; }
     public int CurrentPlayerScore { get; set; }
+    public bool CurrentPlayerTimedOut { get; set; }
     private int ScoreShown { get; set; }
 
     private bool UseTimers { get; set; }
@@ -236,7 +239,7 @@
         hubConnection.On<bool, GameDto>("QuestionSummaryStarted", async (timeExpired, game) => {
             StatusMessage = "Time to see how you did";
             Game = game;            
-            
+            CurrentPlayerTimedOut = timeExpired;
             StateHasChanged();
 
             CurrentPlayerTimerRef.ResetTimer();
@@ -244,12 +247,33 @@
 
             if (timeExpired)
             {
-                await js.InvokeVoidAsync("PlayAudioFile", "/sounds/wrong_1.mp3");
+                Console.WriteLine("CurrentPLayer did not submit answers");
 
-                // wait, then talk some trash and give other points players?
+                // fog horn
+                await js.InvokeVoidAsync("PlayAudioFile", "/sounds/wrong_5.mp3");
+
+                await Task.Delay(3000);
+                
+                // wait, then talk some trash and give other points players?   
+                SpeakPhrase("Since " + CurrentPlayer.Username + " was sleeping that round, each player will get their points back.");
+
+                foreach(var answer in Game.CurrentAnswers())
+                {
+                    await Task.Delay(3000);
+                    ScoreShown++;
+                    
+                    if (!answer.AnswerTimedOut)
+                    {
+                        PlayerLove[answer.Player.Id] += (100 * Game.CurrentRound);
+                        await hubConnection.SendAsync("AddToPlayerScoreAsync", answer.Player.Id, (100 * Game.CurrentRound));
+                        await PlayRight();
+                    }
+                    
+                    StateHasChanged();
+                }
             }
             else
-            {
+            {                
                 await js.InvokeVoidAsync("PlayAudioFile", "/sounds/tada_1.mp3");
 
                 foreach(var player in PlayersAnswered)
@@ -272,7 +296,7 @@
                     
                     StateHasChanged();
                 }
-            }            
+            }                        
             
             await CheckBanterEngineAsync(CurrentPlayerScore, correctQuestions);
 
@@ -280,8 +304,8 @@
             await hubConnection.SendAsync("QuestionFinished", Game.Id, CurrentQuestion.Id, CurrentPlayerScore);
         });
 
-        hubConnection.On<GameDto>("ProceedToNextQuestion", async (game) => {
-            // State = GameState.SummaryIsEnding;
+        hubConnection.On<GameDto>("ProceedToNextQuestion", async (game) => {            
+            CurrentPlayerTimedOut = false;
             StateHasChanged();
             await Task.Delay(700);   
             Game = game;            
@@ -471,30 +495,37 @@
         var spoken = 0;
         var delay = 2500;
 
-        if (chanceOfBanter.Next(100) > chance && currentPlayerScore == 0 && Game.AnsweredQuestions.All(x => x.Guess == 0))
+        if (chanceOfBanter.Next(300) > chance && Game.CurrentAnswers().All(x => x.AnswerTimedOut))
+        {
+            spoken++;
+            SpeakPhrase("If nobody is answering the questions then the game does not really work");
+            await Task.Delay(2200);
+        }
+
+        if (chanceOfBanter.Next(100) > chance && currentPlayerScore == 0 && Game.CurrentAnswers().All(x => x.Guess == 0))
         {
             spoken++;
             SpeakPhrase("Its ok, nobody thought you would get it right");
             await Task.Delay(1500);
         }
 
-        if (chanceOfBanter.Next(100) > chance && correctQuestions == Game.AnsweredQuestions.Count && Game.AnsweredQuestions.Max(x => x.Guess) < correctQuestions)
+        if (chanceOfBanter.Next(100) > chance && correctQuestions == Game.AnsweredQuestions.Count && Game.CurrentAnswers().Max(x => x.Guess) < correctQuestions)
         {
             spoken++;
             SpeakPhrase("You exceeded their expectations. Good job.");
             await Task.Delay(1500);
         }
 
-        if (chanceOfBanter.Next(100) > chance && correctQuestions > 0 && Game.AnsweredQuestions.Any(x => x.Guess == correctQuestions))
+        if (chanceOfBanter.Next(100) > chance && correctQuestions > 0 && Game.CurrentAnswers().Any(x => x.Guess == correctQuestions))
         {
             spoken++;
-            var correctPlayer = Game.AnsweredQuestions.FirstOrDefault(x => x.Guess == correctQuestions);
+            var correctPlayer = Game.CurrentAnswers().FirstOrDefault(x => x.Guess == correctQuestions);
             SpeakPhrase($"{correctPlayer.Player.Username} knew you would get that many correct. Points for them!");
-            await Task.Delay(1500);
+            await Task.Delay(1800);
         }
         
-        if (Game.AnsweredQuestions.All(x => string.IsNullOrEmpty(x.CurrentPlayerAnswer))) {
-            SpeakPhrase("Nobody had an answer? Strange...  Ok we will move onto the next question");
+        if (Game.CurrentAnswers().All(x => string.IsNullOrEmpty(x.CurrentPlayerAnswer)) && Game.CurrentAnswers().Any(x => !x.AnswerTimedOut)) {
+            SpeakPhrase("Player on Deck had an no answer? Strange...");
             await Task.Delay(1500);
         }
 

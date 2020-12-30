@@ -186,6 +186,18 @@ namespace ZoomersClient.Shared.Services
             return _mapper.Map<GameDto>(game);
         }
 
+        public async Task AddToPlayerScoreAsync(Guid playerId, int scoreToAdd)
+        {
+            var player = await _database.Players.FirstOrDefaultAsync(x => x.Id == playerId);
+
+            if (player != null)
+            {
+                player.Score += scoreToAdd;
+            }
+
+            await _database.SaveChangesAsync();
+        }
+
         public async Task<GameDto> QuestionCompletedAnswerAsync(Guid gameId, List<AnsweredQuestionDto> xurrentPlayerAnswers)
         {
             var game = await LoadGameAsync(gameId);

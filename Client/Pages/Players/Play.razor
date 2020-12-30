@@ -101,7 +101,7 @@
         <h4 class="my-4">You are on deck.</h4>
         <p>Sit tight while others try to answer this question:</p>
 
-        <div class="swing-in-top-fwd">            
+        <div class="swing-in-top-fwd jumbotron">            
             <h4 class="my-4">@CurrentQuestion.Question</h4>
             @if(!string.IsNullOrEmpty(CurrentQuestion.ImageUrl))
             {
@@ -146,6 +146,11 @@
         else // you are the current player and just submitted scores
         {
             <h4 class="mt-4">Check the scoreboard to see how you did</h4>          
+
+            @if(ShowCurrentPlayerTurnScore)
+            {
+                <h4 class="mt-4">You got @Game.CorrectAnswers().Count correct!</h4>
+            }
         }
     }
         
@@ -177,6 +182,7 @@ else
     public bool CurrentPlayerHasAnswered => Game.Questions.Any() && Game.CurrentAnswers().All(x => !string.IsNullOrEmpty(x.CurrentPlayerAnswer));
 
     public GameQuestionDto CurrentQuestion => Game.Questions.LastOrDefault();
+    public bool ShowCurrentPlayerTurnScore { get; set; }
     
     private void UpdatePlayState()
     {
@@ -210,6 +216,8 @@ else
         else if (PlayerIsCurrentPlayer && EveryoneHasAnswered && CurrentPlayerHasAnswered)
         {
             State = PlayState.QuestionScores;
+            Task.Delay(2000);
+            ShowCurrentPlayerTurnScore = true;
         }
         else if (Game.State == GameState.Ended)
         {
@@ -264,10 +272,16 @@ else
             }            
         });
 
-        hubConnection.On<bool, GameDto>("QuestionSummaryStarted", (timeExpired, game) => {                        
+        hubConnection.On<bool, GameDto>("QuestionSummaryStarted", async (timeExpired, game) => {                        
             Game = game;
             StatusMessage = "";
             State = PlayState.QuestionScores;
+            ShowCurrentPlayerTurnScore = false;
+            StateHasChanged();
+
+
+            await Task.Delay(Game.CurrentAnswers().Count * 700);
+            ShowCurrentPlayerTurnScore = true;
             StateHasChanged();
         });
 

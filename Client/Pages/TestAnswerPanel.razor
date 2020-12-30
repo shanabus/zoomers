@@ -1,6 +1,7 @@
 @page "/answer"
 @using System;
 @using ZoomersClient.Client.Components.Players
+@using ZoomersClient.Client.Components.Shared
 @using ZoomersClient.Shared.Models.DTOs
 @using ZoomersClient.Shared.Models.Enums
 @inject IJSRuntime js
@@ -19,8 +20,14 @@
 <audio id="player">
     <source id="playerSource" src="" />
 </audio>
+
+<Timer @ref="refTimer" Class="slide-in-blurred-bottom" TimeEllapsed="TimesUp"></Timer>
  
+<button class="bt btn-info" @onclick="@(e => refTimer.StartTimer(30))">Start</button>
+
 @code {
+
+    public Timer refTimer { get; set; }
 
     public int rWrong { get; set; }
 
@@ -83,5 +90,10 @@
         var t = r.Next(1,4);
 
         await js.InvokeVoidAsync("PlayAudioFile", "/sounds/right_" + t + ".mp3");
+    }
+
+    void TimesUp(int time)
+    {
+        Console.WriteLine("Time is up");
     }
 }

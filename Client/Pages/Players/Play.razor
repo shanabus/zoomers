@@ -173,7 +173,7 @@ else
     {
         var playerAnswer = Game.CurrentAnswers().FirstOrDefault(x => x.Player.Id == Player.Id);
 
-        if (CurrentQuestion != null && !PlayerIsCurrentPlayer && playerAnswer == null)
+        if (CurrentQuestion != null && !PlayerIsCurrentPlayer && playerAnswer == null && Game.State != GameState.PlayerChoosing)
         {
             Answer = "";
             CurrentGuess = null;

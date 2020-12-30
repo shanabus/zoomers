@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Toolbelt.Blazor.Extensions.DependencyInjection;
 using Plk.Blazor.DragDrop;
 using Blazored.LocalStorage;
+using ZoomersClient.Shared.Services;
 
 namespace ZoomersClient.Client
 {
@@ -21,6 +22,9 @@ namespace ZoomersClient.Client
             builder.Services.AddBlazorDragDrop();
             builder.Services.AddSpeechSynthesis();
             builder.Services.AddBlazoredLocalStorage();
+
+            
+            builder.Services.AddTransient<BlazorTimer>();
 
             //builder.Services.AddDbContext<ApplicationDBContext>(options => options.UseSqlServer("things"));
             //builder.Services.AddSingleton<ApplicationDBContext>();

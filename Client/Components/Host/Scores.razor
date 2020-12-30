@@ -9,7 +9,7 @@
         var isWinner = Game.Players.OrderByDescending(x => x.Score).ThenBy(x => x.LoveScore).ToList().IndexOf(player) == 0 && Game.State == GameState.Ended;
 
         <div class="col-4 my-2">
-            <div class='player-score @((isWinner)? "winning-player" : "")'>
+            <div class='player-score bs-6 @((isWinner)? "winning-player" : "")'>
                 <PlayerBadge Player="player">
                     @if(isWinner)
                     {

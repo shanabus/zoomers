@@ -16,3 +16,7 @@
     line-height: 1em;
     padding-top: .25em;
 }
+
+#game-clock.current-player {
+    background: orange;
+}

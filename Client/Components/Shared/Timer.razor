@@ -1,3 +1,5 @@
+@inject ZoomersClient.Shared.Services.BlazorTimer BlazorTimer
+
 <div id="game-clock" class="@Class">
     <div id="remaining-time">@counter</div>
     <div id="unit-of-measure">sec</div>
@@ -12,12 +14,12 @@
     [Parameter]
     public EventCallback<int> TimeEllapsed { get; set; }
     
-    private static System.Timers.Timer aTimer;
+    // private static System.Timers.Timer aTimer;
+
     private int counter = 0;
     
     protected override void OnInitialized()
-    {
-        aTimer = new System.Timers.Timer(1000);
+    {        
         counter = Seconds;
         base.OnInitialized();
     }
@@ -26,24 +28,23 @@
     {
         counter = seconds;
 
-        if(!aTimer.Enabled)
-        {            
-            aTimer.Elapsed += CountDownTimer;
-            aTimer.Enabled = true;
-        }        
+        //if(!aTimer.Enabled)
+        //{            
+        //    aTimer.Elapsed += CountDownTimer;
+        //    aTimer.Enabled = true;
+        //}        
+        BlazorTimer.SetTimer(seconds);
+        BlazorTimer.OnElapsed += CountDownTimer;
+        Console.WriteLine("Timer started");
     }
 
     public void ResetTimer()
     {
-        if(aTimer.Enabled)
-        {
-            aTimer.Elapsed -= CountDownTimer;
-            aTimer.Enabled = false;
-            // aTimer.Disposed();
-        }
+        BlazorTimer.DisposeTimer();
+        Console.WriteLine("Do we need to dispose timer?");
     }
 
-    public void CountDownTimer(Object source, System.Timers.ElapsedEventArgs e)
+    public void CountDownTimer()
     {
         if (counter > 0)
         {
@@ -59,6 +60,6 @@
     
     public void Dispose()
     {
-        aTimer.Dispose();
+        // aTimer.Dispose();
     }  
 }

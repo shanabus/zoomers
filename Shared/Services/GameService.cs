@@ -86,6 +86,24 @@ namespace ZoomersClient.Shared.Services
         {
             var game = await LoadGameAsync(gameId);
 
+            if (game.AnsweredQuestions.Count != game.Players.Count - 1)
+            {
+                // boot player?
+                var missingPlayers = game.Players.Where(x => !game.AnsweredQuestions.Select(a => a.Player).Contains(x) && !x.OnDeck);
+
+                foreach(var player in missingPlayers)
+                {
+                    game.AnsweredQuestions.Add(new AnsweredQuestion() {
+                        Player = player,
+                        Round = game.CurrentRound,
+                        Question = game.Questions.Last(),
+                        Answer = "DNF",
+                        Guess = 0
+                    });
+                }
+            }
+
+
             game.State = GameState.PlayerChoosing;
 
             await SaveGameAsync(game);

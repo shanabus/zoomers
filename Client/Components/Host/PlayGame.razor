@@ -61,9 +61,14 @@
         </div>
     }
         
-    @if(UseTimers)
+    @if(Game.State == GameState.Playing)
     {
-        <Timer @ref="timerRef" Class="slide-in-blurred-bottom" TimeEllapsed="AnswersFinished"></Timer>
+        <Timer @ref="PlayerTimerRef" Class="slide-in-blurred-bottom" TimeEllapsed="AnswersFinished"></Timer>
+    }  
+
+    @if(Game.State == GameState.PlayerChoosing)
+    {
+        <Timer @ref="CurrentPlayerTimerRef" Class="slide-in-blurred-bottom current-player" TimeEllapsed="QuestionCompletedAnswer"></Timer>
     }  
     
     @if(Game.State == GameState.RoundSummary || Game.State == GameState.RoundEnding)
@@ -147,8 +152,8 @@
     private int ScoreShown { get; set; }
 
     private bool UseTimers { get; set; }
-
-    private Timer timerRef { get; set; }
+    private Timer PlayerTimerRef { get; set; }
+    private Timer CurrentPlayerTimerRef { get; set; }
     private Scorecard scorecardRef { get; set; }
     
     private HubConnection hubConnection;
@@ -171,25 +176,19 @@
 
             // todo: figure out if we need to ask a question?
             // this only really handles mid-question refreshes UI states
-            if (Game.Questions.Any())
+            if (Game.Questions.Any() && Game.State != GameState.Ended)
             {
                 Console.WriteLine("GameConnected - Questions.Any() - " + Game.State);     
-
-                Game = game;
-                CurrentQuestion = game.Questions.Last();
-                CurrentPlayer = game.Players.FirstOrDefault(x => x.OnDeck);
-                CurrentPlayerScore = 0;
-                ScoreShown = 0;
-                StatusMessage = "";
-                PlayerLove = new Dictionary<Guid, int>();
-
-                // timerRef.ResetTimer();
-                // timerRef.StartTimer(30);
-
-                await js.InvokeVoidAsync("PlayAudioFile", "/sounds/whoosh_1.mp3");
-                await Task.Delay(750);
-
-                StateHasChanged();           
+                
+                await AskQuestionAsync();
+            }
+            else if (Game.State == GameState.PlayerChoosing)
+            {
+                // todo: add this logic!
+            }
+            else if (Game.State == GameState.Ended)
+            {
+                await GameOver();
             }
             else
             {
@@ -200,22 +199,8 @@
         hubConnection.On<GameDto, GameQuestionDto, PlayerDto>("QuestionReady", async (game, question, player) => {   
             // reset UI            
             Game = game;
-            CurrentQuestion = question;
-            CurrentPlayer = player;
-            CurrentPlayerScore = 0;
-            ScoreShown = 0;
-            StatusMessage = "";
-            PlayerLove = new Dictionary<Guid, int>();
-
-            // timerRef.ResetTimer();
-            // timerRef.StartTimer(30);
-
-            await js.InvokeVoidAsync("PlayAudioFile", "/sounds/whoosh_1.mp3");
-            await Task.Delay(750);
-
-            StateHasChanged();
-
-            SpeakPhrase(question.Question);
+           
+            await AskQuestionAsync();
         });
 
         hubConnection.On<GameDto, PlayerDto>("QuestionAnswered", async (game, player) => {
@@ -235,15 +220,20 @@
         hubConnection.On<GameDto, SpeechSynthesisUtterance>("AnswersFinished", (game, phrase) => {
             Game = game;
             StatusMessage = phrase.Text;
+            UseTimers = false;
+            PlayerTimerRef.ResetTimer();
+            CurrentPlayerTimerRef.StartTimer(30);
             StateHasChanged();
             SpeakPhrase(phrase.Text);
         });        
         
         hubConnection.On<bool, GameDto>("QuestionSummaryStarted", async (timeExpired, game) => {
             StatusMessage = "Time to see how you did";
-            Game = game;
-            // State = GameState.QuestionSummary;
+            Game = game;            
+            
             StateHasChanged();
+
+            CurrentPlayerTimerRef.ResetTimer();
             var correctQuestions = 0;
 
             await js.InvokeVoidAsync("PlayAudioFile", "/sounds/tada_1.mp3");
@@ -265,18 +255,15 @@
                 {
                     await PlayWrong();
                 }
-                // Console.WriteLine("Showed " + player.Username + "'s answer");
                 
                 StateHasChanged();
             }
             
             await CheckBanterEngineAsync(CurrentPlayerScore, correctQuestions);
 
-            // record score?
             await Task.Delay(4000);            
             await hubConnection.SendAsync("QuestionFinished", Game.Id, CurrentQuestion.Id, CurrentPlayerScore);
         });
-
 
         hubConnection.On<GameDto>("ProceedToNextQuestion", async (game) => {
             // State = GameState.SummaryIsEnding;
@@ -327,35 +314,8 @@
         hubConnection.On<GameDto>("GameOver", async (game) => {
             Console.WriteLine("GameOver on host - " + game.State);
             Game = game;
-            ScoreShown = 0;
-            StatusMessage = "Game Over";
-            // State = game.State; // GameState.Ending;
-            StateHasChanged();
-
-            SpeakPhrase("That wraps up this game. Let's check the scores.");
-
-            await js.InvokeVoidAsync("PlayMusic", $"/sounds/game_end_music.mp3");
-                        
-            await Task.Delay(4000);
-
-            if (Game.State == GameState.Ended)            
-            {                
-                var winner = Game.Players.OrderByDescending(x => x.Score).FirstOrDefault();
-
-                SpeakPhrase($"With {winner.Score} points, the winner is " + winner.Username);
-                
-                await Task.Delay(2500);
-
-                if (Game.Players.Sum(x => x.Score) == 0)
-                {
-                    SpeakPhrase("But you all need to learn more about each other");
-                }
-                if (Game.Players.Count(x => x.Score == winner.Score) > 1)
-                {
-                    var otherWinners = string.Join(", ", Game.Players.Where(x => x.Score == winner.Score && x.Id != winner.Id).Select(x => x.Username).ToArray());
-                    SpeakPhrase($"Although there were others in the running. Congratulations, you are all winners {otherWinners}");
-                }
-            }
+            
+            await GameOver();
         }); 
         
         hubConnection.On<GameDto>("GameReset", async (game) => {
@@ -383,11 +343,44 @@
         await hubConnection.SendAsync("UpdateGameConnectionId", Game.Id);
     }
 
+    private async Task AskQuestionAsync()
+    {        
+        Console.WriteLine("AskQuestionAsync");
+        CurrentQuestion = Game.Questions.Last();
+        CurrentPlayer = Game.Players.FirstOrDefault(x => x.OnDeck);
+        CurrentPlayerScore = 0;
+        ScoreShown = 0;
+        StatusMessage = "";
+        PlayerLove = new Dictionary<Guid, int>();
+
+        StateHasChanged();      
+
+        await js.InvokeVoidAsync("PlayAudioFile", "/sounds/whoosh_1.mp3");
+        await Task.Delay(750);
+
+        PlayerTimerRef.StartTimer(30);
+
+        StateHasChanged();           
+
+        SpeakPhrase(CurrentQuestion.Question);     
+    }
+
     public async Task AnswersFinished()
     {        
-        // timerRef.ResetTimer();
         await hubConnection.SendAsync("AnswersFinished", Game.Id);
+        UseTimers = false;
+        PlayerTimerRef.ResetTimer();
+        Game.State = GameState.PlayerChoosing;
         StateHasChanged();
+    }
+
+    async Task QuestionCompletedAnswer()
+    {
+        CurrentPlayerTimerRef.ResetTimer();
+
+        await hubConnection.SendAsync("QuestionCompletedAnswer", Game.Id, true, new List<AnsweredQuestionDto>());
+        
+        SpeakPhrase("Oh no, you ran out of time!");
     }
 
     public void SpeakPhrase(string message)
@@ -420,6 +413,39 @@
         StateHasChanged();
 
         await js.InvokeVoidAsync("PlayAudioFile", "/sounds/right_" + sound + ".mp3");
+    }
+
+    async Task GameOver()
+    {
+        ScoreShown = 0;
+        StatusMessage = "Game Over";
+        // State = game.State; // GameState.Ending;
+        StateHasChanged();
+
+        SpeakPhrase("That wraps up this game. Let's check the scores.");
+
+        await js.InvokeVoidAsync("PlayMusic", $"/sounds/game_end_music.mp3");
+                    
+        await Task.Delay(4000);
+
+        if (Game.State == GameState.Ended)            
+        {                
+            var winner = Game.Players.OrderByDescending(x => x.Score).FirstOrDefault();
+
+            SpeakPhrase($"With {winner.Score} points, the winner is " + winner.Username);
+            
+            await Task.Delay(2500);
+
+            if (Game.Players.Sum(x => x.Score) == 0)
+            {
+                SpeakPhrase("But you all need to learn more about each other");
+            }
+            if (Game.Players.Count(x => x.Score == winner.Score) > 1)
+            {
+                var otherWinners = string.Join(", ", Game.Players.Where(x => x.Score == winner.Score && x.Id != winner.Id).Select(x => x.Username).ToArray());
+                SpeakPhrase($"Although there were others in the running. Congratulations, you are all winners {otherWinners}");
+            }
+        }
     }
 
     async Task CheckBanterEngineAsync(int currentPlayerScore, int correctQuestions)

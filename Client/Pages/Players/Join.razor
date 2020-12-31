@@ -186,7 +186,7 @@
     {
         <div class="row mt-3">
             <div class="col">
-                <button class="btn btn-outline-secondary w-100" @onclick="EditPlayer">EDIT PLAYER</button>
+                <button class="btn btn-secondary w-100" @onclick="EditPlayer">EDIT PLAYER</button>
             </div>
         </div>
     }
@@ -426,7 +426,6 @@
     {
         try
         {
-            Console.WriteLine("Checking player in storage");
             Player = await GetPlayerFromStorageAsync();
         }
         catch(Exception e)
@@ -436,7 +435,6 @@
 
         if (Player == null)
         {
-            Console.WriteLine("Generating a random player");
             RandomPlayer();
             State = LobbyState.CreatingPlayer;
             GameStatus = "";
@@ -455,28 +453,23 @@
                 
                 if (Game == null || Game.State == GameState.Ended || !Game.Players.Any())
                 {
-                    Console.WriteLine("Game is null or has Ended");
                     GameStatus = "Found a game but its over, enter a new code";
                     State = LobbyState.SelectingParty;
                 }
                 else if (Game.State != GameState.Lobby && Game.Players.Any(x => x.Id == Player.Id))
                 {
-                    Console.WriteLine("Game has started or is being played, will try to catch up!");
-                    // Console.WriteLine("Would normally navigate, checking null players tho");
                     NavigationManager.NavigateTo($"play/{Game.Id}");
                 }
                 else if (Game.State == GameState.Lobby)
                 {   
                     if (Game.Players.Any(x => x.Id == Player.Id))
                     {
-                        Console.WriteLine("Game looks valid, should be in lobby");                        
                         GameStatus = "Reconnected to game";
                         State = LobbyState.ConnectedToGame;
                     }
                     else {
                         var partyIcons = Game.Party.Split("|").ToList();
 
-                        Console.WriteLine("Game looks valid, need to rejoin with party code " + string.Join(',', partyIcons));
                         GameStatus = "Found a game the lobby is empty, enter a new code";
                         await hubConnection.SendAsync("JoinTheGame", partyIcons, Player);
                         State = LobbyState.SelectingParty;

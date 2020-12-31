@@ -12,6 +12,9 @@ html, body {
   background-size: 100%;
 }
 
+.main {
+  background-color: #fff;
+}
 
 #app-splash {
     position: fixed;
@@ -143,10 +146,16 @@ a, .btn-link {
   font-size: 2rem;
 }
 
-#game-party-icons .party-icon {
+#game-party-icons .party-icon 
+{
     display: inline;
     border: none;
-    padding: .2em .25em;
+    padding: .2em .25em;    
+    background-color:rgba(220, 220, 220, .65)
+}
+#game-party-icons .party-icon img 
+{
+  max-width: 70px;
 }
 
 #player-lobby .player-icon {

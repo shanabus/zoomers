@@ -5,6 +5,13 @@
     align-self: center;
     border: solid #7fbdff 2px;
     border-radius: 3px;
+
+    background-color: rgba(162, 210, 226, 0.5);
+}
+
+.party-icon img {
+    max-width: 13vw;
+    padding: 6px 0;
 }
 
 .party-icon.selected {    

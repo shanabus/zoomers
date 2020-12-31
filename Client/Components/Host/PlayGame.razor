@@ -471,11 +471,13 @@
 
             SpeakPhrase($"With {winner.Score} points, the winner is " + winner.Username);
             
-            await Task.Delay(3000);
+            await Task.Delay(4000);
 
             if (Game.Players.Sum(x => x.Score) == 0)
             {
-                SpeakPhrase("But you all need to learn more about each other");
+                SpeakPhrase("But you each of need to learn more about each other");
+                
+                await Task.Delay(2500);
             }
             if (Game.Players.Count(x => x.Score == winner.Score) > 1)
             {
@@ -494,7 +496,7 @@
                     });
                     SpeakPhrase($"Although there were others in the running. Congratulations, you are all winners {otherWinners}");
 
-                    await Task.Delay(4200);
+                    await Task.Delay(5200);
                 }                
             }
 

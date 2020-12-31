@@ -266,12 +266,12 @@ namespace ZoomersClient.Shared.Services
             return _mapper.Map<GameDto>(game);
         }
 
-        public async Task DeleteAsync(Guid id)
+        public async Task DeleteAsync(Guid gameId)
         {
-            var game = await _database.Games.FirstOrDefaultAsync(a=> a.Id == id);
+            var game = await LoadGameAsync(gameId);
 
             _database.Remove(game);
-
+            
             await _database.SaveChangesAsync();
         }
 

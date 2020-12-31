@@ -36,13 +36,17 @@
         <div class="col-4" id="game-party-icons">
             <div id="party-connect">
                 <div class="row">
-                    <div class="col-12 text-center slide-in-elliptic-bottom-fwd">
-                    @foreach (var icon in Game.Party.Split('|'))
-                    {  
-                        var i = (PartyIcon)Enum.Parse(typeof(PartyIcon), icon);                      
-                        <PartyButton Icon="i"></PartyButton>                    
-                    }   
-                    </div>                
+                    <div class="col-8 offset-2 text-center slide-in-elliptic-bottom-fwd">
+                        <div class="row">                            
+                            @foreach (var icon in Game.Party.Split('|'))
+                            {  
+                                var i = (PartyIcon)Enum.Parse(typeof(PartyIcon), icon);                      
+                                <div class="col-4">
+                                    <PartyButton Icon="i"></PartyButton>                    
+                                </div>
+                            }   
+                        </div>             
+                    </div>   
                 </div>
                 <br />
                 <div class="text-center">

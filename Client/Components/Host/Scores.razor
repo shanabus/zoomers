@@ -6,7 +6,7 @@
 <div class="row">
     @foreach(var player in Game.Players.OrderByDescending(x => x.Score).ThenBy(x => x.LoveScore))
     {
-        var isWinner = Game.Players.OrderByDescending(x => x.Score).ThenBy(x => x.LoveScore).ToList().IndexOf(player) == 0 && Game.State == GameState.Ended;
+        var isWinner = Game.Winner()?.Id == player.Id;
 
         <div class="col-4 my-2">
             <div class='player-score bs-6 @((isWinner)? "winning-player" : "")'>
@@ -59,15 +59,15 @@
                     
                     <div class="col-6">
                         <div class="row">
-                            <div class="col-4 text-danger text-center">
+                            <div class="col-3 offset-1 text-danger text-center">
                                 got
                                 <br />
                                 @player.LoveScore
                             </div>
-                            <div class="col-4 text-center">
+                            <div class="col-3 text-center">
                                 <span class="h3">@AnswerReaction.Love.ToEmoji()</span>
                             </div>
-                            <div class="col-4 text-danger text-center">
+                            <div class="col-3 text-danger text-center">
                                 gave
                                 <br />
                                 @player.LoveReactions
@@ -77,15 +77,15 @@
 
                     <div class="col-6">
                         <div class="row">
-                            <div class="col-4 text-poo text-center">
+                            <div class="col-3 offset-2 text-poo text-center">
                                 got
                                 <br />
                                 @player.HateScore
                             </div>
-                            <div class="col-4 text-center">
+                            <div class="col-3 text-center">
                                 <span class="h3">@AnswerReaction.Hate.ToEmoji()</span>
                             </div>
-                            <div class="col-4 text-poo text-center">
+                            <div class="col-3 text-poo text-center">
                                 gave
                                 <br />
                                 @player.HateReactions

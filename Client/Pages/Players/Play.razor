@@ -132,13 +132,19 @@
             @if(Game.State == GameState.Ended || Game.State == GameState.Ending)
             {
                 var score = Game.Players.FirstOrDefault(x => x.Id == Player.Id)?.Score ?? 0;
+                var classes = "slide-in-blurred-bottom" + (Game.Winner()?.Id == Player.Id? " winning-player" : "");
 
                 <div class="row slide-in-blurred-bottom">
                     <div class="col text-center">
                         <h4 class="my-2">
                             Game Over                
                         </h4>
-                        <Scorecard Score="@score" Class="slide-in-blurred-bottom"></Scorecard>   
+                        <Scorecard Score="@score" Class="@classes">
+                            @if(Game.Winner()?.Id == Player.Id)
+                            {
+                                <span class="trophy">@AnswerReaction.Trophy.ToEmoji()</span>
+                            }
+                        </Scorecard>   
                     </div>
                 </div>
             }
@@ -216,7 +222,7 @@ else
         else if (PlayerIsCurrentPlayer && EveryoneHasAnswered && CurrentPlayerHasAnswered)
         {
             State = PlayState.QuestionScores;
-            Task.Delay(2000);
+            Task.Delay(3000);
             ShowCurrentPlayerTurnScore = true;
         }
         else if (Game.State == GameState.Ended)
@@ -280,7 +286,7 @@ else
             StateHasChanged();
 
 
-            await Task.Delay(Game.CurrentAnswers().Count * 700);
+            await Task.Delay(Game.CurrentAnswers().Count * 1000);
             ShowCurrentPlayerTurnScore = true;
             StateHasChanged();
         });

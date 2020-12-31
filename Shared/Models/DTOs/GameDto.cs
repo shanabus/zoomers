@@ -93,5 +93,15 @@ namespace ZoomersClient.Shared.Models.DTOs
 
             return AnsweredQuestions.Where(x => lastQuestionAsked != null && x.Question.Id == lastQuestionAsked.Id).ToList();
         }
+
+        public PlayerDto Winner()
+        {
+            if (State != GameState.Ended)
+            {
+                return null;
+            }
+
+            return Players.OrderByDescending(x => x.Score).OrderByDescending(x => x.LoveScore).ThenBy(x => x.HateReactions).FirstOrDefault();
+        }
     }
 }

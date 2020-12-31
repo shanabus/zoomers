@@ -432,14 +432,14 @@
         this.SpeechSynthesis.Speak(new SpeechSynthesisUtterance() {
             Lang = Game.Voice,
             Text = message,
-            Volume = 0.7
+            Volume = 0.9
         });
     }
     
     async Task PlayWrong()
     {
         var r = new Random();
-        var sound = r.Next(1,6);
+        var sound = r.Next(1,7);
         StateHasChanged();
 
         await js.InvokeVoidAsync("PlayAudioFile", "/sounds/wrong_" + sound + ".mp3");
@@ -448,7 +448,7 @@
     async Task PlayRight()
     {
         var r = new Random();
-        var sound = r.Next(1,4);
+        var sound = r.Next(1,5);
         StateHasChanged();
 
         await js.InvokeVoidAsync("PlayAudioFile", "/sounds/right_" + sound + ".mp3");
@@ -462,18 +462,16 @@
         StateHasChanged();
 
         SpeakPhrase("That wraps up this game. Let's check the scores.");
-
-        await js.InvokeVoidAsync("PlayMusic", $"/sounds/game_end_music.mp3");
                     
         await Task.Delay(4000);
 
         if (Game.State == GameState.Ended)            
         {                
-            var winner = Game.Players.OrderByDescending(x => x.Score).FirstOrDefault();
+            var winner = Game.Winner();
 
             SpeakPhrase($"With {winner.Score} points, the winner is " + winner.Username);
             
-            await Task.Delay(2500);
+            await Task.Delay(3000);
 
             if (Game.Players.Sum(x => x.Score) == 0)
             {
@@ -481,9 +479,28 @@
             }
             if (Game.Players.Count(x => x.Score == winner.Score) > 1)
             {
-                var otherWinners = string.Join(", ", Game.Players.Where(x => x.Score == winner.Score && x.Id != winner.Id).Select(x => x.Username).ToArray());
-                SpeakPhrase($"Although there were others in the running. Congratulations, you are all winners {otherWinners}");
+                var otherWinners = Game.Players.Where(x => x.Score == winner.Score && x.Id != winner.Id).Select(x => x.Username).ToList();
+                if (otherWinners.Count == 1)
+                {
+                    SpeakPhrase($"{otherWinners.First()} had the same score, but did not get as much love or gave too much crap.");
+
+                    await Task.Delay(4200);
+                }
+                else
+                {
+                    var winnersString = "";
+                    otherWinners.ForEach(w => {
+                        winnersString += otherWinners.IndexOf(w) == otherWinners.Count - 1? ", and " + w : ", " + w;
+                    });
+                    SpeakPhrase($"Although there were others in the running. Congratulations, you are all winners {otherWinners}");
+
+                    await Task.Delay(4200);
+                }                
             }
+
+            SpeakPhrase("Thanks for playing folks.  Come back and try your luck again.  Stay safe out there.");
+            
+            await js.InvokeVoidAsync("PlayMusic", $"/sounds/game_end_music.mp3");
         }
     }
 
@@ -495,7 +512,7 @@
         var spoken = 0;
         var delay = 2500;
 
-        if (chanceOfBanter.Next(300) > chance && Game.CurrentAnswers().All(x => x.AnswerTimedOut))
+        if (chanceOfBanter.Next(150 * Game.CurrentRound) > chance && Game.CurrentAnswers().All(x => x.AnswerTimedOut))
         {
             spoken++;
             SpeakPhrase("If nobody is answering the questions then the game does not really work");

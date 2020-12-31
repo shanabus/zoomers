@@ -11,6 +11,7 @@
 @inject Blazored.LocalStorage.ILocalStorageService localStore
 @inject NavigationManager NavigationManager
 @inject IJSRuntime js
+@inject ZoomersClient.Shared.Services.BlazorTimer BlazorTimer
 @implements IAsyncDisposable
 
 @if(Game != null && Player != null && Game.CurrentPlayer != null)
@@ -215,15 +216,16 @@ else
         }
         else if (PlayerIsCurrentPlayer && EveryoneHasAnswered && !CurrentPlayerHasAnswered)
         {
-            Console.WriteLine("Player is current and answers are in");
             State = PlayState.CurrentPlayerAnswering;
             StatusMessage = "";
         }
         else if (PlayerIsCurrentPlayer && EveryoneHasAnswered && CurrentPlayerHasAnswered)
         {
             State = PlayState.QuestionScores;
-            Task.Delay(3000);
-            ShowCurrentPlayerTurnScore = true;
+            Task.Run(async () => {
+                await Task.Delay(3000);
+                ShowCurrentPlayerTurnScore = true;
+            });            
         }
         else if (Game.State == GameState.Ended)
         {
@@ -252,7 +254,6 @@ else
         hubConnection.On<GameDto, GameQuestionDto, PlayerDto>("QuestionReady", (game, question, player) => {               
             // reset UI
             Game = game;
-            Console.WriteLine("QuestionReady");
             UpdatePlayState();
 
             StateHasChanged();
@@ -293,12 +294,22 @@ else
 
         hubConnection.On<GameDto>("GameOver", (game) => {
             Game = game;            
-            Console.WriteLine("Game over and...");
             StateHasChanged();
+
+            if (Game.Winner().Id == Player.Id)
+            {                
+                string[] sparks = new [] {"💕", "🎈", "🎇", "✨", "💩", "🏆"};
+                
+                BlazorTimer.SetTimer(15);
+                BlazorTimer.OnElapsed += () => {
+                    var random = new Random();
+                    var icon = sparks[random.Next(1, sparks.Length)];            
+                    js.InvokeVoidAsync("FloatItem", icon);     
+                };                
+            }
         }); 
 
         hubConnection.On<GameDto>("GameReset", (game) => {
-            Console.WriteLine("Reset game?");
             NavigationManager.NavigateTo("join");
         });
         
@@ -306,7 +317,6 @@ else
             Game = game;
 
             var updatedPlayer = game.Players.FirstOrDefault(x => x.Id == Player.Id);
-            Console.WriteLine(Game.State);
 
             if (Game == null || Game.State == GameState.Ended || Game.State == GameState.Lobby || updatedPlayer == null)
             {

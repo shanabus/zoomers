@@ -1,5 +1,4 @@
 @inject HttpClient Http
-@using Newtonsoft.Json
 @using ZoomersClient.Client.Components.Players
 @using ZoomersClient.Client.Components.Shared
 @using ZoomersClient.Shared.Models.DTOs
@@ -7,8 +6,10 @@
 @inject NavigationManager NavigationManager
 @using Toolbelt.Blazor.SpeechSynthesis
 @using ZoomersClient.Shared.Models.Enums
+@using ZoomersClient.Shared.Services
 @inject SpeechSynthesis SpeechSynthesis
 @inject IJSRuntime js
+@inject ZoomersClient.Shared.Services.BlazorTimer BlazorTimer
 
 <style>
     body, #app {        
@@ -180,20 +181,17 @@
         hubConnection.On<GameDto>("GameConnected", async (game) => {
             Game = game;
 
-            // get player on deck, ask first question
-            // Console.WriteLine(JsonConvert.SerializeObject(Game));
+            Console.WriteLine("GameConnected - " + Game.State);     
 
-            // todo: figure out if we need to ask a question?
-            // this only really handles mid-question refreshes UI states
+            // get player on deck, ask first question
             if (Game.Questions.Any() && Game.State != GameState.Ended)
-            {
-                Console.WriteLine("GameConnected - Questions.Any() - " + Game.State);     
-                
+            {   
                 await AskQuestionAsync();
             }
             else if (Game.State == GameState.PlayerChoosing)
             {
                 // todo: add this logic!
+                Console.WriteLine("Player Choosing logic");
             }
             else if (Game.State == GameState.Ended)
             {
@@ -247,8 +245,6 @@
 
             if (timeExpired)
             {
-                Console.WriteLine("CurrentPLayer did not submit answers");
-
                 // fog horn
                 await js.InvokeVoidAsync("PlayAudioFile", "/sounds/wrong_5.mp3");
 
@@ -304,11 +300,9 @@
             await hubConnection.SendAsync("QuestionFinished", Game.Id, CurrentQuestion.Id, CurrentPlayerScore);
         });
 
-        hubConnection.On<GameDto>("ProceedToNextQuestion", async (game) => {            
-            CurrentPlayerTimedOut = false;
-            StateHasChanged();
-            await Task.Delay(700);   
+        hubConnection.On<GameDto>("ProceedToNextQuestion", async (game) => {                        
             Game = game;            
+            CurrentPlayerTimedOut = false;
             StateHasChanged();
             
             await hubConnection.SendAsync("AskQuestion", Game.Id, null);
@@ -319,8 +313,7 @@
             
             if(Game.State != GameState.Ended)
             {
-                ScoreShown = 0;
-                // State = GameState.RoundSummary;
+                ScoreShown = 0;                
                 StateHasChanged();
                 
                 await js.InvokeVoidAsync("PlayMusic", $"/sounds/round_end_music.mp3");
@@ -341,7 +334,7 @@
                 }
                 
                 await Task.Delay(4500);
-                // State = GameState.RoundSummary;
+                
                 StateHasChanged();
 
                 await Task.Delay(2000);
@@ -351,7 +344,6 @@
         });
 
         hubConnection.On<GameDto>("GameOver", async (game) => {
-            Console.WriteLine("GameOver on host - " + game.State);
             Game = game;
             
             await GameOver();
@@ -384,7 +376,6 @@
 
     private async Task AskQuestionAsync()
     {        
-        Console.WriteLine("AskQuestionAsync");
         CurrentQuestion = Game.Questions.Last();
         CurrentPlayer = Game.Players.FirstOrDefault(x => x.OnDeck);
         CurrentPlayerScore = 0;
@@ -486,7 +477,7 @@
                 {
                     SpeakPhrase($"{otherWinners.First()} had the same score, but did not get as much love or gave too much crap.");
 
-                    await Task.Delay(4200);
+                    await Task.Delay(5000);
                 }
                 else
                 {
@@ -499,11 +490,25 @@
                     await Task.Delay(5200);
                 }                
             }
+            // send sparks!            
+            SendSparks(); 
 
             SpeakPhrase("Thanks for playing folks.  Come back and try your luck again.  Stay safe out there.");
             
             await js.InvokeVoidAsync("PlayMusic", $"/sounds/game_end_music.mp3");
         }
+    }
+
+    private void SendSparks()
+    {
+        string[] sparks = new [] {"💕", "🎈", "🎇", "✨", "💩", "🏆"};
+        
+        BlazorTimer.SetTimer(30);
+        BlazorTimer.OnElapsed += () => {
+            var random = new Random();
+            var icon = sparks[random.Next(1, sparks.Length)];            
+            js.InvokeVoidAsync("FloatItem", icon);     
+        };
     }
 
     async Task CheckBanterEngineAsync(int currentPlayerScore, int correctQuestions)
@@ -598,7 +603,6 @@
 
     public async Task ResetGameAsync()
     {
-        Console.WriteLine("Game restart clicked!");
         await hubConnection.SendAsync("ResetGame", Game.Id);
     }
 

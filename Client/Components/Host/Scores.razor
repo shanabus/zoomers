@@ -4,7 +4,7 @@
 @using ZoomersClient.Shared.Models.Enums
 
 <div class="row">
-    @foreach(var player in Game.Players.OrderByDescending(x => x.Score).ThenBy(x => x.LoveScore))
+    @foreach(var player in Game.Players.OrderByDescending(x => x.Score).OrderByDescending(x => x.LoveScore).ThenBy(x => x.HateReactions))
     {
         var isWinner = Game.Winner()?.Id == player.Id;
 

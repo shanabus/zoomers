@@ -10,6 +10,8 @@ using System.Drawing.Imaging;
 using System.IO;
 using ZoomersClient.Shared.Models.DTOs;
 using ZoomersClient.Server.Services;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace ZoomersClient.Server.Controllers
 {
@@ -29,34 +31,35 @@ namespace ZoomersClient.Server.Controllers
         }
 
         [HttpGet]
-        public IEnumerable<Game> Get()
+        public IEnumerable<GameDto> Get()
         {
-            var games = _gameService.Games;
+            var games = _gameService.AllGames();
             return games;
         }
 
         [HttpGet("{id}")]
-        public Game GetGame([FromRoute]Guid id)
+        public async Task<GameDto> GetGame([FromRoute]Guid id)
         {
-            var game = _gameService.FindGame(id);
-
+            var game = await _gameService.FindGameAsync(id);
+            
             return game;
         }
 
         [HttpGet("{id}/players")]
-        public IEnumerable<string> GetPlayers([FromRoute]Guid id)
+        public async Task<IEnumerable<string>> GetPlayers([FromRoute]Guid id)
         {
-            var game = _gameService.FindGame(id);
+            var game = await _gameService.FindGameAsync(id);
 
             return game.Players.Select(x => x.Username);
         }
 
         [HttpPost]
-        public Game Post([FromBody] CreateGameDto dto)
+        public async Task<GameDto> Post([FromBody] CreateGameDto dto)
         {
+            Console.WriteLine("Creating game - " + dto.Name);
             var game = new Game(dto.Name, dto.Voice, dto.Rounds);
-            _gameService.CreateGame(game);
-            return game;
+            var gameresult = await _gameService.CreateGameAsync(game);
+            return gameresult;
         }
 
         [HttpGet("{id}/qrcode")]
@@ -78,6 +81,14 @@ namespace ZoomersClient.Server.Controllers
             var phrase = _phrases.GetRandomPlayerJoinedPhrase(username, voice);
             
             return phrase;        
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteAsync([FromRoute] Guid id)
+        {
+            await _gameService.DeleteAsync(id);
+            
+            return NoContent();        
         }
     }
 }

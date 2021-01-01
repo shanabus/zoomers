@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using ZoomersClient.Shared.Models.Enums;
 
 namespace ZoomersClient.Shared
@@ -18,6 +19,10 @@ namespace ZoomersClient.Shared
                     return "";
             }
         }
-    }
-    
+     
+        public static string Dump(object obj)
+        {
+            return JsonConvert.SerializeObject(obj);
+        }    
+    }    
 }

@@ -1,4 +1,3 @@
-@using ZoomersClient.Shared.Models
 @using ZoomersClient.Shared.Models.DTOs
 @using ZoomersClient.Shared.Models.Enums
 
@@ -8,7 +7,7 @@
 
 @code {
     [Parameter]
-    public AnsweredQuestion Answer { get; set; }
+    public AnsweredQuestionDto Answer { get; set; }
     
     [Parameter]
     public EventCallback<ReactionDto> OnClick { get; set; }

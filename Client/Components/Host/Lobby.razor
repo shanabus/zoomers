@@ -1,5 +1,6 @@
 @using ZoomersClient.Client.Components.Shared
-@using ZoomersClient.Shared.Models
+@using ZoomersClient.Shared.Models.DTOs
+@using ZoomersClient.Shared.Models.Enums
 @inject NavigationManager NavigationManager
 
 <div class="row mb-4">
@@ -35,12 +36,17 @@
         <div class="col-4" id="game-party-icons">
             <div id="party-connect">
                 <div class="row">
-                    <div class="col-12 text-center slide-in-elliptic-bottom-fwd">
-                    @foreach (var icon in Game.Party)
-                    {                        
-                       <PartyButton Icon="icon"></PartyButton>                    
-                    }   
-                    </div>                
+                    <div class="col-8 offset-2 text-center slide-in-elliptic-bottom-fwd">
+                        <div class="row">                            
+                            @foreach (var icon in Game.Party.Split('|'))
+                            {  
+                                var i = (PartyIcon)Enum.Parse(typeof(PartyIcon), icon);                      
+                                <div class="col-4">
+                                    <PartyButton Icon="i"></PartyButton>                    
+                                </div>
+                            }   
+                        </div>             
+                    </div>   
                 </div>
                 <br />
                 <div class="text-center">
@@ -86,7 +92,7 @@
     </div>
 
     <div class="row mt-4 text-center">
-        <div class="col mt-4">
+        <div class="col mt-4 text-white">
             <h3>@(StatusMessage)</h3>
         </div>
     </div>
@@ -94,7 +100,7 @@
 
 @code {
     [Parameter]
-    public Game Game { get; set; }    
+    public GameDto Game { get; set; }    
     [Parameter]
     public string StatusMessage { get; set; }
 }

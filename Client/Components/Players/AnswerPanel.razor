@@ -1,14 +1,13 @@
 @using ZoomersClient.Client.Components.Shared
-@using ZoomersClient.Shared.Models
 @using ZoomersClient.Shared.Models.DTOs
 
 
 <div class="row">
-@foreach(var playerAnswer in CurrentPlayerAnswers)
+@foreach(var playerAnswer in Answers)
 {    
     <div class="col-6">
         <PlayerAnswerButton Player="playerAnswer.Player" Answer="playerAnswer" Selected="@(playerAnswer.Player == SelectedPlayer)" OnClickButton="OnClickPlayer">
-            @playerAnswer.Answer
+            @playerAnswer.CurrentPlayerAnswer
         </PlayerAnswerButton>
     </div>
 }
@@ -18,10 +17,10 @@
 <div class="row">
 @foreach(var answer in Answers)
 {
-    var answerIsUsed = CurrentPlayerAnswers.Any(x => x.Answer == answer.Answer);
+    var answerIsUsed = Answers.Any(x => x.CurrentPlayerAnswer == answer.Answer);
 
     <div class='col-6 my-1 answer-panel__answer @(answerIsUsed? "text-secondary" : "text-dark")' @onclick="@((e) => OnClickSelectAnswer(e, answer))">
-        <div class="bg-light p-2">
+        <div class="bg-light p-2 bs-10">
             @answer.Answer
             <div class="answer-panel__answer-icon">
                 @if(answerIsUsed)
@@ -30,7 +29,7 @@
                 }
                 else
                 {
-                    <span class='oi oi-circle-check @((SelectedAnswer == answer)? "text-success" : "text-secondary")'></span>
+                    <span class='oi oi-media-record @((SelectedAnswer == answer)? "text-success" : "text-secondary")'></span>
                 }            
             </div>
         </div>
@@ -48,52 +47,31 @@
 
 @code {
     [Parameter]
-    public List<Player> Players { get; set; }
-
-    public Player SelectedPlayer { get; set; }
-    public AnsweredQuestion SelectedAnswer { get; set; }
-
+    public List<PlayerDto> Players { get; set; }
     [Parameter]
     public bool Enabled { get; set; }
-    public bool Valid => CurrentPlayerAnswers.All(x => !string.IsNullOrEmpty(x.Answer));
-
     [Parameter]
-    public List<AnsweredQuestion> Answers { get; set; }
+    public List<AnsweredQuestionDto> Answers { get; set; }    
+    [Parameter]
+    public EventCallback<List<AnsweredQuestionDto>> SubmitAnswers { get; set; }
+    [Parameter]
+    public PlayerDto CurrentPlayer { get; set; }
+
+    public PlayerDto SelectedPlayer { get; set; }
+
+    public AnsweredQuestionDto SelectedAnswer { get; set; }
+   
+    public bool Valid => Answers.All(x => !string.IsNullOrEmpty(x.CurrentPlayerAnswer));
     
-    public List<AnsweredQuestion> CurrentPlayerAnswers { get; set; }
-        
-    [Parameter]
-    public EventCallback<List<AnsweredQuestion>> SubmitAnswers { get; set; }
-
-    [Parameter]
-    public Player CurrentPlayer { get; set; }
-
     private Timer answerTimerRef { get; set; }
 
-    protected override void OnInitialized()
-    {        
-        CurrentPlayerAnswers = new List<AnsweredQuestion>();
-    }
-
-    protected override void OnParametersSet()
-    {
-        base.OnInitialized();
-
-        var rand = new Random();
-
-        CurrentPlayerAnswers = Answers.Where(x => x.Player.Id != CurrentPlayer.Id)
-            .OrderBy(x => rand.Next())
-            .Select(x => new AnsweredQuestion() { Question = x.Question, Answer = "", Player = x.Player })
-            .ToList();   
-    }
-
-    public void OnClickPlayer(Player player)
+    public void OnClickPlayer(PlayerDto player)
     {
         SelectedPlayer = SelectedPlayer == player? null : player;
         CheckAnswer();
     }
 
-    public void OnClickSelectAnswer(MouseEventArgs eventArgs, AnsweredQuestion answer){
+    public void OnClickSelectAnswer(MouseEventArgs eventArgs, AnsweredQuestionDto answer){
         SelectedAnswer = answer;
         CheckAnswer();
     }
@@ -102,9 +80,9 @@
     {
         if (SelectedPlayer != null && SelectedAnswer != null)
         {
-            var playerAnswer = CurrentPlayerAnswers.FirstOrDefault(x => x.Player == SelectedPlayer);
+            var playerAnswer = Answers.FirstOrDefault(x => x.Player == SelectedPlayer);
             if (playerAnswer != null){
-                playerAnswer.Answer = SelectedAnswer.Answer;
+                playerAnswer.CurrentPlayerAnswer = SelectedAnswer.Answer;
             }
             SelectedPlayer = null;
             SelectedAnswer = null;
@@ -119,7 +97,7 @@
         // shouldn't have to check this but time ellapsed was firing
         if (Enabled)
         {
-            await SubmitAnswers.InvokeAsync(CurrentPlayerAnswers);            
+            await SubmitAnswers.InvokeAsync(Answers);            
         }        
     }
 }

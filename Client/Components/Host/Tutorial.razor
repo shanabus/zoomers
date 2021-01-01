@@ -1,21 +1,21 @@
-@using ZoomersClient.Shared.Models
+@using ZoomersClient.Shared.Models.DTOs
 
 <PlayGame @ref="TutorialGame" Game="@Game" CurrentQuestion="Question"></PlayGame>
 
 @code {
-    public Game Game { get; set; }
+    public GameDto Game { get; set; }
 
     public PlayGame TutorialGame { get; set; }
 
-    public WordPlayQuestion Question { get; set; }
+    public GameQuestionDto Question { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        Game = new Game() {
+        Game = new GameDto() {
             Id = Guid.NewGuid(),
             Voice = "en-US",
             Rounds = 1,
-            Players = new List<Player>()
+            // GamePlayers = new List<GamePlayer>()
         };
 
         TutorialGame.SpeakPhrase("Welcome to the Game Tutorial.  If you would like to skip this tutorial, click Skip or vote using your phone");
@@ -23,7 +23,7 @@
 
         TutorialGame.SpeakPhrase("Right, in this game we're going to ask players a series of questions");
         await Task.Delay(2000);
-        Question = new WordPlayQuestion() {
+        Question = new GameQuestionDto() {
             Question = "Why is the sun hot?"
         };
         StateHasChanged();

@@ -5,18 +5,18 @@
 @using Toolbelt.Blazor.SpeechSynthesis
 @using ZoomersClient.Client.Components.Players
 @using ZoomersClient.Client.Components.Shared
-@using ZoomersClient.Shared.Models
 @using ZoomersClient.Shared.Models.DTOs
 @using ZoomersClient.Shared.Models.Enums
 @using ZoomersClient.Shared
 @inject Blazored.LocalStorage.ILocalStorageService localStore
 @inject NavigationManager NavigationManager
 @inject IJSRuntime js
+@inject ZoomersClient.Shared.Services.BlazorTimer BlazorTimer
 @implements IAsyncDisposable
 
 @if(Game != null && Player != null && Game.CurrentPlayer != null)
 {
-    <div class="row" id="game-banner">
+    <div class='row @(PlayerIsCurrentPlayer? "currentplayer" : "")' id="game-banner">
         <div class="col-9 pt-2">
             <h1>@Game.Name</h1>
         </div>
@@ -30,7 +30,7 @@
         <p>Could not determine game state.</p>
     }
 
-    @if(State == PlayState.AnsweringQuestion)
+    @if(State == PlayState.AnsweringQuestion && CurrentQuestion != null)
     {        
         <div class="swing-in-top-fwd">
             
@@ -38,7 +38,9 @@
 
             <div class="row my-4">
                 <div class="col">
-                    <input @bind-value="Answer" class="form-control" maxlength="42" @onsubmit="SubmitAnswer" />
+                    <form @onsubmit="SubmitAnswer">
+                        <input @bind-value="Answer" class="form-control" maxlength="42" />
+                    </form>
                 </div>
             </div>
 
@@ -53,7 +55,7 @@
 
             <div class="row my-4">
                 <div class="col">
-                    <button class="btn btn-success w-100 text-center" @onclick="SubmitAnswer">SUBMIT ANSWER</button>
+                    <button class="btn btn-success w-100 text-center" @onclick="SubmitAnswer" disabled="@(string.IsNullOrEmpty(Answer))">SUBMIT ANSWER</button>
                 </div>
             </div>
         </div>
@@ -63,12 +65,12 @@
     {
         <h4 class="mt-4">Congrats, your answer has been counted!</h4>
                 
-        @if(Game.AnsweredQuestions.Any())
+        @if(Game.CurrentAnswers().Any())
         {
             <p>Click emoji buttons to share a reaction.</p>
         }
 
-        @foreach(var answer in Game.AnsweredQuestions)
+        @foreach(var answer in Game.CurrentAnswers())
         {
             <div class="row my-2">
                 <div class="col-10 p-2 offset-1 bg-light">
@@ -80,32 +82,44 @@
                 </div>
             </div>
         }
-        @if (Game.AnsweredQuestions.Count > 0)
+        @if (Game.CurrentAnswers().Count > 0)
         {
-            <AnswersCorrectPanel MaxCount="@Game.AnsweredQuestions.Count" Username="@Game.CurrentPlayer.Username" OnSubmit="SubmitQuestionGuessAsync"></AnswersCorrectPanel>
+            var playerAnswer = Game.CurrentAnswers().FirstOrDefault(x => x.Player.Id == Player.Id);
+
+            if (playerAnswer != null && !playerAnswer.AnswerTimedOut)
+            {
+                <AnswersCorrectPanel MaxCount="@Game.CurrentAnswers().Count" CorrectCount="CurrentGuess" Submitted="CurrentGuess.HasValue" Username="@Game.CurrentPlayer.Username" OnSubmit="SubmitQuestionGuessAsync"></AnswersCorrectPanel>
+            }
+            else
+            {
+                <span class="text-white">You didn't answer this round!</span>
+            }
         }        
     }
 
-    @if(State == PlayState.CurrentPlayerWaiting)
+    @if(State == PlayState.CurrentPlayerWaiting && CurrentQuestion != null)
     {
         <h4 class="my-4">You are on deck.</h4>
         <p>Sit tight while others try to answer this question:</p>
 
-        @if(!string.IsNullOrEmpty(CurrentQuestion.ImageUrl))
-        {
-            <div class="row">
-                <div class="col text-center">
-                    <img src="@CurrentQuestion.ImageUrl" class="img-fluid img-question" />
+        <div class="swing-in-top-fwd jumbotron">            
+            <h4 class="my-4">@CurrentQuestion.Question</h4>
+            @if(!string.IsNullOrEmpty(CurrentQuestion.ImageUrl))
+            {
+                <div class="row">
+                    <div class="col text-center">
+                        <img src="@CurrentQuestion.ImageUrl" class="img-fluid img-question" />
+                    </div>
                 </div>
-            </div>
-        }
+            }
+        </div>        
     }
 
     @if (State == PlayState.CurrentPlayerAnswering)
     {
         <h4 class="mt-4">Click on a player then the answer they gave</h4>
 
-        <AnswerPanel Players="@Game.Players" Answers="@Game.AnsweredQuestions" CurrentPlayer="@Game.CurrentPlayer" SubmitAnswers="@((a) => SubmitQuestionCompleteAnswer(a))" Enabled="@true"></AnswerPanel>        
+        <AnswerPanel Players="ShuffledPlayers()" Answers="ShuffledAnswers()" CurrentPlayer="@Game.CurrentPlayer" SubmitAnswers="@((a) => SubmitQuestionCompleteAnswer(a))" Enabled="@true"></AnswerPanel>        
     }
 
     @if (State == PlayState.QuestionScores)
@@ -119,29 +133,31 @@
             @if(Game.State == GameState.Ended || Game.State == GameState.Ending)
             {
                 var score = Game.Players.FirstOrDefault(x => x.Id == Player.Id)?.Score ?? 0;
+                var classes = "slide-in-blurred-bottom" + (Game.Winner()?.Id == Player.Id? " winning-player" : "");
 
                 <div class="row slide-in-blurred-bottom">
                     <div class="col text-center">
                         <h4 class="my-2">
                             Game Over                
                         </h4>
-                        <Scorecard Score="@score" Class="slide-in-blurred-bottom"></Scorecard>   
+                        <Scorecard Score="@score" Class="@classes">
+                            @if(Game.Winner()?.Id == Player.Id)
+                            {
+                                <span class="trophy">@AnswerReaction.Trophy.ToEmoji()</span>
+                            }
+                        </Scorecard>   
                     </div>
                 </div>
             }
         }
         else // you are the current player and just submitted scores
         {
-            <h4 class="mt-4">Check the scoreboard to see how you did</h4>
+            <h4 class="mt-4">Check the scoreboard to see how you did</h4>          
 
-            if(Game.CurrentRound > 1)
+            @if(ShowCurrentPlayerTurnScore)
             {
-                <div class="row">
-                    <div class="col text-center">
-                        <img src="https://i.postimg.cc/FFPh45cd/1-F1-AA583.png" class="img-fluid img-question" />
-                    </div>
-                </div>
-            }             
+                <h4 class="mt-4">You got @Game.CorrectAnswers().Count correct!</h4>
+            }
         }
     }
         
@@ -161,23 +177,25 @@ else
 
     [Parameter]
     public string Id { get; set; }
-    public Player Player { get; set; }
+    public PlayerDto Player { get; set; }
     public string Answer { get; set; }
     public string StatusMessage { get; set; }
     public int? CurrentGuess { get; set; }
     public PlayState State { get; set; }
 
-    public Game Game { get; set;}
-    public bool PlayerIsCurrentPlayer => Game.CurrentPlayer?.Id == Player.Id;
-    public bool EveryoneHasAnswered => Game.AnsweredQuestions.Count() == Game.Players.Count();
-    public QuestionBase CurrentQuestion => Game.Questions.LastOrDefault();
-    
+    public GameDto Game { get; set;}
+    public bool PlayerIsCurrentPlayer => Game.Players.Any() && Game.CurrentPlayer?.Id == Player.Id && Game.State != GameState.Ended;
+    public bool EveryoneHasAnswered => Game.CurrentAnswers().Count == Game.Players.Count(x => !x.OnDeck);
+    public bool CurrentPlayerHasAnswered => Game.Questions.Any() && Game.CurrentAnswers().All(x => !string.IsNullOrEmpty(x.CurrentPlayerAnswer));
 
+    public GameQuestionDto CurrentQuestion => Game.Questions.LastOrDefault();
+    public bool ShowCurrentPlayerTurnScore { get; set; }
+    
     private void UpdatePlayState()
     {
-        var playerAnswer = Game.AnsweredQuestions.FirstOrDefault(x => x.Player.Id == Player.Id);
+        var playerAnswer = Game.CurrentAnswers().FirstOrDefault(x => x.Player.Id == Player.Id);
 
-        if (CurrentQuestion != null && !PlayerIsCurrentPlayer && playerAnswer == null)
+        if (CurrentQuestion != null && !PlayerIsCurrentPlayer && playerAnswer == null && Game.State != GameState.PlayerChoosing)
         {
             Answer = "";
             CurrentGuess = null;
@@ -187,59 +205,61 @@ else
         else if (CurrentQuestion != null && !PlayerIsCurrentPlayer && playerAnswer != null)
         {
             State = PlayState.AnswerSubmitted;
+            CurrentGuess = playerAnswer.Guess;
             StatusMessage = "";
         }
         else if (PlayerIsCurrentPlayer && !EveryoneHasAnswered)
         {
+            Console.WriteLine("EveryoneHasAnswered? " + EveryoneHasAnswered);
             State = PlayState.CurrentPlayerWaiting;
-            StatusMessage = CurrentQuestion.Question; 
+            // StatusMessage = CurrentQuestion.Question; 
         }
-        else if (PlayerIsCurrentPlayer && EveryoneHasAnswered)
+        else if (PlayerIsCurrentPlayer && EveryoneHasAnswered && !CurrentPlayerHasAnswered)
         {
             State = PlayState.CurrentPlayerAnswering;
-            StatusMessage = "You are on the spot, what ya got?";
+            StatusMessage = "";
+        }
+        else if (PlayerIsCurrentPlayer && EveryoneHasAnswered && CurrentPlayerHasAnswered)
+        {
+            State = PlayState.QuestionScores;
+            Task.Run(async () => {
+                await Task.Delay(3000);
+                ShowCurrentPlayerTurnScore = true;
+            });            
         }
         else if (Game.State == GameState.Ended)
         {
+            Console.WriteLine("Game has eneded");
             StatusMessage = "";
         }
-        // Console.WriteLine("State - " + State.ToString());
+        else
+        {
+            Console.WriteLine("Woah, no conditions met?");
+        }
+        Console.WriteLine("State - " + State.ToString());
         StateHasChanged();
     }
 
     protected override async Task OnInitializedAsync()
     {
         base.OnInitialized();
-
-        Game = await Http.GetFromJsonAsync<Game>($"Games/{Id}");
         
         Player = await GetPlayerFromStorageAsync();
 
-        if (Game == null || Game.State == GameState.Ended || Game.State == GameState.Lobby)
-        {
-            NavigationManager.NavigateTo("/join");
-        }
-        else
-        {
-            Console.WriteLine("~ Initialized state ~");
-            UpdatePlayState();
-        }
-
         hubConnection = new HubConnectionBuilder()
-            .WithUrl(NavigationManager.ToAbsoluteUri($"/{Game.GameType}hub"))
+            .WithUrl(NavigationManager.ToAbsoluteUri($"/wordplayhub"))
             .Build();
 
         // subscribe to other things
-        hubConnection.On<Game, WordPlayQuestion, Player>("QuestionReady", (game, question, player) => {               
+        hubConnection.On<GameDto, GameQuestionDto, PlayerDto>("QuestionReady", (game, question, player) => {               
             // reset UI
             Game = game;
-            
             UpdatePlayState();
 
             StateHasChanged();
         });
 
-        hubConnection.On<Game, SpeechSynthesisUtterance>("AnswersFinished", (game, phrase) => {            
+        hubConnection.On<GameDto, SpeechSynthesisUtterance>("AnswersFinished", (game, phrase) => {            
             StatusMessage = phrase.Text;
             Game = game;
             
@@ -252,41 +272,78 @@ else
             StateHasChanged();
         });  
         
-        hubConnection.On<Player, Player, AnswerReaction>("ReactionReceived", async (fromPlayer, toPlayer, reaction) => {   
+        hubConnection.On<PlayerDto, PlayerDto, AnswerReaction>("ReactionReceived", async (fromPlayer, toPlayer, reaction) => {   
             if (Player.Id == toPlayer.Id)
             {
                 await js.InvokeVoidAsync("FloatItem", reaction.ToEmoji());                
             }            
         });
 
-        hubConnection.On<bool, Game>("QuestionSummaryStarted", (timeExpired, game) => {                        
+        hubConnection.On<bool, GameDto>("QuestionSummaryStarted", async (timeExpired, game) => {                        
             Game = game;
             StatusMessage = "";
             State = PlayState.QuestionScores;
+            ShowCurrentPlayerTurnScore = false;
+            StateHasChanged();
+
+
+            await Task.Delay(Game.CurrentAnswers().Count * 1000);
+            ShowCurrentPlayerTurnScore = true;
             StateHasChanged();
         });
 
-        hubConnection.On<Game>("GameOver", (game) => {
+        hubConnection.On<GameDto>("GameOver", (game) => {
             Game = game;            
-            Console.WriteLine("Game over and...");
             StateHasChanged();
+
+            if (Game.Winner().Id == Player.Id)
+            {                
+                string[] sparks = new [] {"💕", "🎈", "🎇", "✨", "💩", "🏆"};
+                
+                BlazorTimer.SetTimer(15);
+                BlazorTimer.OnElapsed += () => {
+                    var random = new Random();
+                    var icon = sparks[random.Next(1, sparks.Length)];            
+                    js.InvokeVoidAsync("FloatItem", icon);     
+                };                
+            }
         }); 
 
-        hubConnection.On<Game>("GameReset", (game) => {
-            Console.WriteLine("Reset game?");
+        hubConnection.On<GameDto>("GameReset", (game) => {
             NavigationManager.NavigateTo("join");
         });
         
-        hubConnection.On<Player>("PlayerUpdated", async (player) => {
-            Player = player;
-            await SavePlayerToStorageAsync(player);
-            Console.WriteLine(player.ConnectionId + " was updated");
+        hubConnection.On<GameDto>("PlayerUpdated", async (game) => {
+            Game = game;
+
+            var updatedPlayer = game.Players.FirstOrDefault(x => x.Id == Player.Id);
+
+            if (Game == null || Game.State == GameState.Ended || Game.State == GameState.Lobby || updatedPlayer == null)
+            {
+                NavigationManager.NavigateTo("/join");
+            }
+            else
+            {
+                Player = updatedPlayer;
+                Game = game;
+                await SavePlayerToStorageAsync(Player);
+
+                Console.WriteLine("~ Initialized state ~");
+                UpdatePlayState();
+            }
+        });
+
+        hubConnection.On<string>("ConnectionError", (message) => {
+            Console.WriteLine("error - " + message);
+
+            // clear game and send to Join?
+            NavigationManager.NavigateTo("join");            
         });
 
         // start hub
         await hubConnection.StartAsync();
         
-        await hubConnection.SendAsync("UpdateConnectionId", Game.Id, Player.Id);
+        await hubConnection.SendAsync("UpdatePlayerConnectionId", Id, Player.Id);
     }
 
     public async Task SubmitAnswer() 
@@ -315,34 +372,43 @@ else
         }        
     }
 
-    public async Task SubmitQuestionCompleteAnswer(List<AnsweredQuestion> CurrentPlayerAnswers)
+    public async Task SubmitQuestionCompleteAnswer(List<AnsweredQuestionDto> answers)
     {
-        // QuestionCompleteAnswerSubmitted = true;
-        // ShowQuestionCompletePhase = false;
         State = PlayState.QuestionScores;
 
-        await hubConnection.SendAsync("QuestionCompletedAnswer", Game.Id, false, CurrentPlayerAnswers);
+        await hubConnection.SendAsync("QuestionCompletedAnswer", Game.Id, false, answers);
         
-        Console.WriteLine("Question Complete Submitted");
         StateHasChanged();
     }
 
-    private async Task SavePlayerToStorageAsync(Player player)
+    private async Task SavePlayerToStorageAsync(PlayerDto player)
     {
-        await localStore.SetItemAsync<Player>("player", player); 
+        await localStore.SetItemAsync<PlayerDto>("player", player); 
     }
 
-    public async Task<Player> GetPlayerFromStorageAsync()
+    public async Task<PlayerDto> GetPlayerFromStorageAsync()
     {
         var playerExists = await localStore.ContainKeyAsync("player");
         if (playerExists)
         {
-            var player = await localStore.GetItemAsync<Player>("player");
+            var player = await localStore.GetItemAsync<PlayerDto>("player");
 
             return player;
         }
         
         throw new Exception("Player not found!");        
+    }
+
+    private List<PlayerDto> ShuffledPlayers()
+    {
+        var r = new Random();
+        return Game.Players.Where(x => !x.OnDeck).OrderBy(x => r.Next()).ToList();
+    }
+
+    private List<AnsweredQuestionDto> ShuffledAnswers()
+    {
+        var r = new Random();
+        return Game.CurrentAnswers().OrderBy(x => r.Next()).ToList();
     }
 
     public async ValueTask DisposeAsync()

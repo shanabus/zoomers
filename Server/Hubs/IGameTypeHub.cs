@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using ZoomersClient.Shared.Models.DTOs;
 
 namespace ZoomersClient.Server.Hubs
 {
@@ -14,7 +15,7 @@ namespace ZoomersClient.Server.Hubs
 
         Task QuestionFinished(Guid gameId, int questionId, int score);
         
-        Task UpdateConnectionId(Guid gameId, Guid playerId);
+        Task UpdatePlayerConnectionId(Guid gameId, Guid playerId);
         
         Task UpdateGameConnectionId(Guid gameId);
     }

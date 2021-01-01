@@ -1,18 +1,16 @@
 @using ZoomersClient.Client.Components.Players
-@using ZoomersClient.Shared.Models
+@using ZoomersClient.Shared.Models.DTOs
 
 <h1>The answers are, lets see how they did:</h1>
 
 <div class="row">
 @foreach(var playerAnswer in Game.AnsweredQuestions)
 {    
-    var currentPlayerAnswer = CurrentPlayerAnswers.FirstOrDefault(x => x.Player.Id == playerAnswer.Player.Id);
-
     <div class="col-6">
-        <PlayerAnswerButton Player="playerAnswer.Player" Answer="playerAnswer" Selected="@(playerAnswer.Answer == currentPlayerAnswer?.Answer)">
+        <PlayerAnswerButton Player="playerAnswer.Player" Answer="playerAnswer" Selected="@(playerAnswer.Answer == playerAnswer.CurrentPlayerAnswer)">
             @playerAnswer.Answer
             <label>@CurrentPlayer.Username chose:</label>
-            @currentPlayerAnswer?.Answer
+            @playerAnswer.CurrentPlayerAnswer
         </PlayerAnswerButton>
     </div>
 }
@@ -20,11 +18,8 @@
 
 @code {
     [Parameter]
-    public Game Game { get; set; }
+    public GameDto Game { get; set; }
 
     [Parameter]
-    public Player CurrentPlayer { get; set; }
-    
-    [Parameter]
-    public List<AnsweredQuestion> CurrentPlayerAnswers { get; set; }
+    public PlayerDto CurrentPlayer { get; set; }    
 }

@@ -1,27 +1,35 @@
 @page "/join"
+@layout PlayerLayout
 @inject HttpClient Http
 @using Microsoft.AspNetCore.SignalR.Client
+@using Newtonsoft.Json
+@using Toolbelt.Blazor.SpeechSynthesis
 @using ZoomersClient.Client.Components.Shared
-@using ZoomersClient.Shared.Models
+@using ZoomersClient.Shared.Models.DTOs
 @using ZoomersClient.Shared.Models.Enums
 @inject Blazored.LocalStorage.ILocalStorageService localStore
 @inject NavigationManager NavigationManager
-@inject ZoomersClient.Shared.Services.GameService GameService
 @implements IAsyncDisposable
 @inject IJSRuntime js
 
 @if(State == LobbyState.CreatingPlayer)
 {
-    <div class="row mb-4">
-        <div class="col-7">
-            <input placeholder="Player name" maxlength="25" class="form-control w-100" @bind="Username" />
+    <h2 class="mt-2">Create a player</h2>
+
+    <div class="row mb-4 mt-2">
+        <div class="col-8">
+            <div class="input-group input-group-lg">               
+                <form @onsubmit="(e => ConnectToParty())">
+                    <input placeholder="Player name" maxlength="25" type="text" class="form-control" @bind="Username" />                
+                    <div class="input-group-append">
+                        <span class="input-group-text" id="inputGroup-sizing-lg" @onclick="RandomPlayer">
+                            <span class="oi oi-loop-square" aria-hidden="true"></span>
+                        </span>
+                    </div>
+                </form> 
+            </div>
         </div>
-        <div class="col-1">
-            <button class="btn btn-outline-dark" @onclick="RandomPlayer">
-                <span class="oi oi-loop-square" aria-hidden="true"></span>
-            </button>
-        </div>
-        <div class="col-3 offset-1">            
+        <div class="col-4 text-center">            
             <PlayerIconButton Icon="@ChosenIcon" BackgroundColor="@BackgroundColor" />
         </div>
     </div>
@@ -101,7 +109,7 @@
             var color = PlayerColors[colorIndex];
 
             <div class="col-2">
-                <button class="btn w-100" style="background-color: @color;" @onclick="@(e => ClickChooseBackgroundColor(e, color))">&nbsp;</button>
+                <button class="btn w-100" style="background-color: @color; border: 1px solid #eee;" @onclick="@(e => ClickChooseBackgroundColor(e, color))">&nbsp;</button>
             </div>
 
             colorIndex++;
@@ -118,6 +126,8 @@
 
 @if(State == LobbyState.SelectingParty)
 {
+    <h2 class="mt-2">Enter Party Code:</h2>
+
     <div class="row">
         <div class="col-4">
             <PartyButton Icon="@Party[0]" Class="@IsSelected(0)" OnClickCallback="@(e => ClickRemovePartyIcon(e, 0))"></PartyButton>
@@ -176,7 +186,7 @@
     {
         <div class="row mt-3">
             <div class="col">
-                <button class="btn btn-outline-secondary w-100" @onclick="EditPlayer">EDIT PLAYER</button>
+                <button class="btn btn-secondary w-100" @onclick="EditPlayer">EDIT PLAYER</button>
             </div>
         </div>
     }
@@ -184,7 +194,11 @@
 
 @if(State == LobbyState.ConnectedToGame)
 {
-    <h1>@Game.Name</h1>
+    <div class="row">
+        <div class="col text-center my-2">
+            <h1 class="game-name swing-in-top-fwd">@Game.Name</h1>
+        </div>
+    </div>    
 
     <h3>In game:</h3>
 
@@ -201,7 +215,7 @@
     {
         <div class="row mt-3">
             <div class="col">
-                <button class="btn btn-lg btn-primary w-100" @onclick="(e => StartGame())">START GAME</button>
+                <button class="btn btn-lg btn-primary w-100" @onclick="(e => StartGame())" disabled="@(!IsConnected)">START GAME</button>
             </div>
         </div>
     }
@@ -221,7 +235,7 @@
     public LobbyState State { get; set; }
     public PlayerIcon ChosenIcon { get; set; }
     public string BackgroundColor { get; set;}
-    public Player Player { get; set; }
+    public PlayerDto Player { get; set; }
     public bool PlayerIsValid => !string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(BackgroundColor) && ChosenIcon != PlayerIcon.None;
 
     public List<PartyIcon> Party { get; set;}
@@ -251,7 +265,7 @@
     };
     
     public string GameStatus { get; set;}
-    public Game Game { get; set; }
+    public GameDto Game { get; set; }
     
     public bool ShowStartButton => Game != null && Game.HasEnoughPlayers() && Game.Players.First().Id == Player.Id;
 
@@ -267,12 +281,11 @@
             .WithUrl(NavigationManager.ToAbsoluteUri("/gamehub"))
             .Build();
 
-        GameStatus = "Build your Player";
-
-        await CheckExistingPlayerAndGame();
+        GameStatus = "Loading player and checking game";
 
         // subscribe to other things
-        hubConnection.On<Game, Player>("PlayerJoined", async (game, player) => {
+        hubConnection.On<GameDto, PlayerDto>("PlayerJoined", async (game, player) => {
+            Console.WriteLine("PlayerJoined");
             Player = player;
             Game = game;
             GameStatus = $"Welcome to {game.Name} - Waiting for others to start...";
@@ -285,17 +298,25 @@
             StateHasChanged();
         });
 
+        hubConnection.On<GameDto, PlayerDto, SpeechSynthesisUtterance>("PlayersUpdated", (game, player, phrase) =>
+        {            
+            Game = game;
+            // StateHasChanged();
+        });
+
         hubConnection.On<string>("PlayerJoinedError", (message) => {
             GameStatus = $"Error joining - {message}";
             StateHasChanged();
         });
 
-        hubConnection.On<Game>("ReadyToStartGame", (game) => {
+        hubConnection.On<GameDto>("ReadyToStartGame", (game) => {
+            Console.WriteLine("ReadyToStartGame");
             Game = game;
             StateHasChanged();
         });
 
         hubConnection.On<Guid>("GameStarted", (id) => {
+            Console.WriteLine("GameStarted");
             NavigationManager.NavigateTo($"play/{id}", true);
             StateHasChanged();
         });
@@ -309,8 +330,7 @@
         await hubConnection.StartAsync();
 
         // load previous user from Username / cookies
-        
-        // maybe check if they were supposed to already be in an active game?
+        await CheckExistingPlayerAndGame();
     }
 
     private void ConnectToParty()
@@ -348,6 +368,15 @@
 
         Username = NameHelper.GetRandomName();
 
+        var oldId = Player?.Id ?? Guid.NewGuid();
+
+        Player = new PlayerDto() {
+            Id = oldId,
+            Username = Username,
+            BackgroundColor = BackgroundColor,
+            Icon = ChosenIcon
+        };
+
         StateHasChanged();
     }
 
@@ -383,9 +412,10 @@
 
         var sounds = new string[] { "ku_chung", "ooh_wop", "whistle_hilo", "whistle_lohi", "shu_thoo", "ka_ka_ka", "answer_in", "fart" };
         var r = new Random();
-        var Sound = sounds[r.Next(sounds.Length)];
+        
+        Player.Sound = sounds[r.Next(sounds.Length)];
 
-        await hubConnection.SendAsync("JoinTheGame", Party, Username, ChosenIcon, BackgroundColor, Sound);
+        await hubConnection.SendAsync("JoinTheGame", Party.Select(x => x.ToString()), Player);
 
         GameStatus = "Waiting for response...";
         
@@ -405,8 +435,9 @@
 
         if (Player == null)
         {
-            Console.WriteLine("Generating a random player");
             RandomPlayer();
+            State = LobbyState.CreatingPlayer;
+            GameStatus = "";
         }        
         else
         {
@@ -418,30 +449,29 @@
             try
             {
                 var gameId = await GetGameFromStorageAsync();
-                Game = await Http.GetFromJsonAsync<Game>($"Games/{gameId}");
-
-                if (Game == null || Game.State == GameState.Ended)
+                Game = await Http.GetFromJsonAsync<GameDto>($"Games/{gameId}");
+                
+                if (Game == null || Game.State == GameState.Ended || !Game.Players.Any())
                 {
-                    Console.WriteLine("Game is null or has");
                     GameStatus = "Found a game but its over, enter a new code";
                     State = LobbyState.SelectingParty;
                 }
-                else if (Game.State == GameState.Started || Game.State == GameState.Playing)
+                else if (Game.State != GameState.Lobby && Game.Players.Any(x => x.Id == Player.Id))
                 {
-                    Console.WriteLine("Game has started or is being played, will try to catch up!");
                     NavigationManager.NavigateTo($"play/{Game.Id}");
                 }
                 else if (Game.State == GameState.Lobby)
-                {
+                {   
                     if (Game.Players.Any(x => x.Id == Player.Id))
                     {
-                        Console.WriteLine("Game looks valid, should be in lobby");
                         GameStatus = "Reconnected to game";
                         State = LobbyState.ConnectedToGame;
                     }
                     else {
-                        Console.WriteLine("Game looks valid, need to rejoin with party code");
+                        var partyIcons = Game.Party.Split("|").ToList();
+
                         GameStatus = "Found a game the lobby is empty, enter a new code";
+                        await hubConnection.SendAsync("JoinTheGame", partyIcons, Player);
                         State = LobbyState.SelectingParty;
                     }
                 }
@@ -456,10 +486,10 @@
         StateHasChanged();
     }
 
-    private async Task SavePlayerToStorageAsync(Player player)
+    private async Task SavePlayerToStorageAsync(PlayerDto player)
     {
         await localStore.ClearAsync();
-        await localStore.SetItemAsync<Player>("player", player);
+        await localStore.SetItemAsync<PlayerDto>("player", player);
     }
 
     private async Task SaveGameToStorageAsync(Guid gameId)
@@ -467,18 +497,18 @@
         await localStore.SetItemAsync<Guid>("gameId", gameId);
     }
 
-    public async Task<Player> GetPlayerFromStorageAsync()
+    public async Task<PlayerDto> GetPlayerFromStorageAsync()
     {
         var playerExists = await localStore.ContainKeyAsync("player");
-        Console.WriteLine("player exists? " + playerExists);
+        
         if (playerExists)
         {
-            var player = await localStore.GetItemAsync<Player>("player");
+            var player = await localStore.GetItemAsync<PlayerDto>("player");
 
             return player;
-        }
-        
-        throw new Exception("Player not found!");        
+        } 
+
+        throw new Exception("Player does not exist, create a random one");
     }
 
     public async Task<Guid> GetGameFromStorageAsync()

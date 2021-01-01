@@ -6,11 +6,15 @@ namespace ZoomersClient.Shared.Models
     public class Player
     {
         public Guid Id { get; set; }
+
+        public Guid GameId { get; set; }
+        
         public string ConnectionId { get; set; }
         public string Username { get; set; }
         public PlayerIcon Icon { get; set; }
         public string BackgroundColor { get; set;}
         public string Sound { get; set; }
+        public bool OnDeck { get; set; }
         
         public int Score { get; set; }
         public int LoveScore { get; set; }

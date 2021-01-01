@@ -2,11 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Toolbelt.Blazor.SpeechSynthesis;
 using ZoomersClient.Server.Services;
 using ZoomersClient.Shared.Models;
+using ZoomersClient.Shared.Models.DTOs;
 using ZoomersClient.Shared.Models.Enums;
 using ZoomersClient.Shared.Services;
 
@@ -14,22 +17,22 @@ namespace ZoomersClient.Server.Hubs
 {
     public class WordPlayHub : Hub, IGameTypeHub
     {
-        private WordPlay _wordPlay { get; set; }
         private ILogger<WordPlayHub> _logger { get; set; }
         private GameService _gameService { get; set; }
         private Phrases _phrases { get; set; }
+        private IMapper _mapper { get; set; }
 
-        public WordPlayHub(ILogger<WordPlayHub> logger, WordPlay wordplay, GameService gameService, Phrases phrases)
+        public WordPlayHub(ILogger<WordPlayHub> logger, GameService gameService, Phrases phrases, IMapper mapper)
         {
             _logger = logger;
-            _wordPlay = wordplay;
             _gameService = gameService;
             _phrases = phrases;
+            _mapper = mapper;
         }
 
         public async Task AnswerQuestion(Guid gameId, int questionId, Guid playerId, string answer)
         {
-            var game = _gameService.FindGame(gameId);
+            var game = await _gameService.FindGameAsync(gameId);
 
             var player = game.Players.ToList().FirstOrDefault(x => x.Id == playerId);
 
@@ -37,7 +40,7 @@ namespace ZoomersClient.Server.Hubs
             {
                 //_logger.LogInformation("Player with a Player Id of " + playerId + " was found.  Marking question answered.");
 
-                game.AnswerQuestion(player, questionId, answer);
+                game = await _gameService.AnswerQuestionAsync(gameId, player, questionId, answer);
 
                 await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("QuestionAnswered", game, player);
             }
@@ -47,139 +50,120 @@ namespace ZoomersClient.Server.Hubs
             }
         }
 
-        public void SubmitCorrectGuess(Guid gameId, int questionId, Guid playerId, int guess) {
-            var game = _gameService.FindGame(gameId);
-            
-            // _logger.LogInformation($"Recording a guess of {guess} for {playerId}");
-
-            game = game.RecordGuess(questionId, playerId, guess);
-
-            // _logger.LogInformation($"Guess recorded - {game.AnsweredQuestions.Where(x => x.Guess > 0).Count()} think more than zero");
+        public async Task SubmitCorrectGuess(Guid gameId, int questionId, Guid playerId, int? guess) 
+        {            
+            await _gameService.RecordGuessAsync(gameId, questionId, playerId, guess.Value);    
+            Console.WriteLine("A guess should have been logged");                    
         }
 
         public async Task AskQuestion(Guid gameId, string category)
         {
-            var game = _gameService.FindGame(gameId);
+            var game = await _gameService.FindGameAsync(gameId);
 
-            var question = _wordPlay.GetRandomQuestion(category);
-            
-            //_logger.LogInformation("Using category " + category);
-            //_logger.LogInformation("Randomly chose question " + question.Id);
+            var questionBase = _gameService.GetRandomQuestion(game, category);           
 
-            // todo: double check, it should be handled in QuestionFinished!
-            if (game.Questions.Count == game.Players.Count)
-            {
-                await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("GameOver", game);
-            }
-            
-            game = _gameService.AddQuestion(gameId, question);
+            var question = _mapper.Map<GameQuestion>(questionBase);
 
-            var player = game.GetNextPlayer();
+            game = await _gameService.AddQuestionAsync(gameId, question);
             
-            await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("QuestionReady", game, question, player);
+            Console.WriteLine("Sending QuestionReady");
+
+            var q = _mapper.Map<GameQuestionDto>(question);
+            
+            await Clients.All.SendAsync("QuestionReady", game, q, game.CurrentPlayer);
         }
 
         public async Task QuestionFinished(Guid gameId, int questionId, int score)
         {
-            var game = _gameService.FindGame(gameId);
-            
-            game = game.RecordScore(questionId, score).RecordGuesses(questionId).ResetCurrentPlayerAnswers();
-            
+            var game = await _gameService.RecordScoresAsync(gameId, questionId, score);
+                        
             var roundEnded = false;
 
             if (game.AskedEnoughQuestionsForRound())
             {
                 roundEnded = true;
-                game = _gameService.StartNextRound(gameId); // game.NextRound();
+                game = await _gameService.StartNextRoundAsync(gameId); 
 
-                await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("RoundOver", game);                
+                if (game.State != GameState.Ended)
+                {
+                    await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("RoundOver", game);                
+                }
             }
-
-            //_logger.LogInformation(roundEnded + " round ended");
-            //_logger.LogInformation(game.State + " game state");
             
             if (game.State == GameState.Ended)
             {
-                game = _gameService.EndGame(gameId);
+                Console.WriteLine("State says Game Ended");
+                game = await _gameService.EndGameAsync(gameId);
 
-                // _logger.LogInformation("Hey, its Game Over!");
-                
                 await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("GameOver", game);
             }
             else if (!roundEnded)
             {                
-                //_logger.LogInformation("Tally guesses (and score?) Proceeding to next question");
                 await Clients.Caller.SendAsync("ProceedToNextQuestion", game);                        
             }            
         }
 
-        public async Task UpdateConnectionId(Guid gameId, Guid playerId)
+        public async Task UpdatePlayerConnectionId(Guid gameId, Guid playerId)
         {
-            var game = _gameService.FindGame(gameId);
+            try{
+                var game = await _gameService.UpdatePlayerConnectionId(gameId, playerId, Context.ConnectionId);
 
-            var player = game.UpdatePlayerConnection(playerId, Context.ConnectionId);
+                await Clients.Client(Context.ConnectionId).SendAsync("PlayerUpdated", game);
+            }
+            catch(Exception e)
+            {
+                await Clients.Client(Context.ConnectionId).SendAsync("ConnectionError", e.Message);
+            }
             
-            await Clients.Client(Context.ConnectionId).SendAsync("PlayerUpdated", player);
         }
 
         public async Task UpdateGameConnectionId(Guid gameId)
         {
-            var game = _gameService.FindGame(gameId);
-
-            _logger.LogInformation($"Setting game connection id {Context.ConnectionId}");
-
-            game = game.UpdateGameConnection(gameId, Context.ConnectionId);
+            var game = await _gameService.UpdateGameConnection(gameId, Context.ConnectionId);
 
             await Clients.Client(Context.ConnectionId).SendAsync("GameConnected", game);
         }
 
         public async Task AnswersFinished(Guid gameId)
         {
-            var game = _gameService.FindGame(gameId).ShuffleAnswers();
+            var game = await _gameService.AnswersFinishedAsync(gameId);
+            
+            game.ShuffleAnswers();
 
             var phrase = _phrases.GetRandomAnswersFinishedPhrase(game.CurrentPlayer.Username, game.Voice) as SpeechSynthesisUtterance;
             
-            _logger.LogInformation("AnswersFinished, grabbed phrase for " + game.CurrentPlayer.Username);
-
             await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("AnswersFinished", game, phrase);
         }
 
-        public async Task QuestionCompletedAnswer(Guid gameId, bool timeExpired, List<AnsweredQuestion> currentPlayerAnswers)
-        {
-            // todo: should calculate Game scores and Answers here
+        public async Task QuestionCompletedAnswer(Guid gameId, bool timeExpired, List<AnsweredQuestionDto> xurrentPlayerAnswers)
+        {            
+            var game = await _gameService.QuestionCompletedAnswerAsync(gameId, xurrentPlayerAnswers);
             
-            var game = _gameService.FindGame(gameId);
-
-            var rand = new Random();            
-            game.CurrentPlayerAnswers = currentPlayerAnswers.OrderBy(x => rand.Next()).ToList();
-            
-            if (!timeExpired)
-            {
-                // Console.WriteLine("with time on the clock");
-                await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("QuestionSummaryStarted", timeExpired, game);
-            }            
-            else {
-                Console.WriteLine("Time expired for current player?");
-            }
+            await Clients.Clients(game.GameAndAllPlayerConnections()).SendAsync("QuestionSummaryStarted", timeExpired, game);               
         }
 
-        public async Task SendReaction(Guid gameId, Player fromPlayer, Player toPlayer, AnswerReaction reaction)
+        public async Task SendReaction(Guid gameId, PlayerDto fromPlayer, PlayerDto toPlayer, AnswerReaction reaction)
         {   
             if (fromPlayer.Id != toPlayer.Id)
             {
-                var game = _gameService.AddAudienceReaction(gameId, fromPlayer, toPlayer, reaction); 
+                var game = await _gameService.AddAudienceReactionAsync(gameId, fromPlayer, toPlayer, reaction); 
                 
                 await Clients.Clients(game.GameAndPlayerConnections(toPlayer)).SendAsync("ReactionReceived", fromPlayer, toPlayer, reaction);
             }            
         }
 
+        public async Task AddToPlayerScoreAsync(Guid playerId, int scoreToAdd)
+        {
+            await _gameService.AddToPlayerScoreAsync(playerId, scoreToAdd);
+        }
+
         public async Task ResetGame(Guid gameId)
         {
-            var game = _gameService.FindGame(gameId);
+            var game = await _gameService.FindGameAsync(gameId);
 
             var previousPlayers = game.GameAndAllPlayerConnections();
 
-            game = _gameService.ResetGame(gameId);
+            game = await _gameService.ResetGameAsync(gameId);
 
             await Clients.Clients(previousPlayers).SendAsync("GameReset", game);
         }

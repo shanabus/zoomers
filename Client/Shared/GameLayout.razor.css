@@ -4,7 +4,12 @@ body {
 
 #game-layout {
     padding: 2em;
-    background-color: #ddd;
     min-height: 100%;
+    overflow: hidden;
+    width: 100vw;
     height: 100vh;
+    
+    background-image: url("/images/client-footer.png");
+    background-repeat: repeat-x;    
+    background-position-y: bottom;
 }

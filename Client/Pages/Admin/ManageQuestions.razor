@@ -1,0 +1,260 @@
+@page "/admin/questions"
+@using ZoomersClient.Shared.Models.DTOs
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+
+<div class="row">
+    <div class="col">
+        <h1>Questions in DB: @AllQuestions.Count</h1>        
+    </div>
+    <div class="col">
+        <div class="form-group">
+            <input type="text" class="form-control" @bind="SearchTerm" placeholder="Filter results..." />
+        </div>
+    </div>
+    <div class="col text-right">
+        <button class="btn btn-success" @onclick="@(e => HandleShowCreate(true))">New Question</button>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col">
+        <table class="table table-striped table-condensed">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Phrase</th>
+                    <th>Image</th>
+                    <th>Categories</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach(var q in AllQuestions.Where(x => string.IsNullOrEmpty(SearchTerm) || x.Question.ToLower().Contains(SearchTerm.ToLower())))
+            {
+                <tr>
+                    <td>@q.Id</td>
+                    <td>@q.Question</td>
+                    <td>
+                        @if(!string.IsNullOrEmpty(q.ImageUrl))
+                        {
+                            <a style="cursor: pointer;" @onclick="@(e => HandleClickViewImage(q.ImageUrl, q.Question))">view</a>
+                        }    
+                    </td>
+                    <td>@string.Join(",", q.Categories)</td>
+                    <td class="text-right">
+                        <button class="btn btn-sm btn-warning mr-2" @onclick="@(e => HandleEditQuestion(q.Id))"><span class="oi oi-pencil"></span></button>
+                        <button class="btn btn-sm btn-danger" @onclick="@(e => HandleDeleteQuestion(q.Id))"><span class="oi oi-trash"></span></button>
+                    </td>
+                </tr>    
+            }         
+            </tbody>
+        </table>       
+    </div>
+</div>
+
+@if(ShowCreateModal)
+{
+<div class="modal-backdrop fade show" @onclick="@(e => HandleShowCreate(false))"></div>
+<div class="modal fade show d-block" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">New Question</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="@(e => HandleShowCreate(false))">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+          <div class="row">
+              <div class="col-8">
+                  <EditForm Model="@CreateModel" OnValidSubmit="@HandleValidCreateSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <div class="form-group">
+                        <label for="question">Question</label>
+                        <InputText id="question" class="form-control" @bind-Value="CreateModel.Question" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="imageUrl">Image Url (optional)</label>
+                        <InputText id="imageUrl" class="form-control" @bind-Value="CreateModel.ImageUrl" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="categories">Categories</label>
+                        <InputText id="categories" class="form-control" @bind-Value="CreateModel.Categories" />
+                        <small id="categoriesHelp" class="form-text text-muted">Comma separated, no spaces</small>
+                    </div>
+
+                    <div class="row">
+                        <div class="col text-right">
+                            <input type="submit" class="btn btn-success" value="Save Question" />
+                        </div>
+                    </div>
+                </EditForm>
+              </div>
+              <div class="col-4">                  
+                <img src='@(string.IsNullOrEmpty(CreateModel.ImageUrl)? "http://placekitten.com/g/200/300" : CreateModel.ImageUrl)' class="img-fluid" />                  
+              </div>
+          </div>        
+      </div>
+    </div>
+  </div>
+</div>
+}
+
+@if(ShowEditModal)
+{
+<div class="modal-backdrop fade show" @onclick="@(e => HandleShowEdit(false))"></div>
+<div class="modal fade show d-block" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Question</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="@(e => HandleShowEdit(false))">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <EditForm Model="@EditModel" OnValidSubmit="@HandleValidEditSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <div class="form-group">
+                <label for="question">Question</label>
+                <InputText id="question" class="form-control" @bind-Value="EditModel.Question" />
+            </div>
+            
+            <div class="form-group">
+                <label for="imageUrl">Image Url (optional)</label>
+                <InputText id="imageUrl" class="form-control" @bind-Value="EditModel.ImageUrl" />
+            </div>
+
+            <div class="form-group">
+                <label for="categories">Categories</label>
+                <InputText id="categories" class="form-control" @bind-Value="CreateModel.Categories" />
+                <small id="categoriesHelp" class="form-text text-muted">Comma separated, no spaces</small>
+            </div>
+
+            <div class="row">
+                <div class="col text-right">
+                    <input type="submit" class="btn btn-success" value="Save Question" />
+                </div>
+            </div>
+        </EditForm>
+      </div>
+    </div>
+  </div>
+</div>
+}
+
+@if(!string.IsNullOrEmpty(ImagePreview))
+{
+<div class="modal-backdrop fade show" @onclick="@(e => HandleClickViewImage(string.Empty, string.Empty))"></div>
+<div class="modal fade show d-block" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Image Preview</h5>        
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="@(e => HandleClickViewImage(string.Empty, string.Empty))">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body text-center">
+        <h3>@ImageQuestion</h3>
+        <img src="@ImagePreview" class="img-fluid" />
+      </div>
+    </div>
+  </div>
+</div>
+}
+
+@code {
+
+    public List<GameQuestionDto> AllQuestions { get; set; }
+    public string SearchTerm { get; set; }
+    private CreateQuestionDto CreateModel = new CreateQuestionDto();
+    private EditQuestionDto EditModel = new EditQuestionDto();
+    public bool ShowCreateModal { get; set; }
+    public bool ShowEditModal { get; set; }
+    public string ImagePreview { get; set; }
+    public string ImageQuestion { get; set; }
+
+    protected override void OnInitialized()
+    {
+        AllQuestions = new List<GameQuestionDto>();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await UpdateQuestionsAsync();
+            StateHasChanged();        
+        }        
+    }
+
+    private async Task UpdateQuestionsAsync()
+    {
+        AllQuestions = await Http.GetFromJsonAsync<List<GameQuestionDto>>("Questions"); 
+    }
+
+    private void HandleShowCreate(bool show)
+    {
+        ShowCreateModal = show;
+        StateHasChanged();
+    }
+
+    private void HandleShowEdit(bool show)
+    {
+        ShowEditModal = show;
+        StateHasChanged();
+    }
+
+    private async Task HandleValidCreateSubmit()
+    {        
+        var response = await Http.PostAsJsonAsync<CreateQuestionDto>("Questions", CreateModel);
+        HandleShowCreate(false);
+        CreateModel = new CreateQuestionDto();
+        await UpdateQuestionsAsync();
+    }
+
+    private async Task HandleValidEditSubmit()
+    {        
+        var response = await Http.PutAsJsonAsync<EditQuestionDto>("Questions", EditModel);
+        HandleShowEdit(false);
+        EditModel = new EditQuestionDto();
+        await UpdateQuestionsAsync();
+    }
+
+    private void HandleEditQuestion(int id)
+    {
+        var question = AllQuestions.FirstOrDefault(x => x.Id == id);
+        if (question != null)
+        {
+            EditModel = new EditQuestionDto() {
+                Id = id,
+                Question = question.Question,
+                ImageUrl = question.ImageUrl,
+                Categories = string.Join(",", question.Categories)
+            };
+            HandleShowEdit(true);
+        }
+        
+    }
+
+    private async Task HandleDeleteQuestion(int id)
+    {                
+        await Http.DeleteAsync($"Questions/{id}");
+
+        await UpdateQuestionsAsync();
+    }
+
+    private void HandleClickViewImage(string url, string question)
+    {
+        ImagePreview = url;
+        ImageQuestion = question;
+        StateHasChanged();
+    }
+}

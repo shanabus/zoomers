@@ -11,9 +11,9 @@ namespace ZoomersClient.Server.Services
 {
     public class WordPlay
     {
-        public List<WordPlayQuestion> Questions { get; set; }
+        public List<QuestionBase> Questions { get; set; }
 
-        public List<WordPlayQuestion> RemainingQuestions => Questions.Where(x => !LastQuestions.Contains(x.Id)).ToList();
+        public List<QuestionBase> RemainingQuestions => Questions.Where(x => !LastQuestions.Contains(x.Id)).ToList();
 
         public List<int> LastQuestions { get; set;}
 
@@ -21,9 +21,9 @@ namespace ZoomersClient.Server.Services
         {
             CsvParserOptions csvParserOptions = new CsvParserOptions(true, ',');
             CsvWordPlayMapping csvMapper = new CsvWordPlayMapping();
-            CsvParser<WordPlayQuestion> csvParser = new CsvParser<WordPlayQuestion>(csvParserOptions, csvMapper);
+            CsvParser<QuestionBase> csvParser = new CsvParser<QuestionBase>(csvParserOptions, csvMapper);
            
-            var filePath = ToApplicationPath("Data/Games","charles-game.csv");
+            var filePath = ToApplicationPath("Data/Games","word-play.csv");
             //var filePath = ToApplicationPath("Data/Games","word-play.csv");
 
             Questions = csvParser           
@@ -34,7 +34,7 @@ namespace ZoomersClient.Server.Services
             LastQuestions = new List<int>();
         }
 
-        public WordPlayQuestion GetRandomQuestion(string category)
+        public QuestionBase GetRandomQuestion(string category)
         {
             var questionPool = string.IsNullOrWhiteSpace(category)? RemainingQuestions : RemainingQuestions.Where(x => x.Categories.Contains(category));
 
@@ -63,7 +63,7 @@ namespace ZoomersClient.Server.Services
         }
     }
 
-    public class CsvWordPlayMapping : CsvMapping<WordPlayQuestion>
+    public class CsvWordPlayMapping : CsvMapping<QuestionBase>
     {
         public CsvWordPlayMapping()
                 : base()
@@ -71,7 +71,7 @@ namespace ZoomersClient.Server.Services
                 MapProperty(0, x => x.Id);
                 MapProperty(1, x => x.Question);
                 MapProperty(2, x => x.CategoriesString);
-                MapProperty(3, x => x.ImageUrl);
+                // MapProperty(3, x => x.ImageUrl);
             }
     }
     

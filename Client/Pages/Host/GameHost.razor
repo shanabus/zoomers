@@ -4,28 +4,23 @@
 @using ZoomersClient.Client.Components.Host
 @using ZoomersClient.Client.Components.Shared
 @using ZoomersClient.Shared.Models
-@using ZoomersClient.Client.Components
+@using ZoomersClient.Shared.Models.DTOs
 @using Microsoft.AspNetCore.SignalR.Client
 @inject NavigationManager NavigationManager
-@inject ZoomersClient.Shared.Services.GameService GameService
 @using Toolbelt.Blazor.SpeechSynthesis
 @using ZoomersClient.Shared.Models.Enums
 @inject SpeechSynthesis SpeechSynthesis
 
-@if (Game != null && State == GameState.Lobby)
+@if (Game != null && (Game.State == GameState.Lobby || Game.State == GameState.Starting))
 {
-    <div class="@((State == GameState.Starting)? "slide-out-fwd-center":"bg-pan-left")">
+    <div class="@((Game.State == GameState.Starting)? "slide-out-fwd-center":"bg-pan-left")">
         <Lobby Game="Game" StatusMessage="@StatusMessage"></Lobby>
     </div>
     
 }
-else if (State == GameState.Tutorial)
+else if (Game != null)
 {
-    <Tutorial></Tutorial>
-}
-else if (State == GameState.Playing)
-{
-    <CascadingValue Value="State">
+    <CascadingValue Value="Game.State">
         <PlayGame Game="Game" OnGameReset="OnGameResetAsync"></PlayGame>
     </CascadingValue>
 }
@@ -37,23 +32,25 @@ else
 @code {
     [Parameter]
     public string Id { get; set; }
-    public Game Game { get; set; }
+    public GameDto Game { get; set; }
     public string StatusMessage { get; set; }
-    public GameState State { get; set; }
-    
+        
     private HubConnection hubConnection;
 
     protected override async Task OnInitializedAsync()
     {
         base.OnInitialized();
 
-        Game = await Http.GetFromJsonAsync<Game>($"Games/{Id}");
-        State = GameState.Lobby;
-        StatusMessage = "Scan the QR code with your phone and enter the Party Code to join the lobby";
-        SpeakMessage(new SpeechSynthesisUtterance() {
-            Text = StatusMessage,
-            Lang = Game.Voice
-        });
+        Game = await Http.GetFromJsonAsync<GameDto>($"Games/{Id}");
+
+        if (Game.State == GameState.Lobby)
+        {
+            StatusMessage = "Scan the QR code with your phone and enter the Party Code to join the lobby";
+            SpeakMessage(new SpeechSynthesisUtterance() {
+                Text = StatusMessage,
+                Lang = Game.Voice
+            });
+        }        
 
         // connect to hub
         hubConnection = new HubConnectionBuilder()
@@ -61,9 +58,10 @@ else
             .Build();
 
         // subscribe to other things
-        hubConnection.On<Game, Player, SpeechSynthesisUtterance>("PlayersUpdated", (game, player, phrase) =>
+        hubConnection.On<GameDto, PlayerDto, SpeechSynthesisUtterance>("PlayersUpdated", (game, player, phrase) =>
         {            
             Game = game;
+            
             if (Game.Players.Count > 3) {
                 StatusMessage = "Hey " + Game.Players.First().Username + ", press 'START GAME' when everybody is in";
             }
@@ -72,19 +70,27 @@ else
             SpeakMessage(phrase);
         });
 
+        hubConnection.On<GameDto>("PlayersRemoved", (game) => {
+            Game = game;
+            // Console.WriteLine("PlayersRemoved");
+            StateHasChanged();
+        });
+
         hubConnection.On<Guid>("GameStarted", (id) =>
         {            
+            Console.WriteLine("GameStarted");
             this.SpeechSynthesis.Speak(new SpeechSynthesisUtterance() {
                 Lang = Game.Voice,
                 Text = $"Ok, let us begin the game!"
             }); 
             
-            State = GameState.Starting;
+            // Game.State = GameState.Starting;
             StateHasChanged();
 
             Task.Run(async() => {
+                // allows for CSS animations to finish
                 await Task.Delay(500);
-                State = GameState.Playing;
+                Game.State = GameState.Playing;
                 StateHasChanged();
             });
         });
@@ -100,7 +106,7 @@ else
         // start hub
         await hubConnection.StartAsync();
 
-        await hubConnection.SendAsync("Subscribe", Id);
+        await hubConnection.SendAsync("SubscribeAsync", Id);
     }
 
     private void SpeakMessage(SpeechSynthesisUtterance phrase)
@@ -120,15 +126,13 @@ else
         return message;
     }
 
-    public void OnGameResetAsync(Game game)
+    public void OnGameResetAsync(GameDto game)
     {
         Console.WriteLine("Reset game!");
         Game = game;
         StateHasChanged();
                 
         NavigationManager.NavigateTo($"/");
-
-        // await this.OnInitializedAsync();
     }
 
     public bool IsConnected =>

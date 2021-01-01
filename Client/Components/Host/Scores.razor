@@ -1,61 +1,73 @@
 @using ZoomersClient.Client.Components.Shared
 @using ZoomersClient.Shared
-@using ZoomersClient.Shared.Models
+@using ZoomersClient.Shared.Models.DTOs
 @using ZoomersClient.Shared.Models.Enums
 
 <div class="row">
-    @foreach(var player in Game.Players.OrderByDescending(x => x.Score).ThenBy(x => x.LoveScore))
+    @foreach(var player in Game.Players.OrderByDescending(x => x.Score).OrderByDescending(x => x.LoveScore).ThenBy(x => x.HateReactions))
     {
-        var isWinner = Game.Players.OrderByDescending(x => x.Score).ThenBy(x => x.LoveScore).ToList().IndexOf(player) == 0;
+        var isWinner = Game.Winner()?.Id == player.Id;
 
         <div class="col-4 my-2">
-            <div class='player-score @((isWinner)? "winning-player" : "")'>
+            <div class='player-score bs-6 @((isWinner)? "winning-player" : "")'>
                 <PlayerBadge Player="player">
                     @if(isWinner)
                     {
-                        <span>@AnswerReaction.Trophy.ToEmoji()</span>
+                        <span class="trophy">@AnswerReaction.Trophy.ToEmoji()</span>
                     }
                     <span class="summary-score">@player.Score</span>                    
                 </PlayerBadge>
                 <div class="row">
-                                          
-                    <div class="col-12">
-                        <div class="row px-4">
-                            <div class="col-6">
-                                @if(Game.Players.OrderByDescending(x => x.LoveScore).ToList().IndexOf(player) == 0)
-                                {
-                                    <span>💏 they loved you the most!</span> 
-                                }
-                                else if(Game.Players.OrderByDescending(x => x.LoveReactions).ToList().IndexOf(player) == 0)
-                                {
-                                    <span>💘 you loved the most!</span> 
-                                }
-                            </div>
 
-                            <div class="col-6 text-right">
-                                @if(Game.Players.OrderByDescending(x => x.HateScore).ToList().IndexOf(player) == 0)
-                                {
-                                    <span>🚽 you got dumped on</span> 
-                                }
-                                else if(Game.Players.OrderByDescending(x => x.HateReactions).ToList().IndexOf(player) == 0)
-                                {
-                                    <span>🧻 you might need toilet paper</span> 
-                                }
+                    @if(Game.State == GameState.Ended)
+                    {
+                        <div class="col-12">
+                            <div class="row px-4">
+                                <div class="col-6">
+                                    @if(Game.Players.OrderByDescending(x => x.LoveScore).ToList().IndexOf(player) == 0 && Game.Players.Count(x => x.LoveScore == player.LoveScore) == 1)
+                                    {
+                                        <span>💏 they loved you the most!</span> 
+                                    }
+                                    else if(Game.Players.OrderByDescending(x => x.LoveReactions).ToList().IndexOf(player) == 0 && Game.Players.Count(x => x.LoveReactions == player.LoveReactions) == 1)
+                                    {
+                                        <span>💘 you loved the most!</span> 
+                                    }
+                                    else
+                                    {
+                                        <span>&nbsp;</span>
+                                    }
+                                </div>
+
+                                <div class="col-6 text-right">
+                                    @if(Game.Players.OrderByDescending(x => x.HateScore).ToList().IndexOf(player) == 0 && Game.Players.Count(x => x.HateScore == player.HateScore) == 1)
+                                    {
+                                        <span>🚽 you got dumped on</span> 
+                                    }
+                                    else if(Game.Players.OrderByDescending(x => x.HateReactions).ToList().IndexOf(player) == 0 && Game.Players.Count(x => x.HateReactions == player.HateReactions) == 1)
+                                    {
+                                        <span>🧻 you might need toilet paper</span> 
+                                    }
+                                    else if(Game.State == GameState.Ended)
+                                    {
+                                        <span>&nbsp;</span>
+                                    }
+                                </div>
                             </div>
-                        </div>
-                    </div>
+                        </div>        
+                    }                  
+                    
                     
                     <div class="col-6">
                         <div class="row">
-                            <div class="col-4 text-danger text-center">
+                            <div class="col-3 offset-1 text-danger text-center">
                                 got
                                 <br />
                                 @player.LoveScore
                             </div>
-                            <div class="col-4 text-center">
+                            <div class="col-3 text-center">
                                 <span class="h3">@AnswerReaction.Love.ToEmoji()</span>
                             </div>
-                            <div class="col-4 text-danger text-center">
+                            <div class="col-3 text-danger text-center">
                                 gave
                                 <br />
                                 @player.LoveReactions
@@ -65,15 +77,15 @@
 
                     <div class="col-6">
                         <div class="row">
-                            <div class="col-4 text-poo text-center">
+                            <div class="col-3 offset-2 text-poo text-center">
                                 got
                                 <br />
                                 @player.HateScore
                             </div>
-                            <div class="col-4 text-center">
+                            <div class="col-3 text-center">
                                 <span class="h3">@AnswerReaction.Hate.ToEmoji()</span>
                             </div>
-                            <div class="col-4 text-poo text-center">
+                            <div class="col-3 text-poo text-center">
                                 gave
                                 <br />
                                 @player.HateReactions
@@ -87,6 +99,10 @@
                         {
                             <span>✨</span> 
                         }
+                        else if(Game.Players.OrderBy(x => x.CorrectGuesses).ToList().IndexOf(player) == 0 && Game.Players.Count(x => x.CorrectGuesses == 0) == 1)
+                        {
+                            <span>😔</span>
+                        }
                     </div> 
                 </div>
             </div>                              
@@ -96,5 +112,5 @@
 
 @code {
     [Parameter]
-    public Game Game { get; set; }
+    public GameDto Game { get; set; }
 }

@@ -4,8 +4,9 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Zoomers Family Games</title>
+    <title>Ka-chung</title>
     <base href="/" />
+    <link rel="shortcut icon" type="image/png" href="favicon.png"/>
     <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
     <link href="css/app.css" rel="stylesheet" />
     <link href="ZoomersClient.Client.styles.css" rel="stylesheet" />
@@ -36,7 +37,6 @@
         window.PlayMusic = (src) => {
             var audio = document.getElementById('music');
             if (audio != null) {
-                audio.volume = 0.3;
                 var audioSource = document.getElementById('musicSource');
                 if (audioSource != null) {
                     audioSource.src = src;

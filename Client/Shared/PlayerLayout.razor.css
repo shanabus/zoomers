@@ -4,4 +4,10 @@
 
 .player-layout {
     overflow-x: hidden;
+    height: 100vh;
+
+    background-image: url("/images/client-footer.png");
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position-y: bottom;
 }

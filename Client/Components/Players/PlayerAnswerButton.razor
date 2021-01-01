@@ -1,15 +1,15 @@
 @using ZoomersClient.Client.Components.Shared
-@using ZoomersClient.Shared.Models
+@using ZoomersClient.Shared.Models.DTOs
 
-<div class='player-answer-button my-1 @Class @(Selected? "selected" : "")' @onclick="ClickToggleActive">
+<div class='player-answer-button my-1 @Class @(Selected? "selected bs-6" : "bs-10")' @onclick="ClickToggleActive">
     <PlayerBadge Player="Player"></PlayerBadge>
     <div class="player-answer-button__check">
-        @if(!string.IsNullOrEmpty(Answer.Answer))
+        @if(string.IsNullOrEmpty(Answer.CurrentPlayerAnswer))
         {
-            <span class='oi oi-check text-info' aria-hidden="true"></span>
+            <span class='oi @(Selected? "oi-check text-success" : "oi-media-record text-white")' aria-hidden="true"></span>
         }
         else {
-            <span class='oi oi-circle-check @((Selected)? "text-success" : "text-secondary")' aria-hidden="true"></span>
+            <span class='oi oi-check @((Selected)? "text-secondary" : "text-success")' aria-hidden="true"></span>
         }
         
     </div>
@@ -20,10 +20,10 @@
 
 @code {
     [Parameter]
-    public Player Player { get; set; }
+    public PlayerDto Player { get; set; }
 
     [Parameter]
-    public AnsweredQuestion Answer { get; set; }
+    public AnsweredQuestionDto Answer { get; set; }
 
     [Parameter]
     public string Class { get; set; }
@@ -32,7 +32,7 @@
     public bool Selected { get; set; }
 
     [Parameter]
-    public EventCallback<Player> OnClickButton { get; set; }
+    public EventCallback<PlayerDto> OnClickButton { get; set; }
 
     [Parameter]
     public RenderFragment ChildContent { get; set; }

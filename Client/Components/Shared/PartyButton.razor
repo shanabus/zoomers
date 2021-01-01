@@ -1,34 +1,34 @@
 @using ZoomersClient.Shared.Models.Enums
 
-<div class="party-icon @Class" @onclick="OnClickCallback">
+<div class="party-icon bs-6 @Class" @onclick="OnClickCallback">
     @switch(Icon)
     {
         case PartyIcon.Girl:
-            <span>👧</span>
+            <span><img src="/images/girl.png" class="img-fluid" /></span>
         break;
         case PartyIcon.Boy:
-            <span>👱</span>
+            <span><img src="/images/boy.png" class="img-fluid" /></span>
         break;
         case PartyIcon.Grandma:
-            <span>👵</span>
+            <span><img src="/images/grandma.png" class="img-fluid" /></span>
         break;
         case PartyIcon.Grandpa:
-            <span>👴</span>
+            <span><img src="/images/grandpa.png" class="img-fluid" /></span>
         break;
         case PartyIcon.Scientist:
-            <span>👩‍🔬</span>
+            <span><img src="/images/scientist.png" class="img-fluid" /></span>
         break;
         case PartyIcon.Zombie:
-            <span>🧟</span>
+            <span><img src="/images/zombie.png" class="img-fluid" /></span>
         break;
         case PartyIcon.Cat:
-            <span>🐱</span>
+            <span><img src="/images/cat.png" class="img-fluid" /></span>
         break;
         case PartyIcon.Dog:
-            <span>🐶</span>
+            <span><img src="/images/dog.png" class="img-fluid" /></span>
         break;
         case PartyIcon.Family:
-            <span>👨‍👨‍👧</span>
+            <span><img src="/images/family.png" class="img-fluid" /></span>
         break;
         default:
             <span>x</span>

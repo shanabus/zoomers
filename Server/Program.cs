@@ -20,7 +20,7 @@ namespace ZoomersClient.Server
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {   
-                    webBuilder.UseStartup<Startup>().UseUrls("http://localhost:5000", "https://localhost:50001", "http://0.0.0.0:5000", "https://0.0.0.0:5001");
+                    webBuilder.UseStartup<Startup>().UseUrls("http://localhost:5000", "https://localhost:50001", "http://0.0.0.0:5000", "https://0.0.0.0:5001", "https://0.0.0.0:80");
                 });
     }
 }

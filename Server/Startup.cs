@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using ZoomersClient.Shared.Data;
 using ZoomersClient.Shared.Services;
 using AutoMapper;
+using ZoomersClient.Shared.Models;
 
 namespace ZoomersClient.Server
 {
@@ -52,6 +53,7 @@ namespace ZoomersClient.Server
             services.AddSingleton<Phrases>();
             services.AddScoped<GameService>();
             services.AddScoped<QuestionService>();
+            services.AddTransient<GameConfiguration>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

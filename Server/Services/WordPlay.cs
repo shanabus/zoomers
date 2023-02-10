@@ -24,7 +24,7 @@ namespace ZoomersClient.Server.Services
             CsvParser<QuestionBase> csvParser = new CsvParser<QuestionBase>(csvParserOptions, csvMapper);
            
             var filePath = ToApplicationPath("Data/Games","word-play.csv");
-            //var filePath = ToApplicationPath("Data/Games","word-play.csv");
+            //var filePath = ToApplicationPath("Data/Games","charles-game.csv");
 
             Questions = csvParser           
                         .ReadFromFile(filePath, Encoding.ASCII)

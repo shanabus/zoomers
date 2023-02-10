@@ -11,7 +11,6 @@ using System.IO;
 using ZoomersClient.Shared.Models.DTOs;
 using ZoomersClient.Server.Services;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace ZoomersClient.Server.Controllers
 {
@@ -21,13 +20,15 @@ namespace ZoomersClient.Server.Controllers
     {
         private readonly GameService _gameService;
         private readonly Phrases _phrases;
+        private readonly GameConfiguration _gameConfiguration;
         private readonly ILogger<GamesController> _logger;
 
-        public GamesController(ILogger<GamesController> logger, GameService gameService, Phrases phrases)
+        public GamesController(ILogger<GamesController> logger, GameService gameService, Phrases phrases, GameConfiguration gameConfiguration)
         {
             _logger = logger;
             _gameService = gameService;
             _phrases = phrases;
+            _gameConfiguration = gameConfiguration;
         }
 
         [HttpGet]
@@ -65,7 +66,7 @@ namespace ZoomersClient.Server.Controllers
         [HttpGet("{id}/qrcode")]
         public IActionResult GetQrCode([FromQuery]Guid id)
         {
-            var qr = QrCode.EncodeText("http://teamsievers.ddns.net:5000/join", QrCode.Ecc.Medium);
+            var qr = QrCode.EncodeText(_gameConfiguration.HostUrl, QrCode.Ecc.Medium);
             using (var bitmap = qr.ToBitmap(10, 4))
             {
                 MemoryStream ms = new MemoryStream();  
